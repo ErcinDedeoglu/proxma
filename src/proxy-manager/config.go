@@ -35,12 +35,34 @@ func getEnvOrDefault(key, def string) string {
 }
 
 func getSSLConfig(labels map[string]string) SSLConfig {
+	// First check global SSL setting
 	globalEnabled, _ := strconv.ParseBool(getEnvOrDefault("PROXMA_SSL", "false"))
+	if !globalEnabled {
+		// If global SSL is disabled, return early with disabled config
+		return SSLConfig{
+			Enabled:       false,
+			Provider:      "",
+			Email:         "",
+			ExtraSettings: make(map[string]string),
+		}
+	}
+
+	// If we get here, global SSL is enabled, so check container-specific override
 	sslEnabled := globalEnabled
 	if val, exists := labels["proxma.ssl"]; exists {
 		containerEnabled, err := strconv.ParseBool(val)
 		if err == nil {
 			sslEnabled = containerEnabled
+		}
+	}
+
+	// Only proceed with other SSL settings if SSL is enabled
+	if !sslEnabled {
+		return SSLConfig{
+			Enabled:       false,
+			Provider:      "",
+			Email:         "",
+			ExtraSettings: make(map[string]string),
 		}
 	}
 

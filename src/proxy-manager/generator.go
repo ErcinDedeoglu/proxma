@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"syscall"
 
@@ -178,15 +179,21 @@ func generateConfigs(cli *client.Client) {
 }
 
 func issueSSLCertsIfMissing() {
+	globalSSLEnabled, _ := strconv.ParseBool(getEnvOrDefault("PROXMA_SSL", "false"))
+	if !globalSSLEnabled {
+		log.Println("SSL is globally disabled, skipping SSL certificate checks.")
+		return
+	}
+
 	confFiles, err := filepath.Glob("/etc/nginx/conf.d/*.conf")
 	if err != nil {
 		log.Println("Error finding conf files:", err)
 		return
 	}
 
-	email := os.Getenv("PROXMA_SSL_EMAIL")
+	email := getEnvOrDefault("PROXMA_SSL_EMAIL", "")
 	if email == "" {
-		log.Println("🚨 PROXMA_SSL_EMAIL not set, skipping SSL issuance.")
+		log.Println("🚨 PROXMA_SSL_EMAIL not set but SSL is enabled. SSL certificate issuance will be skipped.")
 		return
 	}
 

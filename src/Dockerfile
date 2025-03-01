@@ -24,7 +24,35 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     certbot \
     python3-certbot-nginx \
     cron \
-  && rm -rf /var/lib/apt/lists/*
+  && rm -rf /var/lib/apt/lists/* \
+  && adduser --system --no-create-home --shell /bin/false --group --disabled-login nginx \
+  && mkdir -p /var/log/nginx \
+  && mkdir -p /var/cache/nginx \
+  && mkdir -p /var/run/nginx \
+  && mkdir -p /var/lib/nginx \
+  && mkdir -p /var/www/html \
+  && chown -R nginx:nginx /var/log/nginx \
+  && chown -R nginx:nginx /var/cache/nginx \
+  && chown -R nginx:nginx /var/run/nginx \
+  && chown -R nginx:nginx /var/lib/nginx \
+  && chown -R nginx:nginx /var/www/html \
+  && touch /var/run/nginx.pid \
+  && chown nginx:nginx /var/run/nginx.pid
+
+RUN mkdir -p /var/www/default_page \
+  /var/www/certbot \
+  /etc/nginx/conf.d \
+  /etc/nginx/default_available \
+  /var/log/nginx \
+  /var/run/nginx \
+  /var/cache/nginx \
+  /var/lib/nginx \
+  && chown -R nginx:nginx /var/www/default_page \
+  && chown -R nginx:nginx /var/www/certbot \
+  && chown -R nginx:nginx /var/log/nginx \
+  && chown -R nginx:nginx /var/run/nginx \
+  && chown -R nginx:nginx /var/cache/nginx \
+  && chown -R nginx:nginx /var/lib/nginx
 
 # Install Docker CLI explicitly
 RUN curl -fsSL https://download.docker.com/linux/debian/gpg | \
@@ -48,7 +76,10 @@ RUN mkdir -p \
     /var/spool/cron/crontabs \
   && touch /etc/crontab \
   && chmod 600 /etc/crontab \
-  && chmod -R 600 /var/spool/cron/crontabs
+  && chmod -R 600 /var/spool/cron/crontabs \
+  && chown -R nginx:nginx /var/run/nginx \
+  && chown -R nginx:nginx /var/www/certbot \
+  && chown -R nginx:nginx /var/www/default_page
 
 # Explicitly copy default landing page HTML explicitly clearly
 COPY default_page/index.html /var/www/default_page/index.html
