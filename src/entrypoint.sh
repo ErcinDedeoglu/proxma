@@ -34,10 +34,6 @@ echo "🕑 Configuring cronjobs for SSL renewal and retries..."
 # Clearly ensure retry script is executable
 chmod +x /usr/local/bin/proxy-manager-retry.sh
 
-# Start cron service clearly (required explicitly for cronjobs)
-echo "🔄 Starting cron service..."
-service cron restart
-
 # Finally, supervise nginx and proxy-manager in the foreground explicitly
 echo "🎯 Starting supervisord clearly in foreground mode..."
 exec supervisord -c /etc/supervisor/conf.d/supervisor.conf
