@@ -5,9 +5,11 @@ services:
     container_name: proxma
     ports:
       - "80:80"
+      - "443:443"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - proxma_nginx_conf:/etc/nginx/conf.d
+      - letsencrypt_certificates:/etc/letsencrypt
     restart: always
 
   app1:
@@ -35,5 +37,16 @@ services:
       proxma.port: "80"
     restart: always
 
+  app4:
+    image: nginx:alpine
+    container_name: app4
+    labels:
+      proxma.ssl: "true"
+      proxma.hosts: "www.app4.com,app4.com"
+      proxma.redirects: "app4.com>www.app4.com"
+      proxma.port: "80"
+    restart: always
+
 volumes:
   proxma_nginx_conf:
+  letsencrypt_certificates:

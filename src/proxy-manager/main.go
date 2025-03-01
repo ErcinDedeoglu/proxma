@@ -14,18 +14,48 @@ import (
 	"github.com/docker/docker/client"
 )
 
-var nginxTemplate = template.Must(template.New("nginx").Parse(`
+var nginxTemplate = template.Must(template.New("nginx").Funcs(template.FuncMap{
+	"split": strings.Split,
+}).Parse(`
+
 {{range .Redirects}}
 server {
     listen 80;
     server_name {{.Source}};
-    return 301 $scheme://{{.Target}}$request_uri;
+    return 301 {{if $.SSL}}https{{else}}http{{end}}://{{.Target}}$request_uri;
 }
 {{end}}
 
 server {
     listen 80;
     server_name {{ .MainHosts }};
+    
+    {{if .SSL}}
+    location /.well-known/acme-challenge/ {
+        root /var/www/certbot;
+    }
+    location / {
+        return 301 https://$host$request_uri;
+    }
+    {{else}}
+    location / {
+        proxy_pass http://{{ .IP }}:{{ .Port }};
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+    {{end}}
+}
+
+{{if .SSL}}
+server {
+    listen 443 ssl;
+    server_name {{ .MainHosts }};
+    
+    ssl_certificate /etc/letsencrypt/live/{{(index (split .MainHosts " ") 0)}}/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/{{(index (split .MainHosts " ") 0)}}/privkey.pem;
+    
     location / {
         proxy_pass http://{{ .IP }}:{{ .Port }};
         proxy_set_header Host $host;
@@ -34,6 +64,8 @@ server {
         proxy_set_header X-Forwarded-Proto $scheme;
     }
 }
+{{end}}
+
 `))
 
 type NginxConf struct {
@@ -41,6 +73,7 @@ type NginxConf struct {
 	IP        string
 	Port      string
 	Redirects []Redirect
+	SSL       bool
 }
 
 type Redirect struct {
@@ -63,6 +96,10 @@ func generateConfigs(cli *client.Client) {
 		hostsLabel, hasHosts := labels["proxma.hosts"]
 		port, hasPort := labels["proxma.port"]
 		redirectsLabel, hasRedirects := labels["proxma.redirects"]
+		sslEnabled := false
+		if labels["proxma.ssl"] == "true" {
+			sslEnabled = true
+		}
 
 		if hasHosts && hasPort {
 			var ip string
@@ -121,6 +158,7 @@ func generateConfigs(cli *client.Client) {
 				IP:        ip,
 				Port:      port,
 				Redirects: redirects,
+				SSL:       sslEnabled,
 			})
 
 			conf.Close()
