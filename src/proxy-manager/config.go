@@ -37,8 +37,27 @@ func getEnvOrDefault(key, def string) string {
 func getSSLConfig(labels map[string]string) SSLConfig {
 	// First check global SSL setting
 	globalEnabled, _ := strconv.ParseBool(getEnvOrDefault("PROXMA_SSL", "false"))
+
+	// Debug log the global SSL setting
+	if logger.ShowDebug {
+		logger.Debug("Global SSL setting: %v", globalEnabled)
+	}
+
 	if !globalEnabled {
-		// If global SSL is disabled, return early with disabled config
+		// If global SSL is disabled, check container-specific override
+		if val, exists := labels["proxma.ssl"]; exists {
+			containerEnabled, err := strconv.ParseBool(val)
+			if err == nil && containerEnabled {
+				globalEnabled = true
+				if logger.ShowDebug {
+					logger.Debug("Container-specific SSL override: enabled")
+				}
+			}
+		}
+	}
+
+	// If we get here and SSL is still disabled, return early
+	if !globalEnabled {
 		return SSLConfig{
 			Enabled:       false,
 			Provider:      "",
@@ -47,28 +66,19 @@ func getSSLConfig(labels map[string]string) SSLConfig {
 		}
 	}
 
-	// If we get here, global SSL is enabled, so check container-specific override
-	sslEnabled := globalEnabled
-	if val, exists := labels["proxma.ssl"]; exists {
-		containerEnabled, err := strconv.ParseBool(val)
-		if err == nil {
-			sslEnabled = containerEnabled
-		}
-	}
-
-	// Only proceed with other SSL settings if SSL is enabled
-	if !sslEnabled {
-		return SSLConfig{
-			Enabled:       false,
-			Provider:      "",
-			Email:         "",
-			ExtraSettings: make(map[string]string),
-		}
-	}
+	// If we get here, SSL is enabled (either globally or container-specific)
+	sslEnabled := true
 
 	provider := strings.ToLower(getEnvOrDefault("PROXMA_SSL_PROVIDER", "letsencrypt"))
 	if val, exists := labels["proxma.ssl.provider"]; exists && val != "" {
 		provider = strings.ToLower(val)
+	}
+
+	// Check for development mode
+	devMode := false
+	if provider == "development" || provider == "self-signed" || provider == "dev" {
+		devMode = true
+		provider = "development"
 	}
 
 	email := getEnvOrDefault("PROXMA_SSL_EMAIL", "")
@@ -81,6 +91,11 @@ func getSSLConfig(labels map[string]string) SSLConfig {
 		if strings.HasPrefix(k, "proxma.ssl.") && k != "proxma.ssl" && k != "proxma.ssl.provider" && k != "proxma.ssl.email" {
 			extras[k] = v
 		}
+	}
+
+	// Add development mode flag to extras
+	if devMode {
+		extras["development_mode"] = "true"
 	}
 
 	return SSLConfig{

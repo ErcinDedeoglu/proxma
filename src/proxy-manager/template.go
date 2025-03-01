@@ -1,12 +1,15 @@
 package main
 
 import (
+	"fmt"
+	"os"
 	"strings"
 	"text/template"
 )
 
 var nginxTemplate = template.Must(template.New("nginx").Funcs(template.FuncMap{
-	"split": strings.Split,
+	"split":      strings.Split,
+	"certExists": certificateExists,
 }).Parse(`
 # SSL_PROVIDER: {{.SSLProvider}}
 # SSL_EMAIL: {{.SSLEmail}}
@@ -14,7 +17,7 @@ var nginxTemplate = template.Must(template.New("nginx").Funcs(template.FuncMap{
 server {
     listen 80;
     server_name {{.Source}};
-    return 301 {{if $.SSL}}https{{else}}http{{end}}://{{.Target}}$request_uri;
+    return 301 {{if and $.SSL (certExists (index (split $.MainHosts " ") 0))}}https{{else}}http{{end}}://{{.Target}}$request_uri;
 }
 {{end}}
 server {
@@ -25,9 +28,21 @@ server {
     location /.well-known/acme-challenge/ {
         root /var/www/certbot;
     } 
+    {{if certExists (index (split .MainHosts " ") 0)}}
     location / {
         return 301 https://$host$request_uri;
     }
+    {{else}}
+    # SSL is enabled but certificates don't exist yet
+    # Serve the application over HTTP until certificates are issued
+    location / {
+        proxy_pass http://{{ .IP }}:{{ .Port }};
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+    {{end}}
     {{else}}
     location / {
         proxy_pass http://{{ .IP }}:{{ .Port }};
@@ -38,7 +53,7 @@ server {
     }
     {{end}}
 }
-{{if .SSL}}
+{{if and .SSL (certExists (index (split .MainHosts " ") 0))}}
 server {
     listen 443 ssl;
     server_name {{ .MainHosts }};
@@ -56,3 +71,9 @@ server {
 }
 {{end}}
 `))
+
+func certificateExists(domain string) bool {
+	certPath := fmt.Sprintf("/etc/certificates/live/%s/fullchain.pem", domain)
+	_, err := os.Stat(certPath)
+	return err == nil
+}
