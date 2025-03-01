@@ -44,8 +44,8 @@ func generateConfigs(cli *client.Client) {
 	activeConfs := make(map[string]bool)
 	for _, c := range containers {
 		labels := c.Labels
-		host, hasHost := labels["reverse-proxy.host"]
-		port, hasPort := labels["reverse-proxy.port"]
+		host, hasHost := labels["proxma.host"]
+		port, hasPort := labels["proxma.port"]
 		if hasHost && hasPort {
 			inspect, err := cli.ContainerInspect(ctx, c.ID)
 			if err != nil {

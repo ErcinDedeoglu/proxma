@@ -1,0 +1,30 @@
+version: '3.8'
+services:
+  proxma:
+    image: dublok/proxma:latest
+    container_name: proxma
+    ports:
+      - "80:80"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - proxma_nginx_conf:/etc/nginx/conf.d
+    restart: always
+
+  app1:
+    image: nginx:alpine
+    container_name: app1
+    labels:
+      proxma.host: "app1.example.com"
+      proxma.port: "80"
+    restart: always
+
+  app2:
+    image: httpd:alpine
+    container_name: app2
+    labels:
+      proxma.host: "app2.example.com"
+      proxma.port: "80"
+    restart: always
+
+volumes:
+  proxma_nginx_conf:
