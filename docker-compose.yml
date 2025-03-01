@@ -6,7 +6,8 @@ services:
     ports:
       - "80:80"
       - "443:443"
-  # environment:
+    environment:
+      - PROXMA_DEBUG=true
   #   PROXMA_SSL: "true" #(default: false)
   #   PROXMA_SSL_PROVIDER: "zerossl" #(default: letsencrypt; case insensitive)
   #   PROXMA_SSL_EMAIL: "info@domain.com"

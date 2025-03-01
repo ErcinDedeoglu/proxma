@@ -14,15 +14,22 @@ import (
 	"github.com/docker/docker/client"
 )
 
+var logger *Logger
+
+func init() {
+	// Initialize logger with debug mode based on environment variable
+	debug := getEnvOrDefault("PROXMA_DEBUG", "false") == "true"
+	logger = NewLogger(debug)
+}
+
 func handleContainer(cli *client.Client, c container.Summary) error {
 	labels := c.Labels
 
-	// Check if this container has any proxma-related labels
 	if !hasProxmaLabels(labels) {
-		return nil // Silently skip containers without proxma labels
+		logger.Debug("Skipping container %s: no proxma labels", c.Names[0])
+		return nil
 	}
 
-	// Now check required labels
 	hostsLabel, hasHosts := labels["proxma.hosts"]
 	port, hasPort := labels["proxma.port"]
 	if !(hasHosts && hasPort) {
@@ -81,6 +88,9 @@ func handleContainer(cli *client.Client, c container.Summary) error {
 		mainHostsSlice = append(mainHostsSlice, host)
 	}
 
+	// Print formatted container configuration using logger
+	logger.Info("\n" + logger.FormatContainerConfig(c, ip, sslConfig, mainHostsSlice, redirects, port))
+
 	confDir := "/tmp/nginx_conf_temp"
 	confName := fmt.Sprintf("%s/%s.conf", confDir, strings.TrimPrefix(c.Names[0], "/"))
 	confFile, err := os.Create(confName)
@@ -102,6 +112,7 @@ func handleContainer(cli *client.Client, c container.Summary) error {
 		return fmt.Errorf("error executing nginx template for %s: %w", c.Names[0], err)
 	}
 
+	logger.Success("Generated configuration for %s", c.Names[0])
 	return nil
 }
 
@@ -114,90 +125,216 @@ func hasProxmaLabels(labels map[string]string) bool {
 	return false
 }
 
+func ensureDefaultConfig(configDir string) error {
+	defaultConfPath := filepath.Join(configDir, "default.conf")
+
+	// Check if default config already exists
+	if _, err := os.Stat(defaultConfPath); err == nil {
+		return nil
+	}
+
+	// Create default configuration content
+	defaultConfig := `server {
+    listen 80 default_server;
+    listen [::]:80 default_server;
+    
+    server_name _;
+    root /var/www/default_page;
+    
+    location / {
+        try_files $uri $uri/ =404;
+    }
+
+    location /.well-known/acme-challenge/ {
+        root /var/www/certbot;
+    }
+}`
+
+	// Write default configuration
+	err := os.WriteFile(defaultConfPath, []byte(defaultConfig), 0644)
+	if err != nil {
+		return fmt.Errorf("failed to write default configuration: %v", err)
+	}
+
+	logger.Info("Created default nginx configuration")
+	return nil
+}
+
+func updateConfigFiles(tempDir, finalDir string) error {
+	// Read all new configuration files
+	newConfigs, err := filepath.Glob(filepath.Join(tempDir, "*.conf"))
+	if err != nil {
+		return fmt.Errorf("error reading new configs: %v", err)
+	}
+
+	// Read existing configuration files
+	existingConfigs, err := filepath.Glob(filepath.Join(finalDir, "*.conf"))
+	if err != nil {
+		return fmt.Errorf("error reading existing configs: %v", err)
+	}
+
+	// Create a map of existing configs for quick lookup
+	existingConfigMap := make(map[string]bool)
+	for _, conf := range existingConfigs {
+		existingConfigMap[filepath.Base(conf)] = true
+	}
+
+	// Remove old configurations that are no longer needed
+	for _, oldConf := range existingConfigs {
+		baseName := filepath.Base(oldConf)
+		newConfPath := filepath.Join(tempDir, baseName)
+		if _, err := os.Stat(newConfPath); os.IsNotExist(err) {
+			if err := os.Remove(oldConf); err != nil {
+				logger.Warning("Failed to remove old config %s: %v", oldConf, err)
+			} else {
+				logger.Debug("Removed old config: %s", baseName)
+			}
+		}
+	}
+
+	// Copy new configurations
+	for _, newConf := range newConfigs {
+		baseName := filepath.Base(newConf)
+		targetPath := filepath.Join(finalDir, baseName)
+
+		// Read new config content
+		content, err := os.ReadFile(newConf)
+		if err != nil {
+			return fmt.Errorf("error reading new config %s: %v", baseName, err)
+		}
+
+		// Write to target location
+		if err := os.WriteFile(targetPath, content, 0644); err != nil {
+			return fmt.Errorf("error writing config %s: %v", baseName, err)
+		}
+
+		logger.Debug("Updated config: %s", baseName)
+	}
+
+	return nil
+}
+
 func generateConfigs(cli *client.Client) {
 	// Acquire lock to ensure only one instance runs simultaneously
 	lockFilePath := "/tmp/proxma.lock"
 	lockFile, err := os.OpenFile(lockFilePath, os.O_CREATE|os.O_RDWR, 0644)
 	if err != nil {
-		log.Printf("🚨 Cannot create/open lock file: %v", err)
+		logger.Error("Cannot create/open lock file: %v", err)
 		return
 	}
 	defer lockFile.Close()
 
 	err = syscall.Flock(int(lockFile.Fd()), syscall.LOCK_EX|syscall.LOCK_NB)
 	if err != nil {
-		log.Println("🔒 Another configuration regeneration is running. Skipping this regeneration.")
+		logger.Warning("Another configuration regeneration is running. Skipping this regeneration.")
 		return
 	}
 	defer syscall.Flock(int(lockFile.Fd()), syscall.LOCK_UN)
 
-	log.Println("🔓 Lock acquired. Regenerating configurations now.")
+	// Print start process message
+	logger.Info("\n%s", logger.StartProcess())
 
+	// List all running containers
 	containers, err := listContainers(cli)
 	if err != nil {
-		log.Printf("Error listing containers: %v", err)
+		logger.Error("Failed to list containers: %v", err)
 		return
 	}
 
+	// Directory setup
 	tempDir := "/tmp/nginx_conf_temp"
 	finalDir := "/etc/nginx/conf.d"
-	backupDir := "/etc/nginx/conf.d.backup"
-	os.RemoveAll(tempDir)
-	os.MkdirAll(tempDir, 0755)
 
+	// Clean and create temp directory
+	if err := os.RemoveAll(tempDir); err != nil {
+		logger.Debug("Removing temp directory: %v", err)
+	}
+	if err := os.MkdirAll(tempDir, 0755); err != nil {
+		logger.Error("Failed to create temp directory: %v", err)
+		return
+	}
+
+	// Process containers and generate configs
 	problematicContainers := 0
 	configuredContainers := 0
+	var errors []string
 
+	// Process each container
 	for _, c := range containers {
 		err := handleContainer(cli, c)
 		if err != nil {
 			problematicContainers++
-			log.Printf("⚠️ %v", err)
+			errors = append(errors, fmt.Sprintf("%s: %v", strings.TrimPrefix(c.Names[0], "/"), err))
+			logger.Error("Container %s: %v", c.Names[0], err)
 		} else if hasProxmaLabels(c.Labels) {
 			configuredContainers++
 		}
 	}
 
-	if problematicContainers > 0 {
-		log.Printf("Completed regeneration with ⚠️ %d problematic containers out of %d configured containers.",
-			problematicContainers, configuredContainers)
-	} else if configuredContainers > 0 {
-		log.Printf("✅ Successfully configured %d containers.", configuredContainers)
-	} else {
-		log.Printf("ℹ️ No containers configured for proxying.")
+	// Print summary report
+	logger.Info("\n%s", logger.CreateSummaryReport(len(containers), configuredContainers, problematicContainers, errors))
+
+	// If no valid configurations were generated, clean up and exit
+	newConfigs, err := filepath.Glob(filepath.Join(tempDir, "*.conf"))
+	if err != nil {
+		logger.Error("Failed to check for generated configs: %v", err)
+		return
 	}
 
-	// Validate configs
+	if len(newConfigs) == 0 {
+		logger.Warning("No valid configurations were generated")
+		// Ensure default configuration exists
+		err = ensureDefaultConfig(finalDir)
+		if err != nil {
+			logger.Error("Failed to ensure default configuration: %v", err)
+		}
+		return
+	}
+
+	// Validate nginx configs
+	logger.Info("Testing nginx configuration...")
 	output, err := exec.Command("nginx", "-t", "-c", "/etc/nginx/nginx.conf").CombinedOutput()
 	if err != nil {
-		log.Printf("Nginx test failed: %s", output)
+		logger.Error("Nginx configuration test failed: %s", output)
 		return
 	}
+	logger.Success("Nginx configuration test passed")
 
-	// Atomic directory replacement
-	os.RemoveAll(backupDir)
-	if _, err := os.Stat(finalDir); err == nil {
-		os.Rename(finalDir, backupDir)
+	// Update configuration files
+	logger.Info("Updating nginx configuration files...")
+	if err := updateConfigFiles(tempDir, finalDir); err != nil {
+		logger.Error("Failed to update configuration files: %v", err)
+		return
 	}
-	os.Rename(tempDir, finalDir)
+	logger.Success("Configuration files updated successfully")
 
 	// Reload NGINX gracefully
-	err = exec.Command("nginx", "-s", "reload").Run()
-	if err != nil {
-		log.Printf("Reload failed; reverting to backup: %v", err)
-		os.RemoveAll(finalDir)
-		os.Rename(backupDir, finalDir)
-		exec.Command("nginx", "-s", "reload").Run()
+	logger.Info("Reloading nginx...")
+	if err := exec.Command("nginx", "-s", "reload").Run(); err != nil {
+		logger.Error("Nginx reload failed: %v", err)
+		// Try to recover by ensuring default config
+		if err := ensureDefaultConfig(finalDir); err != nil {
+			logger.Error("Failed to recover with default configuration: %v", err)
+		}
 		return
 	}
+	logger.Success("Nginx configuration reloaded successfully")
 
-	// Check SSL certificates if needed
+	// Check and handle SSL certificates if enabled
 	globalSSLEnabled, _ := strconv.ParseBool(getEnvOrDefault("PROXMA_SSL", "false"))
 	if globalSSLEnabled {
+		logger.Info("Processing SSL certificates...")
 		issueSSLCertsIfMissing()
 	} else {
-		log.Println("SSL is globally disabled, skipping SSL certificate checks.")
+		logger.Info("SSL is globally disabled, skipping SSL certificate checks")
 	}
+
+	// Final cleanup
+	if err := os.RemoveAll(tempDir); err != nil {
+		logger.Debug("Failed to clean up temp directory: %v", err)
+	}
+
+	logger.Success("Configuration generation completed successfully")
 }
 
 func issueSSLCertsIfMissing() {
