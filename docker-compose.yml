@@ -6,6 +6,11 @@ services:
     ports:
       - "80:80"
       - "443:443"
+  # environment:
+  #   PROXMA_SSL: "true" #(default: false)
+  #   PROXMA_SSL_PROVIDER: "zerossl" #(default: letsencrypt; case insensitive)
+  #   PROXMA_SSL_EMAIL: "info@domain.com"
+  #   PROXMA_SSL_ZEROSSL_API_KEY: "your-zerossl-api-key-here" # Optional for ACME providers requiring extra auth
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - proxma_nginx_conf:/etc/nginx/conf.d
@@ -37,17 +42,17 @@ services:
       proxma.port: "80"
     restart: always
 
-app4:
-  image: nginx:alpine
-  container_name: app4
-  labels:
-    proxma.ssl: "true"                          # Overrides global PROXMA_SSL (default false)
-    proxma.ssl.provider: "zerossl"              # Overrides global provider (default letsencrypt)
-    proxma.ssl.email: "info@app4.com"           # Overrides global email
-    proxma.hosts: "www.app4.com,app4.com"
-    proxma.redirects: "app4.com>www.app4.com"
-    proxma.port: "80"
-  restart: always
+# app4:
+#   image: nginx:alpine
+#   container_name: app4
+#   labels:
+#     proxma.ssl: "true"                          # Overrides global PROXMA_SSL (default false)
+#     proxma.ssl.provider: "zerossl"              # Overrides global provider (default letsencrypt)
+#     proxma.ssl.email: "info@app4.com"           # Overrides global email
+#     proxma.hosts: "www.app4.com,app4.com"
+#     proxma.redirects: "app4.com>www.app4.com"
+#     proxma.port: "80"
+#   restart: always
 
 volumes:
   proxma_nginx_conf:
