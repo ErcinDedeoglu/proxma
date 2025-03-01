@@ -14,7 +14,7 @@ services:
     image: nginx:alpine
     container_name: app1
     labels:
-      proxma.host: "app1.example.com"
+      proxma.hosts: "app1.example.com,www.app1.example.com,sub.app1.example.com"
       proxma.port: "80"
     restart: always
 
@@ -22,7 +22,7 @@ services:
     image: httpd:alpine
     container_name: app2
     labels:
-      proxma.host: "app2.example.com"
+      proxma.hosts: "app2.example.com"
       proxma.port: "80"
     restart: always
 

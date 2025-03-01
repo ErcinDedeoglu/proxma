@@ -7,6 +7,7 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"strings"
 	"text/template"
 
 	"github.com/docker/docker/api/types/container"
@@ -16,7 +17,7 @@ import (
 var nginxTemplate = template.Must(template.New("nginx").Parse(`
 server {
     listen 80;
-    server_name {{ .Host }};
+    server_name {{ .Hosts }};
     location / {
         proxy_pass http://{{ .IP }}:{{ .Port }};
         proxy_set_header Host $host;
@@ -27,10 +28,11 @@ server {
 }
 `))
 
+// Update struct to include Hosts (string with spaces)
 type NginxConf struct {
-	Host string
-	IP   string
-	Port string
+	Hosts string
+	IP    string
+	Port  string
 }
 
 func generateConfigs(cli *client.Client) {
@@ -42,17 +44,19 @@ func generateConfigs(cli *client.Client) {
 	}
 	os.MkdirAll("/etc/nginx/conf.d", 0755)
 	activeConfs := make(map[string]bool)
+
 	for _, c := range containers {
 		labels := c.Labels
-		host, hasHost := labels["proxma.host"]
+		hostsLabel, hasHosts := labels["proxma.hosts"]
 		port, hasPort := labels["proxma.port"]
-		if hasHost && hasPort {
+
+		if hasHosts && hasPort {
 			inspect, err := cli.ContainerInspect(ctx, c.ID)
 			if err != nil {
 				log.Printf("Failed inspecting container %v: %v", c.ID, err)
 				continue
 			}
-			var ip string
+			ip := ""
 			for _, net := range inspect.NetworkSettings.Networks {
 				ip = net.IPAddress
 				break
@@ -60,18 +64,27 @@ func generateConfigs(cli *client.Client) {
 			if ip == "" {
 				continue
 			}
-			confName := fmt.Sprintf("/etc/nginx/conf.d/%s.conf", host)
-			f, err := os.Create(confName)
+
+			// generate config filename based on container name or ID
+			confName := fmt.Sprintf("/etc/nginx/conf.d/%s.conf", c.Names[0][1:]) // strip leading "/"
+			conf, err := os.Create(confName)
 			if err != nil {
 				log.Printf("Error creating config: %v", err)
 				continue
 			}
-			nginxTemplate.Execute(f, NginxConf{Host: host, IP: ip, Port: port})
-			f.Close()
+
+			// Replace comma with space for nginx "server_name"
+			serverNames := strings.ReplaceAll(hostsLabel, ",", " ")
+
+			nginxTemplate.Execute(conf, NginxConf{Hosts: serverNames, IP: ip, Port: port})
+			conf.Close()
 			activeConfs[confName] = true
-			log.Printf("Configured host: %s -> %s:%s", host, ip, port)
+
+			log.Printf("Configured hosts [%s] -> %s:%s", serverNames, ip, port)
 		}
 	}
+
+	// Clean stale configurations
 	files, err := os.ReadDir("/etc/nginx/conf.d")
 	if err != nil {
 		log.Printf("Error reading directory: %v", err)
@@ -84,6 +97,8 @@ func generateConfigs(cli *client.Client) {
 			log.Printf("Removed stale config: %s", file.Name())
 		}
 	}
+
+	// Reload nginx
 	if err := exec.Command("nginx", "-s", "reload").Run(); err != nil {
 		log.Printf("Failed to reload nginx: %v", err)
 	} else {
