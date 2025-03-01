@@ -43,8 +43,8 @@ server {
     listen 443 ssl;
     server_name {{ .MainHosts }};
     
-    ssl_certificate /etc/letsencrypt/live/{{(index (split .MainHosts " ") 0)}}/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/{{(index (split .MainHosts " ") 0)}}/privkey.pem;
+    ssl_certificate /etc/certificates/live/{{(index (split .MainHosts " ") 0)}}/fullchain.pem;
+    ssl_certificate_key /etc/certificates/live/{{(index (split .MainHosts " ") 0)}}/privkey.pem;
     
     location / {
         proxy_pass http://{{ .IP }}:{{ .Port }};

@@ -14,7 +14,7 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - proxma_nginx_conf:/etc/nginx/conf.d
-      - letsencrypt_certificates:/etc/letsencrypt
+      - certificates:/etc/certificates
     restart: always
 
   app1:
@@ -56,4 +56,4 @@ services:
 
 volumes:
   proxma_nginx_conf:
-  letsencrypt_certificates:
+  certificates:

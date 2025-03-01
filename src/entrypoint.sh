@@ -4,14 +4,14 @@ set -e
 mkdir -p /var/www/certbot
 rm -f /etc/nginx/conf.d/*.conf
 
-# Run proxy-manager to generate initial configs (no SSL)
+# Initial proxy config generation
 proxy-manager & sleep 3 && kill $!
 
-# Temporarily start nginx to issue certificates via certbot (stop after)
+# Temporarily start nginx without SSL configs, then stop it afterwards
 sed -i '/ssl_certificate/d; /listen 443 ssl/d; /return 301 https/d' /etc/nginx/conf.d/*.conf
 nginx && sleep 5 && nginx -s stop
 
-# Issue certificates based on generated nginx configs
+# Clearly issue certificates based on generated conf files
 for conf in /etc/nginx/conf.d/*.conf; do
   if grep -q '/.well-known/acme-challenge/' "$conf"; then
     DOMAIN=$(grep server_name "$conf" | head -1 | awk '{print $2}' | tr -d ';')
@@ -25,23 +25,28 @@ for conf in /etc/nginx/conf.d/*.conf; do
       ACME_SERVER="https://api.buypass.com/acme/directory"
     fi
 
-    if [ ! -d "/etc/letsencrypt/live/$DOMAIN" ]; then
+    if [ ! -d "/etc/certificates/live/$DOMAIN" ]; then
       certbot certonly --webroot -w /var/www/certbot \
         --server "$ACME_SERVER" \
         --agree-tos --non-interactive \
+        --config-dir /etc/certificates \
+        --work-dir /etc/certificates/work \
+        --logs-dir /etc/certificates/log \
         --email "$EMAIL" \
         $(grep server_name "$conf" | head -1 | awk '{for(i=2;i<=NF;i++)print "-d "$i}' | tr -d ';')
     fi
   fi
 done
 
-# Now regenerate nginx configs to enable SSL fully
+# Finally regenerate configs with SSL clearly
 rm -f /etc/nginx/conf.d/*.conf
 proxy-manager & sleep 3 && kill $!
 
-# DO NOT start nginx again manually here, supervisord will start it!
-# Setup cron job for renewals clearly
-echo "0 2 * * * certbot renew --webroot -w /var/www/certbot --post-hook='nginx -s reload'" | crontab -
+# Setup renewal cronjob using your explicit new directories
+echo "0 2 * * * certbot renew --webroot -w /var/www/certbot \
+ --config-dir /etc/certificates --work-dir /etc/certificates/work \
+ --logs-dir /etc/certificates/log \
+ --post-hook='nginx -s reload'" | crontab -
 
-# Finally start supervisord (it will manage cron, nginx, proxy-manager)
+# Launch supervisord
 exec supervisord -c /etc/supervisor/conf.d/supervisor.conf
