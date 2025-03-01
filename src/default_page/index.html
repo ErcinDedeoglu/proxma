@@ -1,27 +1,26 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>proxma - Docker Proxy Manager</title>
-  <style>
-    body {font-family: Arial, sans-serif; text-align:center; margin:50px;}
-    h1 {color: #337ab7;}
-    p {margin-top: 30px;color: #555;}
-    a.button {
-      display:inline-block; background:#337ab7; 
-      color:white; padding:10px 15px; text-decoration:none; 
-      border-radius:5px; margin:20px auto;}
-  </style>
+    <title>proxma Proxy Manager</title>
+    <style>
+        body {font-family: Arial, sans-serif; text-align: center; margin-top: 40px;}
+        h1 {color: #337ab7;}
+        p {color: #444;}
+        pre {background:#f4f4f4; padding:10px; margin:10px auto; width:fit-content;}
+        a.button {
+            background:#337ab7; color:white; padding:7px 14px;
+            border-radius:4px; text-decoration:none; display:inline-block; margin-top:10px;}
+    </style>
 </head>
 <body>
-  <h1>🚀 Welcome to proxma!</h1>
-  <p><strong>No website</strong> has been explicitly configured for this address yet.</p>
-  <p>To proxy your Docker container, clearly label it as follows:</p>
-  <pre>
-proxma.hosts: "yourdomain.com"
+    <h1>🚀 Welcome to proxma!</h1>
+    <p>You're seeing this default landing page because no explicit proxma domain configuration was found yet.</p>
+    <p><strong>To set up your own container</strong>, simply add labels explicitly:</p>
+    <pre>
+proxma.hosts: "example.com,www.example.com"
 proxma.port: "80"
-  </pre>
-  <p>Need help? Visit our documentation here:</p>
-  <a class="button" href="https://github.com/ercindedeoglu/proxma">📖 proxma Documentation</a>
-  <p style="color:#aaa; margin-top:40px;">Powered by ✅ proxma - Supercharging your container hosting experience!</p>
+    </pre>
+    <a class="button" href="https://github.com/ercindedeoglu/proxma">proxma Documentation</a>
+    <p style="margin-top:60px;color:#888;">Powered by proxma Docker Proxy Manager</p>
 </body>
 </html>
