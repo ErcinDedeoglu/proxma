@@ -15,9 +15,17 @@ import (
 )
 
 var nginxTemplate = template.Must(template.New("nginx").Parse(`
+{{range .Redirects}}
 server {
     listen 80;
-    server_name {{ .Hosts }};
+    server_name {{.Source}};
+    return 301 $scheme://{{.Target}}$request_uri;
+}
+{{end}}
+
+server {
+    listen 80;
+    server_name {{ .MainHosts }};
     location / {
         proxy_pass http://{{ .IP }}:{{ .Port }};
         proxy_set_header Host $host;
@@ -28,11 +36,16 @@ server {
 }
 `))
 
-// Update struct to include Hosts (string with spaces)
 type NginxConf struct {
-	Hosts string
-	IP    string
-	Port  string
+	MainHosts string
+	IP        string
+	Port      string
+	Redirects []Redirect
+}
+
+type Redirect struct {
+	Source string
+	Target string
 }
 
 func generateConfigs(cli *client.Client) {
@@ -49,14 +62,16 @@ func generateConfigs(cli *client.Client) {
 		labels := c.Labels
 		hostsLabel, hasHosts := labels["proxma.hosts"]
 		port, hasPort := labels["proxma.port"]
+		redirectsLabel, hasRedirects := labels["proxma.redirects"]
 
 		if hasHosts && hasPort {
+			var ip string
 			inspect, err := cli.ContainerInspect(ctx, c.ID)
 			if err != nil {
 				log.Printf("Failed inspecting container %v: %v", c.ID, err)
 				continue
 			}
-			ip := ""
+
 			for _, net := range inspect.NetworkSettings.Networks {
 				ip = net.IPAddress
 				break
@@ -65,22 +80,52 @@ func generateConfigs(cli *client.Client) {
 				continue
 			}
 
-			// generate config filename based on container name or ID
-			confName := fmt.Sprintf("/etc/nginx/conf.d/%s.conf", c.Names[0][1:]) // strip leading "/"
+			mainHostsSet := make(map[string]bool)
+			for _, h := range strings.Split(hostsLabel, ",") {
+				mainHostsSet[strings.TrimSpace(h)] = true
+			}
+
+			redirects := []Redirect{}
+			if hasRedirects {
+				redirectPairs := strings.Split(redirectsLabel, ",")
+				for _, pair := range redirectPairs {
+					parts := strings.Split(pair, ">")
+					if len(parts) == 2 {
+						src := strings.TrimSpace(parts[0])
+						dst := strings.TrimSpace(parts[1])
+						if src != "" && dst != "" {
+							redirects = append(redirects, Redirect{Source: src, Target: dst})
+							// Remove redirect source from main hosts if present
+							delete(mainHostsSet, src)
+						}
+					}
+				}
+			}
+
+			// Remaining hosts after removing redirect sources
+			mainHostsSlice := []string{}
+			for host := range mainHostsSet {
+				mainHostsSlice = append(mainHostsSlice, host)
+			}
+
+			// Generate config filename based on container name
+			confName := fmt.Sprintf("/etc/nginx/conf.d/%s.conf", c.Names[0][1:])
 			conf, err := os.Create(confName)
 			if err != nil {
 				log.Printf("Error creating config: %v", err)
 				continue
 			}
 
-			// Replace comma with space for nginx "server_name"
-			serverNames := strings.ReplaceAll(hostsLabel, ",", " ")
+			nginxTemplate.Execute(conf, NginxConf{
+				MainHosts: strings.Join(mainHostsSlice, " "),
+				IP:        ip,
+				Port:      port,
+				Redirects: redirects,
+			})
 
-			nginxTemplate.Execute(conf, NginxConf{Hosts: serverNames, IP: ip, Port: port})
 			conf.Close()
 			activeConfs[confName] = true
-
-			log.Printf("Configured hosts [%s] -> %s:%s", serverNames, ip, port)
+			log.Printf("Configured hosts [%s] with redirects [%v] -> %s:%s", strings.Join(mainHostsSlice, " "), redirects, ip, port)
 		}
 	}
 

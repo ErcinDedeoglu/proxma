@@ -26,5 +26,14 @@ services:
       proxma.port: "80"
     restart: always
 
+  app3:
+    image: nginx:alpine
+    container_name: app3
+    labels:
+      proxma.hosts: "www.app3.example.com,app3.example.com"
+      proxma.redirects: "app3.example.com>www.app3.example.com"
+      proxma.port: "80"
+    restart: always
+
 volumes:
   proxma_nginx_conf:
