@@ -3,20 +3,17 @@ package main
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/docker/docker/api/types/container"
 )
 
-// ANSI color codes for prettier console output
 const (
-	colorReset  = "\033[0m"
-	colorRed    = "\033[31m"
-	colorGreen  = "\033[32m"
-	colorYellow = "\033[33m"
-	colorBlue   = "\033[34m"
-	colorPurple = "\033[35m"
-	colorCyan   = "\033[36m"
-	colorGray   = "\033[37m"
+	prefixInfo    = "[INFO] "
+	prefixSuccess = "[OK] "
+	prefixWarning = "[WARN] "
+	prefixError   = "[ERROR] "
+	prefixDebug   = "[DEBUG] "
 )
 
 // Logger struct to handle all logging operations
@@ -31,131 +28,143 @@ func NewLogger(debug bool) *Logger {
 	}
 }
 
-// createBox creates a boxed text display
-func (l *Logger) createBox(title string, content []string) string {
-	width := 80
-	var sb strings.Builder
-
-	// Calculate padding based on content
-	padding := 2 // Minimum padding on each side
-	maxContentLength := len(title)
-	for _, line := range content {
-		if len(line) > maxContentLength {
-			maxContentLength = len(line)
-		}
+// Basic logging methods
+func (l *Logger) Debug(format string, v ...interface{}) {
+	if l.ShowDebug {
+		fmt.Printf(prefixDebug+format+"\n", v...)
 	}
-	width = maxContentLength + (padding * 2) + 2 // +2 for borders
-
-	// Top border with title
-	sb.WriteString("╔═" + title + strings.Repeat("═", width-len(title)-3) + "╗\n")
-
-	// Content
-	for _, line := range content {
-		paddingRight := width - len(line) - 3
-		if paddingRight < 0 {
-			paddingRight = 0
-		}
-		sb.WriteString("║ " + line + strings.Repeat(" ", paddingRight) + "║\n")
-	}
-
-	// Bottom border
-	sb.WriteString("╚" + strings.Repeat("═", width-2) + "╝\n")
-
-	return sb.String()
 }
 
-// FormatContainerConfig formats container configuration details
-func (l *Logger) FormatContainerConfig(c container.Summary, ip string, sslConfig SSLConfig, hosts []string, redirects []Redirect, port string) string {
-	var details []string
-
-	// Container Info
-	details = append(details, colorCyan+"Container:"+colorReset+" "+strings.TrimPrefix(c.Names[0], "/"))
-	details = append(details, colorCyan+"Image:"+colorReset+"    "+c.Image)
-	details = append(details, colorCyan+"Network:"+colorReset+"   "+ip+":"+port)
-
-	// Hosts Configuration
-	details = append(details, "")
-	details = append(details, colorGreen+"Hosts:"+colorReset)
-	for _, host := range hosts {
-		details = append(details, "  • "+host)
-	}
-
-	// Redirects Configuration
-	if len(redirects) > 0 {
-		details = append(details, "")
-		details = append(details, colorYellow+"Redirects:"+colorReset)
-		for _, redirect := range redirects {
-			details = append(details, "  • "+redirect.Source+" → "+redirect.Target)
-		}
-	}
-
-	// SSL Configuration
-	details = append(details, "")
-	details = append(details, colorPurple+"SSL Configuration:"+colorReset)
-	if sslConfig.Enabled {
-		details = append(details, "  • Status:   "+colorGreen+"Enabled"+colorReset)
-		details = append(details, "  • Provider: "+sslConfig.Provider)
-		details = append(details, "  • Email:    "+sslConfig.Email)
-	} else {
-		details = append(details, "  • Status:   "+colorGray+"Disabled"+colorReset)
-	}
-
-	return l.createBox("📋 Container Configuration", details)
+func (l *Logger) Info(format string, v ...interface{}) {
+	fmt.Printf(prefixInfo+format+"\n", v...)
 }
 
-// CreateSummaryReport creates a summary of the configuration process
-func (l *Logger) CreateSummaryReport(total, configured, problematic int, errors []string) string {
-	var details []string
+func (l *Logger) Warning(format string, v ...interface{}) {
+	fmt.Printf(prefixWarning+format+"\n", v...)
+}
 
-	// Statistics
-	details = append(details, colorCyan+"Statistics:"+colorReset)
-	details = append(details, fmt.Sprintf("  • Total Containers:      %d", total))
-	details = append(details, fmt.Sprintf("  • Configured:           %s%d%s", colorGreen, configured, colorReset))
-	if problematic > 0 {
-		details = append(details, fmt.Sprintf("  • Problematic:          %s%d%s", colorRed, problematic, colorReset))
-	}
+func (l *Logger) Error(format string, v ...interface{}) {
+	fmt.Printf(prefixError+format+"\n", v...)
+}
 
-	// Errors (if any)
-	if len(errors) > 0 {
-		details = append(details, "")
-		details = append(details, colorRed+"Errors:"+colorReset)
-		for _, err := range errors {
-			details = append(details, "  • "+err)
-		}
-	}
+func (l *Logger) Success(format string, v ...interface{}) {
+	fmt.Printf(prefixSuccess+format+"\n", v...)
+}
 
-	return l.createBox("📊 Configuration Summary", details)
+// logSection prints a section header
+func (l *Logger) logSection(title string) {
+	fmt.Printf("\n=== %s ===\n", title)
 }
 
 // StartProcess logs the start of configuration generation
-func (l *Logger) StartProcess() string {
-	return l.createBox("🚀 proxma Configuration Generation",
-		[]string{"Starting configuration generation process..."})
+func (l *Logger) StartProcess() {
+	l.logSection("proxma Configuration Generation")
+	l.Info("Version: %s", getVersion())
+	l.Info("Time: %s", time.Now().Format("2006-01-02 15:04:05"))
+	fmt.Println()
 }
 
-// Debug logs debug messages if debug mode is enabled
-func (l *Logger) Debug(format string, v ...interface{}) {
-	if l.ShowDebug {
-		fmt.Printf(colorGray+"DEBUG: "+format+colorReset+"\n", v...)
+// LogContainerConfig logs container configuration details
+func (l *Logger) LogContainerConfig(c container.Summary, ip string, sslConfig SSLConfig, hosts []string, redirects []Redirect, port string) {
+	containerName := strings.TrimPrefix(c.Names[0], "/")
+
+	// Basic container info
+	l.Info("Container: %s (%s:%s)", containerName, ip, port)
+
+	// Domains/Hosts
+	if len(hosts) > 0 {
+		l.Info("  Domains: %s", strings.Join(hosts, ", "))
+	}
+
+	// Redirects
+	if len(redirects) > 0 {
+		redirectStrs := make([]string, len(redirects))
+		for i, r := range redirects {
+			redirectStrs[i] = fmt.Sprintf("%s → %s", r.Source, r.Target)
+		}
+		l.Info("  Redirects: %s", strings.Join(redirectStrs, ", "))
+	}
+
+	// SSL Configuration
+	if sslConfig.Enabled {
+		l.Info("  SSL: enabled (%s)", sslConfig.Provider)
+		if sslConfig.Email != "" {
+			l.Info("  SSL Email: %s", sslConfig.Email)
+		}
 	}
 }
 
-// Info logs information messages
-func (l *Logger) Info(format string, v ...interface{}) {
-	fmt.Printf(colorBlue+"INFO: "+format+colorReset+"\n", v...)
+// LogChanges logs configuration changes
+func (l *Logger) LogChanges(added, removed []string) {
+	if len(added) > 0 || len(removed) > 0 {
+		l.logSection("Configuration Changes")
+	}
+
+	if len(added) > 0 {
+		l.Success("Added configurations:")
+		for _, a := range added {
+			l.Info("  + %s", a)
+		}
+	}
+
+	if len(removed) > 0 {
+		l.Info("Removed configurations:")
+		for _, r := range removed {
+			l.Info("  - %s", r)
+		}
+	}
 }
 
-// Warning logs warning messages
-func (l *Logger) Warning(format string, v ...interface{}) {
-	fmt.Printf(colorYellow+"WARN: "+format+colorReset+"\n", v...)
+// LogSummary logs configuration summary
+func (l *Logger) LogSummary(total, configured, problematic int, errors []string) {
+	l.logSection("Summary")
+	l.Info("Containers processed: %d (configured: %d, skipped: %d)",
+		total, configured, total-configured)
+
+	if problematic > 0 {
+		l.Warning("Problems found: %d", problematic)
+		for _, err := range errors {
+			l.Error("  • %s", err)
+		}
+	}
 }
 
-// Error logs error messages
-func (l *Logger) Error(format string, v ...interface{}) {
-	fmt.Printf(colorRed+"ERROR: "+format+colorReset+"\n", v...)
+// LogInitialization logs initialization status
+func (l *Logger) LogInitialization(action, path string) {
+	if l.ShowDebug {
+		l.Debug("%s: %s", action, path)
+	}
 }
 
-// Success logs success messages
-func (l *Logger) Success(format string, v ...interface{}) {
-	fmt.Printf(colorGreen+"SUCCESS: "+format+colorReset+"\n", v...)
+// LogInitComplete logs completion of initialization
+func (l *Logger) LogInitComplete() {
+	l.Success("Initialization completed")
+	fmt.Println()
+}
+
+// LogWatcherStatus logs Docker events watcher status
+func (l *Logger) LogWatcherStatus(status string) {
+	if status == "start" {
+		l.Info("Starting Docker events watcher...")
+	} else if status == "ready" {
+		l.Success("Docker events watcher started")
+	}
+}
+
+// LogConfigTest logs nginx configuration test results
+func (l *Logger) LogConfigTest(success bool, output string) {
+	if success {
+		l.Success("Nginx configuration test passed")
+	} else {
+		l.Error("Nginx configuration test failed: %s", output)
+	}
+}
+
+// LogReload logs nginx reload status
+func (l *Logger) LogReload(success bool, err error) {
+	if success {
+		l.Success("Nginx configuration reloaded")
+	} else {
+		l.Error("Failed to reload Nginx: %v", err)
+	}
 }

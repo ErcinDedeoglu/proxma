@@ -17,7 +17,6 @@ import (
 var logger *Logger
 
 func init() {
-	// Initialize logger with debug mode based on environment variable
 	debug := getEnvOrDefault("PROXMA_DEBUG", "false") == "true"
 	logger = NewLogger(debug)
 }
@@ -33,8 +32,7 @@ func handleContainer(cli *client.Client, c container.Summary) error {
 	hostsLabel, hasHosts := labels["proxma.hosts"]
 	port, hasPort := labels["proxma.port"]
 	if !(hasHosts && hasPort) {
-		return fmt.Errorf("container %s has proxma labels but missing required labels (hosts: %v, port: %v)",
-			c.Names[0], hasHosts, hasPort)
+		return fmt.Errorf("missing required labels (hosts: %v, port: %v)", hasHosts, hasPort)
 	}
 
 	sslConfig := getSSLConfig(labels)
@@ -42,7 +40,7 @@ func handleContainer(cli *client.Client, c container.Summary) error {
 
 	containerDetails, err := inspectContainer(cli, c.ID)
 	if err != nil {
-		return fmt.Errorf("failed inspecting container %s: %w", c.Names[0], err)
+		return fmt.Errorf("failed inspecting container: %v", err)
 	}
 
 	ip := ""
@@ -51,16 +49,15 @@ func handleContainer(cli *client.Client, c container.Summary) error {
 		break
 	}
 	if ip == "" {
-		return fmt.Errorf("no valid IP found for container %s", c.Names[0])
+		return fmt.Errorf("no valid IP found")
 	}
 
 	mainHostsSet := make(map[string]bool)
 	for _, h := range strings.Split(hostsLabel, ",") {
 		cleanedHost := strings.TrimSpace(h)
-		if cleanedHost == "" {
-			continue
+		if cleanedHost != "" {
+			mainHostsSet[cleanedHost] = true
 		}
-		mainHostsSet[cleanedHost] = true
 	}
 
 	redirects := []Redirect{}
@@ -80,7 +77,7 @@ func handleContainer(cli *client.Client, c container.Summary) error {
 	}
 
 	if len(mainHostsSet) == 0 {
-		return fmt.Errorf("no valid hosts remaining after redirect processing for container %s", c.Names[0])
+		return fmt.Errorf("no valid hosts remaining after redirect processing")
 	}
 
 	mainHostsSlice := make([]string, 0, len(mainHostsSet))
@@ -88,18 +85,19 @@ func handleContainer(cli *client.Client, c container.Summary) error {
 		mainHostsSlice = append(mainHostsSlice, host)
 	}
 
-	// Print formatted container configuration using logger
-	logger.Info("\n" + logger.FormatContainerConfig(c, ip, sslConfig, mainHostsSlice, redirects, port))
+	// Log container configuration
+	logger.LogContainerConfig(c, ip, sslConfig, mainHostsSlice, redirects, port)
 
+	// Generate nginx config
 	confDir := "/tmp/nginx_conf_temp"
 	confName := fmt.Sprintf("%s/%s.conf", confDir, strings.TrimPrefix(c.Names[0], "/"))
 	confFile, err := os.Create(confName)
 	if err != nil {
-		return fmt.Errorf("error creating nginx config file for %s: %w", c.Names[0], err)
+		return fmt.Errorf("error creating nginx config file: %v", err)
 	}
 	defer confFile.Close()
 
-	err = nginxTemplate.Execute(confFile, map[string]interface{}{
+	return nginxTemplate.Execute(confFile, map[string]interface{}{
 		"MainHosts":   strings.Join(mainHostsSlice, " "),
 		"IP":          ip,
 		"Port":        port,
@@ -108,12 +106,6 @@ func handleContainer(cli *client.Client, c container.Summary) error {
 		"SSLProvider": sslConfig.Provider,
 		"SSLEmail":    sslConfig.Email,
 	})
-	if err != nil {
-		return fmt.Errorf("error executing nginx template for %s: %w", c.Names[0], err)
-	}
-
-	logger.Success("Generated configuration for %s", c.Names[0])
-	return nil
 }
 
 func hasProxmaLabels(labels map[string]string) bool {
@@ -215,7 +207,7 @@ func updateConfigFiles(tempDir, finalDir string) error {
 }
 
 func generateConfigs(cli *client.Client) {
-	// Acquire lock to ensure only one instance runs simultaneously
+	// Acquire lock
 	lockFilePath := "/tmp/proxma.lock"
 	lockFile, err := os.OpenFile(lockFilePath, os.O_CREATE|os.O_RDWR, 0644)
 	if err != nil {
@@ -226,26 +218,23 @@ func generateConfigs(cli *client.Client) {
 
 	err = syscall.Flock(int(lockFile.Fd()), syscall.LOCK_EX|syscall.LOCK_NB)
 	if err != nil {
-		logger.Warning("Another configuration regeneration is running. Skipping this regeneration.")
+		logger.Warning("Another configuration regeneration is running")
 		return
 	}
 	defer syscall.Flock(int(lockFile.Fd()), syscall.LOCK_UN)
 
-	// Print start process message
-	logger.Info("\n%s", logger.StartProcess())
+	// Start process
+	logger.StartProcess()
 
-	// List all running containers
-	containers, err := listContainers(cli)
-	if err != nil {
-		logger.Error("Failed to list containers: %v", err)
-		return
+	// Get existing configs for change tracking
+	existingConfigs, _ := filepath.Glob("/etc/nginx/conf.d/*.conf")
+	existingMap := make(map[string]bool)
+	for _, conf := range existingConfigs {
+		existingMap[filepath.Base(conf)] = true
 	}
 
-	// Directory setup
+	// Setup temp directory
 	tempDir := "/tmp/nginx_conf_temp"
-	finalDir := "/etc/nginx/conf.d"
-
-	// Clean and create temp directory
 	if err := os.RemoveAll(tempDir); err != nil {
 		logger.Debug("Removing temp directory: %v", err)
 	}
@@ -254,87 +243,87 @@ func generateConfigs(cli *client.Client) {
 		return
 	}
 
-	// Process containers and generate configs
+	// Process containers
+	containers, err := listContainers(cli)
+	if err != nil {
+		logger.Error("Failed to list containers: %v", err)
+		return
+	}
+
+	var added, removed []string
 	problematicContainers := 0
 	configuredContainers := 0
 	var errors []string
 
-	// Process each container
+	// Generate new configs
 	for _, c := range containers {
 		err := handleContainer(cli, c)
 		if err != nil {
 			problematicContainers++
 			errors = append(errors, fmt.Sprintf("%s: %v", strings.TrimPrefix(c.Names[0], "/"), err))
-			logger.Error("Container %s: %v", c.Names[0], err)
 		} else if hasProxmaLabels(c.Labels) {
 			configuredContainers++
+			added = append(added, fmt.Sprintf("%s (%s)",
+				strings.TrimPrefix(c.Names[0], "/"),
+				c.Labels["proxma.hosts"]))
 		}
 	}
 
-	// Print summary report
-	logger.Info("\n%s", logger.CreateSummaryReport(len(containers), configuredContainers, problematicContainers, errors))
-
-	// If no valid configurations were generated, clean up and exit
-	newConfigs, err := filepath.Glob(filepath.Join(tempDir, "*.conf"))
-	if err != nil {
-		logger.Error("Failed to check for generated configs: %v", err)
-		return
+	// Check for removed configurations
+	newConfigs, _ := filepath.Glob(filepath.Join(tempDir, "*.conf"))
+	newMap := make(map[string]bool)
+	for _, conf := range newConfigs {
+		newMap[filepath.Base(conf)] = true
 	}
 
-	if len(newConfigs) == 0 {
-		logger.Warning("No valid configurations were generated")
-		// Ensure default configuration exists
-		err = ensureDefaultConfig(finalDir)
-		if err != nil {
-			logger.Error("Failed to ensure default configuration: %v", err)
+	for conf := range existingMap {
+		if !newMap[conf] && conf != "default.conf" {
+			removed = append(removed, strings.TrimSuffix(conf, ".conf"))
 		}
-		return
 	}
 
-	// Validate nginx configs
-	logger.Info("Testing nginx configuration...")
+	// Log changes
+	if len(added) > 0 || len(removed) > 0 {
+		logger.LogChanges(added, removed)
+	}
+
+	// Test nginx configuration
 	output, err := exec.Command("nginx", "-t", "-c", "/etc/nginx/nginx.conf").CombinedOutput()
+	logger.LogConfigTest(err == nil, string(output))
 	if err != nil {
-		logger.Error("Nginx configuration test failed: %s", output)
 		return
 	}
-	logger.Success("Nginx configuration test passed")
 
 	// Update configuration files
-	logger.Info("Updating nginx configuration files...")
+	finalDir := "/etc/nginx/conf.d"
 	if err := updateConfigFiles(tempDir, finalDir); err != nil {
 		logger.Error("Failed to update configuration files: %v", err)
 		return
 	}
-	logger.Success("Configuration files updated successfully")
 
-	// Reload NGINX gracefully
-	logger.Info("Reloading nginx...")
-	if err := exec.Command("nginx", "-s", "reload").Run(); err != nil {
-		logger.Error("Nginx reload failed: %v", err)
-		// Try to recover by ensuring default config
+	// Reload nginx
+	err = exec.Command("nginx", "-s", "reload").Run()
+	logger.LogReload(err == nil, err)
+	if err != nil {
 		if err := ensureDefaultConfig(finalDir); err != nil {
 			logger.Error("Failed to recover with default configuration: %v", err)
 		}
 		return
 	}
-	logger.Success("Nginx configuration reloaded successfully")
 
-	// Check and handle SSL certificates if enabled
+	// Handle SSL certificates if enabled
 	globalSSLEnabled, _ := strconv.ParseBool(getEnvOrDefault("PROXMA_SSL", "false"))
 	if globalSSLEnabled {
-		logger.Info("Processing SSL certificates...")
 		issueSSLCertsIfMissing()
-	} else {
-		logger.Info("SSL is globally disabled, skipping SSL certificate checks")
 	}
 
-	// Final cleanup
+	// Log summary
+	logger.LogSummary(len(containers), configuredContainers, problematicContainers, errors)
+
+	// Cleanup
 	if err := os.RemoveAll(tempDir); err != nil {
 		logger.Debug("Failed to clean up temp directory: %v", err)
 	}
-
-	logger.Success("Configuration generation completed successfully")
 }
 
 func issueSSLCertsIfMissing() {
