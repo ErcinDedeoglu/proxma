@@ -13,34 +13,36 @@ services:
   #   PROXMA_SSL_ZEROSSL_API_KEY: "your-zerossl-api-key-here" # Optional for ACME providers requiring extra auth
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - proxma_nginx_conf:/etc/nginx/conf.d
+      - proxma_conf:/etc/nginx/conf.d
       - certificates:/etc/certificates
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
     restart: always
 
-  app1:
-    image: nginx:alpine
-    container_name: app1
-    labels:
-      proxma.hosts: "app1.example.com,www.app1.example.com,sub.app1.example.com"
-      proxma.port: "80"
-    restart: always
+  # app1:
+  #   image: nginx:alpine
+  #   container_name: app1
+  #   labels:
+  #     proxma.hosts: "app1.example.com,www.app1.example.com,sub.app1.example.com"
+  #     proxma.port: "80"
+  #   restart: always
 
-  app2:
-    image: httpd:alpine
-    container_name: app2
-    labels:
-      proxma.hosts: "app2.example.com"
-      proxma.port: "80"
-    restart: always
+  # app2:
+  #   image: httpd:alpine
+  #   container_name: app2
+  #   labels:
+  #     proxma.hosts: "app2.example.com"
+  #     proxma.port: "80"
+  #   restart: always
 
-  app3:
-    image: nginx:alpine
-    container_name: app3
-    labels:
-      proxma.hosts: "www.app3.example.com,app3.example.com"
-      proxma.redirects: "app3.example.com>www.app3.example.com"
-      proxma.port: "80"
-    restart: always
+  # app3:
+  #   image: nginx:alpine
+  #   container_name: app3
+  #   labels:
+  #     proxma.hosts: "www.app3.example.com,app3.example.com"
+  #     proxma.redirects: "app3.example.com>www.app3.example.com"
+  #     proxma.port: "80"
+  #   restart: always
 
 # app4:
 #   image: nginx:alpine
@@ -55,5 +57,5 @@ services:
 #   restart: always
 
 volumes:
-  proxma_nginx_conf:
+  proxma_conf:
   certificates:

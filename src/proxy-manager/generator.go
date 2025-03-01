@@ -4,6 +4,7 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 
 	"github.com/docker/docker/client"
@@ -76,7 +77,6 @@ func generateConfigs(cli *client.Client) {
 		if err != nil {
 			continue
 		}
-
 		nginxTemplate.Execute(confFile, map[string]interface{}{
 			"MainHosts":   strings.Join(mainHostsSlice, " "),
 			"IP":          ip,
@@ -87,7 +87,6 @@ func generateConfigs(cli *client.Client) {
 			"SSLEmail":    sslConfig.Email,
 		})
 		confFile.Close()
-
 		activeConfs[confName] = true
 	}
 
@@ -100,4 +99,63 @@ func generateConfigs(cli *client.Client) {
 	}
 
 	exec.Command("nginx", "-s", "reload").Run()
+
+	issueSSLCertsIfMissing()
+}
+
+func issueSSLCertsIfMissing() {
+	confFiles, err := filepath.Glob("/etc/nginx/conf.d/*.conf")
+	if err != nil {
+		log.Println("Error finding conf files:", err)
+		return
+	}
+
+	for _, confFile := range confFiles {
+		content, err := os.ReadFile(confFile)
+		if err != nil {
+			continue
+		}
+
+		if strings.Contains(string(content), "/.well-known/acme-challenge/") {
+			// extract domain(s) from conf
+			domain := extractDomainFromConf(string(content))
+			certPath := "/etc/certificates/live/" + domain + "/fullchain.pem"
+			if _, err := os.Stat(certPath); os.IsNotExist(err) {
+				// certificate missing, trigger certbot here
+				log.Printf("Issuing SSL Certificate for %s", domain)
+
+				cmd := exec.Command("certbot",
+					"certonly", "--webroot", "-w", "/var/www/certbot",
+					"--agree-tos", "--non-interactive",
+					"--config-dir", "/etc/certificates",
+					"--email", os.Getenv("PROXMA_SSL_EMAIL"), // from your global environment
+					"-d", domain)
+
+				out, err := cmd.CombinedOutput()
+				if err != nil {
+					log.Printf("Certbot error (%s): %s", domain, string(out))
+					continue
+				} else {
+					log.Printf("Certbot success for (%s): %s", domain, string(out))
+					// reload nginx after successful certbot run
+					exec.Command("nginx", "-s", "reload").Run()
+				}
+			}
+		}
+	}
+}
+
+// Quick simplified example:
+func extractDomainFromConf(conf string) string {
+	// parse conf to get domain
+	lines := strings.Split(conf, "\n")
+	for _, line := range lines {
+		if strings.Contains(line, "server_name") {
+			fields := strings.Fields(line)
+			if len(fields) >= 2 {
+				return strings.TrimSuffix(fields[1], ";")
+			}
+		}
+	}
+	return ""
 }
