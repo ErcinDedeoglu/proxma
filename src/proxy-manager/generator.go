@@ -7,6 +7,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+	"syscall"
 
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/client"
@@ -101,6 +102,26 @@ func handleContainer(cli *client.Client, c container.Summary) error {
 }
 
 func generateConfigs(cli *client.Client) {
+
+	// Acquire lock to ensure only one instance runs simultaneously
+	lockFilePath := "/tmp/proxma.lock"
+	lockFile, err := os.OpenFile(lockFilePath, os.O_CREATE|os.O_RDWR, 0644)
+	if err != nil {
+		log.Printf("🚨 Cannot create/open lock file: %v", err)
+		return
+	}
+	defer lockFile.Close()
+
+	err = syscall.Flock(int(lockFile.Fd()), syscall.LOCK_EX|syscall.LOCK_NB)
+	if err != nil {
+		log.Println("🔒 Another configuration regeneration is running. Skipping this regeneration.")
+		return
+	}
+	defer syscall.Flock(int(lockFile.Fd()), syscall.LOCK_UN)
+
+	log.Println("🔓 Lock acquired. Regenerating configurations now.")
+
+	// Your complete existing logic: atomic swaps, SSL checks, per-container error handling
 	containers, err := listContainers(cli)
 	if err != nil {
 		log.Printf("Error listing containers: %v", err)
@@ -111,46 +132,48 @@ func generateConfigs(cli *client.Client) {
 	finalDir := "/etc/nginx/conf.d"
 	backupDir := "/etc/nginx/conf.d.backup"
 
-	// Always start clean
 	os.RemoveAll(tempDir)
 	os.MkdirAll(tempDir, 0755)
 
+	problematicContainers := 0
 	for _, c := range containers {
 		if err := handleContainer(cli, c); err != nil {
+			problematicContainers++
 			log.Printf("⚠️ Error handling container %s (%s): %v", c.Names[0], c.ID, err)
-			continue // explicitly continue since this container is problematic
+			continue
 		}
 	}
 
-	// Validate configs BEFORE moving them into place (Optional: recommended):
+	if problematicContainers > 0 {
+		log.Printf("Completed regeneration with ⚠️ %d problematic containers.", problematicContainers)
+	} else {
+		log.Println("All containers processed successfully ✅.")
+	}
+
+	// Validate configs
 	output, err := exec.Command("nginx", "-t", "-c", "/etc/nginx/nginx.conf", "-g", "include "+tempDir+"/*.conf;").CombinedOutput()
 	if err != nil {
-		log.Printf("Nginx configuration validation failed:\n%s", string(output))
-		return // Abort early without replacing production configs
-	}
-
-	// Atomically swap the directories
-	os.RemoveAll(backupDir) // delete old backup if it exists
-	if _, err := os.Stat(finalDir); err == nil {
-		os.Rename(finalDir, backupDir) // current configs to backup
-	}
-	os.Rename(tempDir, finalDir) // put newly generated configs in place atomically
-
-	// Reload Nginx safely after atomic swap
-	err = exec.Command("nginx", "-s", "reload").Run()
-	if err != nil {
-		log.Printf("NGINX reload failed: %v", err)
-		// revert quickly to backup if reload fails
-		os.RemoveAll(finalDir)
-		os.Rename(backupDir, finalDir)
-		exec.Command("nginx", "-s", "reload").Run()
-		log.Printf("Reverted to previous configs due to reload failure.")
+		log.Printf("Nginx test failed: %s", output)
 		return
 	}
 
-	log.Println("NGINX reloaded successfully with updated configs.")
+	// Atomic directory replacement
+	os.RemoveAll(backupDir)
+	if _, err := os.Stat(finalDir); err == nil {
+		os.Rename(finalDir, backupDir)
+	}
+	os.Rename(tempDir, finalDir)
 
-	// Proceed SSL issuance tasks (after successful NGINX reload)
+	// Reload NGINX gracefully
+	err = exec.Command("nginx", "-s", "reload").Run()
+	if err != nil {
+		log.Printf("Reload failed; reverting to backup: %v", err)
+		os.RemoveAll(finalDir)
+		os.Rename(backupDir, finalDir)
+		exec.Command("nginx", "-s", "reload").Run()
+		return
+	}
+
 	issueSSLCertsIfMissing()
 }
 
