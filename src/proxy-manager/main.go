@@ -7,6 +7,7 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"strconv"
 	"strings"
 	"text/template"
 
@@ -17,6 +18,8 @@ import (
 var nginxTemplate = template.Must(template.New("nginx").Funcs(template.FuncMap{
 	"split": strings.Split,
 }).Parse(`
+# SSL_PROVIDER: {{.SSLProvider}}
+# SSL_EMAIL: {{.SSLEmail}}
 
 {{range .Redirects}}
 server {
@@ -81,6 +84,57 @@ type Redirect struct {
 	Target string
 }
 
+type SSLConfig struct {
+	Enabled       bool
+	Provider      string
+	Email         string
+	ExtraSettings map[string]string
+}
+
+func getEnvOrDefault(key, def string) string {
+	val := os.Getenv(key)
+	if val == "" {
+		return def
+	}
+	return val
+}
+
+func getSSLConfig(labels map[string]string) SSLConfig {
+	globalEnabled, _ := strconv.ParseBool(getEnvOrDefault("PROXMA_SSL", "false"))
+	sslEnabled := globalEnabled
+	if val, exists := labels["proxma.ssl"]; exists {
+		containerEnabled, err := strconv.ParseBool(val)
+		if err == nil {
+			sslEnabled = containerEnabled
+		}
+	}
+
+	provider := strings.ToLower(getEnvOrDefault("PROXMA_SSL_PROVIDER", "letsencrypt"))
+	if val, exists := labels["proxma.ssl.provider"]; exists && val != "" {
+		provider = strings.ToLower(val)
+	}
+
+	email := getEnvOrDefault("PROXMA_SSL_EMAIL", "")
+	if val, exists := labels["proxma.ssl.email"]; exists && val != "" {
+		email = val
+	}
+
+	extras := make(map[string]string)
+	// Example for detecting other nested params
+	for k, v := range labels {
+		if strings.HasPrefix(k, "proxma.ssl.") && k != "proxma.ssl" && k != "proxma.ssl.provider" && k != "proxma.ssl.email" {
+			extras[k] = v
+		}
+	}
+
+	return SSLConfig{
+		Enabled:       sslEnabled,
+		Provider:      provider,
+		Email:         email,
+		ExtraSettings: extras,
+	}
+}
+
 func generateConfigs(cli *client.Client) {
 	ctx := context.Background()
 	containers, err := cli.ContainerList(ctx, container.ListOptions{})
@@ -93,13 +147,10 @@ func generateConfigs(cli *client.Client) {
 
 	for _, c := range containers {
 		labels := c.Labels
+		sslConfig := getSSLConfig(labels)
 		hostsLabel, hasHosts := labels["proxma.hosts"]
 		port, hasPort := labels["proxma.port"]
 		redirectsLabel, hasRedirects := labels["proxma.redirects"]
-		sslEnabled := false
-		if labels["proxma.ssl"] == "true" {
-			sslEnabled = true
-		}
 
 		if hasHosts && hasPort {
 			var ip string
@@ -153,12 +204,14 @@ func generateConfigs(cli *client.Client) {
 				continue
 			}
 
-			nginxTemplate.Execute(conf, NginxConf{
-				MainHosts: strings.Join(mainHostsSlice, " "),
-				IP:        ip,
-				Port:      port,
-				Redirects: redirects,
-				SSL:       sslEnabled,
+			nginxTemplate.Execute(conf, map[string]interface{}{
+				"MainHosts":   strings.Join(mainHostsSlice, " "),
+				"IP":          ip,
+				"Port":        port,
+				"Redirects":   redirects,
+				"SSL":         sslConfig.Enabled,
+				"SSLProvider": sslConfig.Provider,
+				"SSLEmail":    sslConfig.Email,
 			})
 
 			conf.Close()

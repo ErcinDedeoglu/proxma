@@ -37,15 +37,17 @@ services:
       proxma.port: "80"
     restart: always
 
-  app4:
-    image: nginx:alpine
-    container_name: app4
-    labels:
-      proxma.ssl: "true"
-      proxma.hosts: "www.app4.com,app4.com"
-      proxma.redirects: "app4.com>www.app4.com"
-      proxma.port: "80"
-    restart: always
+app4:
+  image: nginx:alpine
+  container_name: app4
+  labels:
+    proxma.ssl: "true"                          # Overrides global PROXMA_SSL (default false)
+    proxma.ssl.provider: "zerossl"              # Overrides global provider (default letsencrypt)
+    proxma.ssl.email: "info@app4.com"           # Overrides global email
+    proxma.hosts: "www.app4.com,app4.com"
+    proxma.redirects: "app4.com>www.app4.com"
+    proxma.port: "80"
+  restart: always
 
 volumes:
   proxma_nginx_conf:
