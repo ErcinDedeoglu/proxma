@@ -97,22 +97,18 @@ func watchDockerEvents(cli *client.Client) {
 	if err != nil {
 		log.Fatalf("Error creating stdout pipe: %v", err)
 	}
-
 	if err := cmd.Start(); err != nil {
 		log.Fatalf("Error starting docker events command: %v", err)
 	}
-
 	scanner := bufio.NewScanner(stdout)
 	for scanner.Scan() {
 		event := scanner.Text()
 		log.Printf("Docker event: %s", event)
-		generateConfigs(cli)
+		go generateConfigs(cli)
 	}
-
 	if err := scanner.Err(); err != nil {
 		log.Fatalf("Error reading docker events: %v", err)
 	}
-
 	if err := cmd.Wait(); err != nil {
 		log.Fatalf("Error waiting for docker events command: %v", err)
 	}
@@ -122,8 +118,10 @@ func main() {
 	log.Println("proxma proxy-manager started")
 	cli, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("Failed to create Docker client: %v", err)
 	}
+	defer cli.Close()
+
 	generateConfigs(cli)
 	watchDockerEvents(cli)
 }
