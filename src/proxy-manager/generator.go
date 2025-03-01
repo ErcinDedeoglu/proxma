@@ -186,65 +186,69 @@ func issueSSLCertsIfMissing() {
 
 	email := os.Getenv("PROXMA_SSL_EMAIL")
 	if email == "" {
-		log.Println("PROXMA_SSL_EMAIL environment variable is not set, skipping certificate issuance.")
+		log.Println("🚨 PROXMA_SSL_EMAIL not set, skipping SSL issuance.")
 		return
 	}
 
 	for _, confFile := range confFiles {
 		content, err := os.ReadFile(confFile)
 		if err != nil {
-			log.Printf("Could not read conf file %s: %v", confFile, err)
+			log.Printf("Could not read conf file (%s): %v", confFile, err)
 			continue
 		}
 
-		if strings.Contains(string(content), "/.well-known/acme-challenge/") {
+		if !strings.Contains(string(content), "/.well-known/acme-challenge/") {
+			continue
+		}
 
-			// Handle multiple domains properly
-			domains := extractDomainsFromConf(string(content))
-			if len(domains) == 0 {
-				log.Printf("No valid domains found in conf file: %s", confFile)
-				continue
-			}
+		domains := extractDomainsFromConf(string(content))
+		if len(domains) == 0 {
+			log.Printf("No domains found in conf file: %s", confFile)
+			continue
+		}
 
-			primaryDomain := domains[0]
-			certPath := "/etc/certificates/live/" + primaryDomain + "/fullchain.pem"
+		primaryDomain := domains[0]
+		certPath := "/etc/certificates/live/" + primaryDomain + "/fullchain.pem"
 
-			if _, err := os.Stat(certPath); err == nil {
-				log.Printf("SSL certificate already exists for domain %s, skipping cert issuance.", primaryDomain)
-				continue // Skip cert issuance if cert already present
-			}
+		if _, err := os.Stat(certPath); err == nil {
+			log.Printf("SSL certificate already exists for domain %s.", primaryDomain)
+			continue
+		}
 
-			// SSL cert missing, issue a new one
-			log.Printf("Issuing SSL Certificate for domains: %v", domains)
+		log.Printf("🌐 Issuing SSL for: %v", domains)
 
-			certbotArgs := []string{
-				"certonly", "--webroot",
-				"-w", "/var/www/certbot",
-				"--agree-tos", "--non-interactive",
-				"--config-dir", "/etc/certificates",
-				"--email", email,
-			}
+		certbotArgs := []string{"certonly", "--webroot", "-w", "/var/www/certbot",
+			"--agree-tos", "--non-interactive",
+			"--config-dir", "/etc/certificates",
+			"--email", email}
+		for _, domain := range domains {
+			certbotArgs = append(certbotArgs, "-d", domain)
+		}
 
-			for _, domain := range domains {
-				certbotArgs = append(certbotArgs, "-d", domain)
-			}
+		cmd := exec.Command("certbot", certbotArgs...)
+		out, err := cmd.CombinedOutput()
 
-			cmd := exec.Command("certbot", certbotArgs...)
-			out, err := cmd.CombinedOutput()
-			if err != nil {
-				log.Printf("Certbot issuance failed for %v: %s (%v)", domains, string(out), err)
-				continue
-			} else {
-				log.Printf("Certbot successfully issued for domains: %v. Output:\n%s", domains, string(out))
+		if err != nil {
+			log.Printf("🚨 Certbot failed for %v: %v\nOUTPUT:%s\nRetry will occur periodically.", domains, err, string(out))
 
-				// Reload NGINX clearly after successful certbot run
-				err = exec.Command("nginx", "-s", "reload").Run()
-				if err != nil {
-					log.Printf("Failed to reload NGINX after cert issuance: %v", err)
-				} else {
-					log.Printf("Successfully reloaded NGINX after certificate issuance for domains: %v", domains)
-				}
-			}
+			// Clearly mark failure explicitly to alert operator/admin
+			failureMarkerPath := fmt.Sprintf("/tmp/cert_issue_failed_%s.marker", primaryDomain)
+			os.WriteFile(failureMarkerPath, []byte(fmt.Sprintf("Failed: %v\n%s", err, string(out))), 0644)
+
+			continue
+		}
+
+		log.Printf("✅ Certbot success for: %v.\nOutput:%s", domains, string(out))
+
+		err = exec.Command("nginx", "-s", "reload").Run()
+		if err != nil {
+			log.Printf("🚨 NGINX reload after Certbot failed: %v", err)
+		} else {
+			log.Printf("🔄 NGINX reloaded after SSL issuance: %v", domains)
+
+			// Remove any failure marker explicitly if previously existed
+			failureMarkerPath := fmt.Sprintf("/tmp/cert_issue_failed_%s.marker", primaryDomain)
+			os.Remove(failureMarkerPath)
 		}
 	}
 }
