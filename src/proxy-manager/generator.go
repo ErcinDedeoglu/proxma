@@ -16,18 +16,26 @@ import (
 
 func handleContainer(cli *client.Client, c container.Summary) error {
 	labels := c.Labels
-	sslConfig := getSSLConfig(labels)
+
+	// Check if this container has any proxma-related labels
+	if !hasProxmaLabels(labels) {
+		return nil // Silently skip containers without proxma labels
+	}
+
+	// Now check required labels
 	hostsLabel, hasHosts := labels["proxma.hosts"]
 	port, hasPort := labels["proxma.port"]
-	redirectsLabel, hasRedirects := labels["proxma.redirects"]
-
 	if !(hasHosts && hasPort) {
-		return fmt.Errorf("container missing required labels (hosts: %v, port: %v)", hasHosts, hasPort)
+		return fmt.Errorf("container %s has proxma labels but missing required labels (hosts: %v, port: %v)",
+			c.Names[0], hasHosts, hasPort)
 	}
+
+	sslConfig := getSSLConfig(labels)
+	redirectsLabel, hasRedirects := labels["proxma.redirects"]
 
 	containerDetails, err := inspectContainer(cli, c.ID)
 	if err != nil {
-		return fmt.Errorf("failed inspecting container: %w", err)
+		return fmt.Errorf("failed inspecting container %s: %w", c.Names[0], err)
 	}
 
 	ip := ""
@@ -36,7 +44,7 @@ func handleContainer(cli *client.Client, c container.Summary) error {
 		break
 	}
 	if ip == "" {
-		return fmt.Errorf("no valid IP found for container")
+		return fmt.Errorf("no valid IP found for container %s", c.Names[0])
 	}
 
 	mainHostsSet := make(map[string]bool)
@@ -59,17 +67,13 @@ func handleContainer(cli *client.Client, c container.Summary) error {
 				if src != "" && dst != "" {
 					redirects = append(redirects, Redirect{src, dst})
 					delete(mainHostsSet, src)
-				} else {
-					log.Printf("⚠️ Invalid redirect defined in container %s: '%s'", c.Names[0], pair)
 				}
-			} else {
-				log.Printf("⚠️ Malformed redirect format in container %s: '%s'", c.Names[0], pair)
 			}
 		}
 	}
 
 	if len(mainHostsSet) == 0 {
-		return fmt.Errorf("no main host left after redirect processing for container")
+		return fmt.Errorf("no valid hosts remaining after redirect processing for container %s", c.Names[0])
 	}
 
 	mainHostsSlice := make([]string, 0, len(mainHostsSet))
@@ -77,12 +81,11 @@ func handleContainer(cli *client.Client, c container.Summary) error {
 		mainHostsSlice = append(mainHostsSlice, host)
 	}
 
-	// write NGINX config - assuming temp dir pattern from previous step
 	confDir := "/tmp/nginx_conf_temp"
 	confName := fmt.Sprintf("%s/%s.conf", confDir, strings.TrimPrefix(c.Names[0], "/"))
 	confFile, err := os.Create(confName)
 	if err != nil {
-		return fmt.Errorf("error creating nginx config file: %w", err)
+		return fmt.Errorf("error creating nginx config file for %s: %w", c.Names[0], err)
 	}
 	defer confFile.Close()
 
@@ -96,14 +99,22 @@ func handleContainer(cli *client.Client, c container.Summary) error {
 		"SSLEmail":    sslConfig.Email,
 	})
 	if err != nil {
-		return fmt.Errorf("error executing nginx template: %w", err)
+		return fmt.Errorf("error executing nginx template for %s: %w", c.Names[0], err)
 	}
 
 	return nil
 }
 
-func generateConfigs(cli *client.Client) {
+func hasProxmaLabels(labels map[string]string) bool {
+	for key := range labels {
+		if strings.HasPrefix(key, "proxma.") {
+			return true
+		}
+	}
+	return false
+}
 
+func generateConfigs(cli *client.Client) {
 	// Acquire lock to ensure only one instance runs simultaneously
 	lockFilePath := "/tmp/proxma.lock"
 	lockFile, err := os.OpenFile(lockFilePath, os.O_CREATE|os.O_RDWR, 0644)
@@ -122,7 +133,6 @@ func generateConfigs(cli *client.Client) {
 
 	log.Println("🔓 Lock acquired. Regenerating configurations now.")
 
-	// Your complete existing logic: atomic swaps, SSL checks, per-container error handling
 	containers, err := listContainers(cli)
 	if err != nil {
 		log.Printf("Error listing containers: %v", err)
@@ -132,27 +142,33 @@ func generateConfigs(cli *client.Client) {
 	tempDir := "/tmp/nginx_conf_temp"
 	finalDir := "/etc/nginx/conf.d"
 	backupDir := "/etc/nginx/conf.d.backup"
-
 	os.RemoveAll(tempDir)
 	os.MkdirAll(tempDir, 0755)
 
 	problematicContainers := 0
+	configuredContainers := 0
+
 	for _, c := range containers {
-		if err := handleContainer(cli, c); err != nil {
+		err := handleContainer(cli, c)
+		if err != nil {
 			problematicContainers++
-			log.Printf("⚠️ Error handling container %s (%s): %v", c.Names[0], c.ID, err)
-			continue
+			log.Printf("⚠️ %v", err)
+		} else if hasProxmaLabels(c.Labels) {
+			configuredContainers++
 		}
 	}
 
 	if problematicContainers > 0 {
-		log.Printf("Completed regeneration with ⚠️ %d problematic containers.", problematicContainers)
+		log.Printf("Completed regeneration with ⚠️ %d problematic containers out of %d configured containers.",
+			problematicContainers, configuredContainers)
+	} else if configuredContainers > 0 {
+		log.Printf("✅ Successfully configured %d containers.", configuredContainers)
 	} else {
-		log.Println("All containers processed successfully ✅.")
+		log.Printf("ℹ️ No containers configured for proxying.")
 	}
 
 	// Validate configs
-	output, err := exec.Command("nginx", "-t", "-c", "/etc/nginx/nginx.conf", "-g", "include "+tempDir+"/*.conf;").CombinedOutput()
+	output, err := exec.Command("nginx", "-t", "-c", "/etc/nginx/nginx.conf").CombinedOutput()
 	if err != nil {
 		log.Printf("Nginx test failed: %s", output)
 		return
@@ -175,7 +191,13 @@ func generateConfigs(cli *client.Client) {
 		return
 	}
 
-	issueSSLCertsIfMissing()
+	// Check SSL certificates if needed
+	globalSSLEnabled, _ := strconv.ParseBool(getEnvOrDefault("PROXMA_SSL", "false"))
+	if globalSSLEnabled {
+		issueSSLCertsIfMissing()
+	} else {
+		log.Println("SSL is globally disabled, skipping SSL certificate checks.")
+	}
 }
 
 func issueSSLCertsIfMissing() {
