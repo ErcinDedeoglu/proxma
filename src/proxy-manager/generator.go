@@ -17,7 +17,11 @@ func generateConfigs(cli *client.Client) {
 		return
 	}
 
+	// Clean slate (clearly remove orphaned configurations easily)
+	os.RemoveAll("/etc/nginx/conf.d")
 	os.MkdirAll("/etc/nginx/conf.d", 0755)
+
+	// Generate fresh, active configurations
 	activeConfs := make(map[string]bool)
 
 	for _, c := range containers {
@@ -75,6 +79,7 @@ func generateConfigs(cli *client.Client) {
 		confName := "/etc/nginx/conf.d/" + c.Names[0][1:] + ".conf"
 		confFile, err := os.Create(confName)
 		if err != nil {
+			log.Printf("Failed creating config file %s: %v", confName, err)
 			continue
 		}
 		nginxTemplate.Execute(confFile, map[string]interface{}{
@@ -90,16 +95,10 @@ func generateConfigs(cli *client.Client) {
 		activeConfs[confName] = true
 	}
 
-	files, _ := os.ReadDir("/etc/nginx/conf.d")
-	for _, file := range files {
-		fullPath := "/etc/nginx/conf.d/" + file.Name()
-		if !activeConfs[fullPath] {
-			os.Remove(fullPath)
-		}
-	}
-
+	// No need explicit orphan removal, as the entire directory was cleaned beforehand
 	exec.Command("nginx", "-s", "reload").Run()
 
+	// Call to your SSL issuance logic at runtime
 	issueSSLCertsIfMissing()
 }
 
