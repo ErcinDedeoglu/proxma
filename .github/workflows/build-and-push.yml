@@ -17,7 +17,7 @@ jobs:
     with:
       image_name: ${{ github.event.repository.name }}
       platforms: 'linux/amd64,linux/arm64'
-      context_path: './src'
+      context_path: '.'
       dockerfile_path: './src/Dockerfile'
     secrets:
       DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
