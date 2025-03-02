@@ -5,6 +5,7 @@ repomix --no-file-summary --no-security-check \
 docker build -t dublok/proxma:latest -f src/Dockerfile .
 docker buildx build --platform linux/amd64,linux/arm64 -t dublok/proxma:latest -f src/Dockerfile .
 docker run -it --rm -v /var/run/docker.sock:/var/run/docker.sock dublok/proxma:latest
+docker run -it --rm -v /var/run/docker.sock:/var/run/docker.sock  -p 80:80 -p 443:443 dublok/proxma:latest
 
 # NO-CACHE BUILD
 docker build -t dublok/proxma:latest -f src/Dockerfile . --no-cache
