@@ -14,6 +14,14 @@
           "annotations": {
             "evidence": "primary"
           }
+        },
+        {
+          "path": "/lib/apk/db/installed",
+          "layerID": "sha256:3a4fd63e485ad89a612fc673cb5a9d8ba5990460fc1a3b3828f7a85974bd43e4",
+          "accessPath": "/lib/apk/db/installed",
+          "annotations": {
+            "evidence": "primary"
+          }
         }
       ],
       "licenses": [
@@ -26,6 +34,14 @@
             {
               "path": "/lib/apk/db/installed",
               "layerID": "sha256:08000c18d16dadf9553d747a58cf44023423a9ab010aab96cf263d2216b8b350",
+              "accessPath": "/lib/apk/db/installed",
+              "annotations": {
+                "evidence": "primary"
+              }
+            },
+            {
+              "path": "/lib/apk/db/installed",
+              "layerID": "sha256:3a4fd63e485ad89a612fc673cb5a9d8ba5990460fc1a3b3828f7a85974bd43e4",
               "accessPath": "/lib/apk/db/installed",
               "annotations": {
                 "evidence": "primary"
@@ -421,6 +437,14 @@
           "annotations": {
             "evidence": "primary"
           }
+        },
+        {
+          "path": "/lib/apk/db/installed",
+          "layerID": "sha256:3a4fd63e485ad89a612fc673cb5a9d8ba5990460fc1a3b3828f7a85974bd43e4",
+          "accessPath": "/lib/apk/db/installed",
+          "annotations": {
+            "evidence": "primary"
+          }
         }
       ],
       "licenses": [
@@ -433,6 +457,14 @@
             {
               "path": "/lib/apk/db/installed",
               "layerID": "sha256:08000c18d16dadf9553d747a58cf44023423a9ab010aab96cf263d2216b8b350",
+              "accessPath": "/lib/apk/db/installed",
+              "annotations": {
+                "evidence": "primary"
+              }
+            },
+            {
+              "path": "/lib/apk/db/installed",
+              "layerID": "sha256:3a4fd63e485ad89a612fc673cb5a9d8ba5990460fc1a3b3828f7a85974bd43e4",
               "accessPath": "/lib/apk/db/installed",
               "annotations": {
                 "evidence": "primary"
@@ -632,6 +664,14 @@
           "annotations": {
             "evidence": "primary"
           }
+        },
+        {
+          "path": "/lib/apk/db/installed",
+          "layerID": "sha256:3a4fd63e485ad89a612fc673cb5a9d8ba5990460fc1a3b3828f7a85974bd43e4",
+          "accessPath": "/lib/apk/db/installed",
+          "annotations": {
+            "evidence": "primary"
+          }
         }
       ],
       "licenses": [
@@ -644,6 +684,14 @@
             {
               "path": "/lib/apk/db/installed",
               "layerID": "sha256:08000c18d16dadf9553d747a58cf44023423a9ab010aab96cf263d2216b8b350",
+              "accessPath": "/lib/apk/db/installed",
+              "annotations": {
+                "evidence": "primary"
+              }
+            },
+            {
+              "path": "/lib/apk/db/installed",
+              "layerID": "sha256:3a4fd63e485ad89a612fc673cb5a9d8ba5990460fc1a3b3828f7a85974bd43e4",
               "accessPath": "/lib/apk/db/installed",
               "annotations": {
                 "evidence": "primary"
@@ -1125,6 +1173,14 @@
           "annotations": {
             "evidence": "primary"
           }
+        },
+        {
+          "path": "/lib/apk/db/installed",
+          "layerID": "sha256:3a4fd63e485ad89a612fc673cb5a9d8ba5990460fc1a3b3828f7a85974bd43e4",
+          "accessPath": "/lib/apk/db/installed",
+          "annotations": {
+            "evidence": "primary"
+          }
         }
       ],
       "licenses": [
@@ -1137,6 +1193,14 @@
             {
               "path": "/lib/apk/db/installed",
               "layerID": "sha256:08000c18d16dadf9553d747a58cf44023423a9ab010aab96cf263d2216b8b350",
+              "accessPath": "/lib/apk/db/installed",
+              "annotations": {
+                "evidence": "primary"
+              }
+            },
+            {
+              "path": "/lib/apk/db/installed",
+              "layerID": "sha256:3a4fd63e485ad89a612fc673cb5a9d8ba5990460fc1a3b3828f7a85974bd43e4",
               "accessPath": "/lib/apk/db/installed",
               "annotations": {
                 "evidence": "primary"
@@ -1258,6 +1322,14 @@
           "annotations": {
             "evidence": "primary"
           }
+        },
+        {
+          "path": "/lib/apk/db/installed",
+          "layerID": "sha256:3a4fd63e485ad89a612fc673cb5a9d8ba5990460fc1a3b3828f7a85974bd43e4",
+          "accessPath": "/lib/apk/db/installed",
+          "annotations": {
+            "evidence": "primary"
+          }
         }
       ],
       "licenses": [
@@ -1270,6 +1342,14 @@
             {
               "path": "/lib/apk/db/installed",
               "layerID": "sha256:08000c18d16dadf9553d747a58cf44023423a9ab010aab96cf263d2216b8b350",
+              "accessPath": "/lib/apk/db/installed",
+              "annotations": {
+                "evidence": "primary"
+              }
+            },
+            {
+              "path": "/lib/apk/db/installed",
+              "layerID": "sha256:3a4fd63e485ad89a612fc673cb5a9d8ba5990460fc1a3b3828f7a85974bd43e4",
               "accessPath": "/lib/apk/db/installed",
               "annotations": {
                 "evidence": "primary"
@@ -1402,6 +1482,14 @@
           "annotations": {
             "evidence": "primary"
           }
+        },
+        {
+          "path": "/lib/apk/db/installed",
+          "layerID": "sha256:3a4fd63e485ad89a612fc673cb5a9d8ba5990460fc1a3b3828f7a85974bd43e4",
+          "accessPath": "/lib/apk/db/installed",
+          "annotations": {
+            "evidence": "primary"
+          }
         }
       ],
       "licenses": [
@@ -1414,6 +1502,14 @@
             {
               "path": "/lib/apk/db/installed",
               "layerID": "sha256:08000c18d16dadf9553d747a58cf44023423a9ab010aab96cf263d2216b8b350",
+              "accessPath": "/lib/apk/db/installed",
+              "annotations": {
+                "evidence": "primary"
+              }
+            },
+            {
+              "path": "/lib/apk/db/installed",
+              "layerID": "sha256:3a4fd63e485ad89a612fc673cb5a9d8ba5990460fc1a3b3828f7a85974bd43e4",
               "accessPath": "/lib/apk/db/installed",
               "annotations": {
                 "evidence": "primary"
@@ -1576,6 +1672,14 @@
           "annotations": {
             "evidence": "primary"
           }
+        },
+        {
+          "path": "/lib/apk/db/installed",
+          "layerID": "sha256:3a4fd63e485ad89a612fc673cb5a9d8ba5990460fc1a3b3828f7a85974bd43e4",
+          "accessPath": "/lib/apk/db/installed",
+          "annotations": {
+            "evidence": "primary"
+          }
         }
       ],
       "licenses": [
@@ -1588,6 +1692,14 @@
             {
               "path": "/lib/apk/db/installed",
               "layerID": "sha256:08000c18d16dadf9553d747a58cf44023423a9ab010aab96cf263d2216b8b350",
+              "accessPath": "/lib/apk/db/installed",
+              "annotations": {
+                "evidence": "primary"
+              }
+            },
+            {
+              "path": "/lib/apk/db/installed",
+              "layerID": "sha256:3a4fd63e485ad89a612fc673cb5a9d8ba5990460fc1a3b3828f7a85974bd43e4",
               "accessPath": "/lib/apk/db/installed",
               "annotations": {
                 "evidence": "primary"
@@ -1675,6 +1787,14 @@
           "annotations": {
             "evidence": "primary"
           }
+        },
+        {
+          "path": "/lib/apk/db/installed",
+          "layerID": "sha256:3a4fd63e485ad89a612fc673cb5a9d8ba5990460fc1a3b3828f7a85974bd43e4",
+          "accessPath": "/lib/apk/db/installed",
+          "annotations": {
+            "evidence": "primary"
+          }
         }
       ],
       "licenses": [
@@ -1687,6 +1807,14 @@
             {
               "path": "/lib/apk/db/installed",
               "layerID": "sha256:08000c18d16dadf9553d747a58cf44023423a9ab010aab96cf263d2216b8b350",
+              "accessPath": "/lib/apk/db/installed",
+              "annotations": {
+                "evidence": "primary"
+              }
+            },
+            {
+              "path": "/lib/apk/db/installed",
+              "layerID": "sha256:3a4fd63e485ad89a612fc673cb5a9d8ba5990460fc1a3b3828f7a85974bd43e4",
               "accessPath": "/lib/apk/db/installed",
               "annotations": {
                 "evidence": "primary"
@@ -1831,6 +1959,14 @@
           "annotations": {
             "evidence": "primary"
           }
+        },
+        {
+          "path": "/lib/apk/db/installed",
+          "layerID": "sha256:3a4fd63e485ad89a612fc673cb5a9d8ba5990460fc1a3b3828f7a85974bd43e4",
+          "accessPath": "/lib/apk/db/installed",
+          "annotations": {
+            "evidence": "primary"
+          }
         }
       ],
       "licenses": [
@@ -1843,6 +1979,14 @@
             {
               "path": "/lib/apk/db/installed",
               "layerID": "sha256:08000c18d16dadf9553d747a58cf44023423a9ab010aab96cf263d2216b8b350",
+              "accessPath": "/lib/apk/db/installed",
+              "annotations": {
+                "evidence": "primary"
+              }
+            },
+            {
+              "path": "/lib/apk/db/installed",
+              "layerID": "sha256:3a4fd63e485ad89a612fc673cb5a9d8ba5990460fc1a3b3828f7a85974bd43e4",
               "accessPath": "/lib/apk/db/installed",
               "annotations": {
                 "evidence": "primary"
@@ -2020,6 +2164,14 @@
           "annotations": {
             "evidence": "primary"
           }
+        },
+        {
+          "path": "/lib/apk/db/installed",
+          "layerID": "sha256:3a4fd63e485ad89a612fc673cb5a9d8ba5990460fc1a3b3828f7a85974bd43e4",
+          "accessPath": "/lib/apk/db/installed",
+          "annotations": {
+            "evidence": "primary"
+          }
         }
       ],
       "licenses": [
@@ -2032,6 +2184,14 @@
             {
               "path": "/lib/apk/db/installed",
               "layerID": "sha256:08000c18d16dadf9553d747a58cf44023423a9ab010aab96cf263d2216b8b350",
+              "accessPath": "/lib/apk/db/installed",
+              "annotations": {
+                "evidence": "primary"
+              }
+            },
+            {
+              "path": "/lib/apk/db/installed",
+              "layerID": "sha256:3a4fd63e485ad89a612fc673cb5a9d8ba5990460fc1a3b3828f7a85974bd43e4",
               "accessPath": "/lib/apk/db/installed",
               "annotations": {
                 "evidence": "primary"
@@ -2115,6 +2275,14 @@
           "annotations": {
             "evidence": "primary"
           }
+        },
+        {
+          "path": "/lib/apk/db/installed",
+          "layerID": "sha256:3a4fd63e485ad89a612fc673cb5a9d8ba5990460fc1a3b3828f7a85974bd43e4",
+          "accessPath": "/lib/apk/db/installed",
+          "annotations": {
+            "evidence": "primary"
+          }
         }
       ],
       "licenses": [
@@ -2127,6 +2295,14 @@
             {
               "path": "/lib/apk/db/installed",
               "layerID": "sha256:08000c18d16dadf9553d747a58cf44023423a9ab010aab96cf263d2216b8b350",
+              "accessPath": "/lib/apk/db/installed",
+              "annotations": {
+                "evidence": "primary"
+              }
+            },
+            {
+              "path": "/lib/apk/db/installed",
+              "layerID": "sha256:3a4fd63e485ad89a612fc673cb5a9d8ba5990460fc1a3b3828f7a85974bd43e4",
               "accessPath": "/lib/apk/db/installed",
               "annotations": {
                 "evidence": "primary"
@@ -2209,6 +2385,14 @@
           "annotations": {
             "evidence": "primary"
           }
+        },
+        {
+          "path": "/lib/apk/db/installed",
+          "layerID": "sha256:3a4fd63e485ad89a612fc673cb5a9d8ba5990460fc1a3b3828f7a85974bd43e4",
+          "accessPath": "/lib/apk/db/installed",
+          "annotations": {
+            "evidence": "primary"
+          }
         }
       ],
       "licenses": [
@@ -2221,6 +2405,14 @@
             {
               "path": "/lib/apk/db/installed",
               "layerID": "sha256:08000c18d16dadf9553d747a58cf44023423a9ab010aab96cf263d2216b8b350",
+              "accessPath": "/lib/apk/db/installed",
+              "annotations": {
+                "evidence": "primary"
+              }
+            },
+            {
+              "path": "/lib/apk/db/installed",
+              "layerID": "sha256:3a4fd63e485ad89a612fc673cb5a9d8ba5990460fc1a3b3828f7a85974bd43e4",
               "accessPath": "/lib/apk/db/installed",
               "annotations": {
                 "evidence": "primary"
@@ -2354,6 +2546,376 @@
       }
     },
     {
+      "id": "d1245af6d67c0bc1",
+      "name": "nginx",
+      "version": "1.26.2-r4",
+      "type": "apk",
+      "foundBy": "apk-db-cataloger",
+      "locations": [
+        {
+          "path": "/lib/apk/db/installed",
+          "layerID": "sha256:3a4fd63e485ad89a612fc673cb5a9d8ba5990460fc1a3b3828f7a85974bd43e4",
+          "accessPath": "/lib/apk/db/installed",
+          "annotations": {
+            "evidence": "primary"
+          }
+        }
+      ],
+      "licenses": [
+        {
+          "value": "BSD-2-Clause",
+          "spdxExpression": "BSD-2-Clause",
+          "type": "declared",
+          "urls": [],
+          "locations": [
+            {
+              "path": "/lib/apk/db/installed",
+              "layerID": "sha256:3a4fd63e485ad89a612fc673cb5a9d8ba5990460fc1a3b3828f7a85974bd43e4",
+              "accessPath": "/lib/apk/db/installed",
+              "annotations": {
+                "evidence": "primary"
+              }
+            }
+          ]
+        }
+      ],
+      "language": "",
+      "cpes": [
+        {
+          "cpe": "cpe:2.3:a:nginx:nginx:1.26.2-r4:*:*:*:*:*:*:*",
+          "source": "syft-generated"
+        }
+      ],
+      "purl": "pkg:apk/alpine/nginx@1.26.2-r4?arch=x86_64&distro=alpine-3.21.3",
+      "metadataType": "apk-db-entry",
+      "metadata": {
+        "package": "nginx",
+        "originPackage": "nginx",
+        "maintainer": "Jakub Jirutka <jakub@jirutka.cz>",
+        "version": "1.26.2-r4",
+        "architecture": "x86_64",
+        "url": "https://www.nginx.org/",
+        "description": "HTTP and reverse proxy server (stable version)",
+        "size": 447676,
+        "installedSize": 1024075,
+        "pullDependencies": [
+          "/bin/sh",
+          "so:libc.musl-x86_64.so.1",
+          "so:libcrypto.so.3",
+          "so:libpcre.so.1",
+          "so:libssl.so.3",
+          "so:libz.so.1"
+        ],
+        "provides": [
+          "cmd:nginx=1.26.2-r4"
+        ],
+        "pullChecksum": "Q1TaEHJqCdZ8noj1yRhBqxM0QfIP0=",
+        "gitCommitOfApkPort": "fc9c41ba44793e8306b33f9342da2efea990a562",
+        "files": [
+          {
+            "path": "/etc"
+          },
+          {
+            "path": "/etc/logrotate.d"
+          },
+          {
+            "path": "/etc/logrotate.d/nginx",
+            "digest": {
+              "algorithm": "'Q1'+base64(sha1)",
+              "value": "Q10hqWNYoQtzH4hH5tMnme/cKn9CE="
+            }
+          },
+          {
+            "path": "/etc/nginx"
+          },
+          {
+            "path": "/etc/nginx/fastcgi.conf",
+            "digest": {
+              "algorithm": "'Q1'+base64(sha1)",
+              "value": "Q1y/WW3bNDOo4NMl88GIvsnBu3RrM="
+            }
+          },
+          {
+            "path": "/etc/nginx/fastcgi_params",
+            "digest": {
+              "algorithm": "'Q1'+base64(sha1)",
+              "value": "Q12jjioN3tg4r74OrebLg3rDD9gEY="
+            }
+          },
+          {
+            "path": "/etc/nginx/mime.types",
+            "digest": {
+              "algorithm": "'Q1'+base64(sha1)",
+              "value": "Q1m4XlCRAYRVCR1/E1xKFgrZSHUWo="
+            }
+          },
+          {
+            "path": "/etc/nginx/nginx.conf",
+            "digest": {
+              "algorithm": "'Q1'+base64(sha1)",
+              "value": "Q1Eg3BAIIrCRbNY5LIwestp51Kv34="
+            }
+          },
+          {
+            "path": "/etc/nginx/scgi_params",
+            "digest": {
+              "algorithm": "'Q1'+base64(sha1)",
+              "value": "Q1N5weKipf+4yRoHMo1Mm+K8WHmf0="
+            }
+          },
+          {
+            "path": "/etc/nginx/uwsgi_params",
+            "digest": {
+              "algorithm": "'Q1'+base64(sha1)",
+              "value": "Q1zC/NtGBdysI9WfZniJzL39xuNmg="
+            }
+          },
+          {
+            "path": "/etc/nginx/http.d"
+          },
+          {
+            "path": "/etc/nginx/modules"
+          },
+          {
+            "path": "/usr"
+          },
+          {
+            "path": "/usr/lib"
+          },
+          {
+            "path": "/usr/lib/nginx"
+          },
+          {
+            "path": "/usr/lib/nginx/modules"
+          },
+          {
+            "path": "/usr/sbin"
+          },
+          {
+            "path": "/usr/sbin/nginx",
+            "ownerUid": "0",
+            "ownerGid": "0",
+            "permissions": "755",
+            "digest": {
+              "algorithm": "'Q1'+base64(sha1)",
+              "value": "Q1oY3ySdtJ5tDnmE3liRxF0RwQNPQ="
+            }
+          },
+          {
+            "path": "/usr/share"
+          },
+          {
+            "path": "/usr/share/nginx"
+          },
+          {
+            "path": "/usr/share/nginx/http-default_server.conf",
+            "digest": {
+              "algorithm": "'Q1'+base64(sha1)",
+              "value": "Q1eypNoaFBZkQsEMv541f6n7U1Qso="
+            }
+          },
+          {
+            "path": "/var"
+          },
+          {
+            "path": "/var/lib"
+          },
+          {
+            "path": "/var/lib/nginx",
+            "ownerUid": "100",
+            "ownerGid": "101",
+            "permissions": "750"
+          },
+          {
+            "path": "/var/lib/nginx/logs",
+            "ownerUid": "0",
+            "ownerGid": "0",
+            "permissions": "777",
+            "digest": {
+              "algorithm": "'Q1'+base64(sha1)",
+              "value": "Q1NdsXwYzgufhKPMETyKnpThn2MrE="
+            }
+          },
+          {
+            "path": "/var/lib/nginx/modules",
+            "ownerUid": "0",
+            "ownerGid": "0",
+            "permissions": "777",
+            "digest": {
+              "algorithm": "'Q1'+base64(sha1)",
+              "value": "Q1w/AsqB9/LGveP4eLMXbyJcd4HH0="
+            }
+          },
+          {
+            "path": "/var/lib/nginx/run",
+            "ownerUid": "0",
+            "ownerGid": "0",
+            "permissions": "777",
+            "digest": {
+              "algorithm": "'Q1'+base64(sha1)",
+              "value": "Q1BRAxLUZbhnaRNpg2V9+YwYVPC2A="
+            }
+          },
+          {
+            "path": "/var/lib/nginx/html"
+          },
+          {
+            "path": "/var/lib/nginx/html/50x.html",
+            "digest": {
+              "algorithm": "'Q1'+base64(sha1)",
+              "value": "Q1g1ud7EGcAUIOeGAlJ6n7qMRjUhw="
+            }
+          },
+          {
+            "path": "/var/lib/nginx/html/index.html",
+            "digest": {
+              "algorithm": "'Q1'+base64(sha1)",
+              "value": "Q1xRo/Dm3k64AtVjCUHD/Z4dDvrks="
+            }
+          },
+          {
+            "path": "/var/lib/nginx/tmp",
+            "ownerUid": "100",
+            "ownerGid": "101",
+            "permissions": "700"
+          },
+          {
+            "path": "/var/log"
+          },
+          {
+            "path": "/var/log/nginx",
+            "ownerUid": "100",
+            "ownerGid": "101",
+            "permissions": "755"
+          },
+          {
+            "path": "/var/www"
+          },
+          {
+            "path": "/var/www/localhost"
+          },
+          {
+            "path": "/var/www/localhost/htdocs",
+            "ownerUid": "0",
+            "ownerGid": "82",
+            "permissions": "755"
+          }
+        ]
+      }
+    },
+    {
+      "id": "4e1fccfa53cdf449",
+      "name": "pcre",
+      "version": "8.45-r3",
+      "type": "apk",
+      "foundBy": "apk-db-cataloger",
+      "locations": [
+        {
+          "path": "/lib/apk/db/installed",
+          "layerID": "sha256:3a4fd63e485ad89a612fc673cb5a9d8ba5990460fc1a3b3828f7a85974bd43e4",
+          "accessPath": "/lib/apk/db/installed",
+          "annotations": {
+            "evidence": "primary"
+          }
+        }
+      ],
+      "licenses": [
+        {
+          "value": "BSD-3-Clause",
+          "spdxExpression": "BSD-3-Clause",
+          "type": "declared",
+          "urls": [],
+          "locations": [
+            {
+              "path": "/lib/apk/db/installed",
+              "layerID": "sha256:3a4fd63e485ad89a612fc673cb5a9d8ba5990460fc1a3b3828f7a85974bd43e4",
+              "accessPath": "/lib/apk/db/installed",
+              "annotations": {
+                "evidence": "primary"
+              }
+            }
+          ]
+        }
+      ],
+      "language": "",
+      "cpes": [
+        {
+          "cpe": "cpe:2.3:a:pcre:pcre:8.45-r3:*:*:*:*:*:*:*",
+          "source": "syft-generated"
+        }
+      ],
+      "purl": "pkg:apk/alpine/pcre@8.45-r3?arch=x86_64&distro=alpine-3.21.3",
+      "metadataType": "apk-db-entry",
+      "metadata": {
+        "package": "pcre",
+        "originPackage": "pcre",
+        "maintainer": "Natanael Copa <ncopa@alpinelinux.org>",
+        "version": "8.45-r3",
+        "architecture": "x86_64",
+        "url": "https://www.pcre.org/",
+        "description": "Perl-compatible regular expression library",
+        "size": 146972,
+        "installedSize": 388520,
+        "pullDependencies": [
+          "so:libc.musl-x86_64.so.1"
+        ],
+        "provides": [
+          "so:libpcre.so.1=1.2.13",
+          "so:libpcreposix.so.0=0.0.7"
+        ],
+        "pullChecksum": "Q1LqYqjI7UwlqDHNvhjXHJEc80RqI=",
+        "gitCommitOfApkPort": "21d29cabd99e7ff6534d2e99601cbd77abf30f8a",
+        "files": [
+          {
+            "path": "/usr"
+          },
+          {
+            "path": "/usr/lib"
+          },
+          {
+            "path": "/usr/lib/libpcre.so.1",
+            "ownerUid": "0",
+            "ownerGid": "0",
+            "permissions": "777",
+            "digest": {
+              "algorithm": "'Q1'+base64(sha1)",
+              "value": "Q13LFdtYrfl28IL/uaEc5mpNmSzB0="
+            }
+          },
+          {
+            "path": "/usr/lib/libpcre.so.1.2.13",
+            "ownerUid": "0",
+            "ownerGid": "0",
+            "permissions": "755",
+            "digest": {
+              "algorithm": "'Q1'+base64(sha1)",
+              "value": "Q1J4exohufL0gb1TVVLrzXmWvccJM="
+            }
+          },
+          {
+            "path": "/usr/lib/libpcreposix.so.0",
+            "ownerUid": "0",
+            "ownerGid": "0",
+            "permissions": "777",
+            "digest": {
+              "algorithm": "'Q1'+base64(sha1)",
+              "value": "Q1d/kRQm/Q0+7pUr12YX1wOSoTzuM="
+            }
+          },
+          {
+            "path": "/usr/lib/libpcreposix.so.0.0.7",
+            "ownerUid": "0",
+            "ownerGid": "0",
+            "permissions": "755",
+            "digest": {
+              "algorithm": "'Q1'+base64(sha1)",
+              "value": "Q1o08p25MRwShE8s2DjJNO4fNUrxw="
+            }
+          }
+        ]
+      }
+    },
+    {
       "id": "5732e2d080a0a28c",
       "name": "scanelf",
       "version": "1.3.8-r1",
@@ -2363,6 +2925,14 @@
         {
           "path": "/lib/apk/db/installed",
           "layerID": "sha256:08000c18d16dadf9553d747a58cf44023423a9ab010aab96cf263d2216b8b350",
+          "accessPath": "/lib/apk/db/installed",
+          "annotations": {
+            "evidence": "primary"
+          }
+        },
+        {
+          "path": "/lib/apk/db/installed",
+          "layerID": "sha256:3a4fd63e485ad89a612fc673cb5a9d8ba5990460fc1a3b3828f7a85974bd43e4",
           "accessPath": "/lib/apk/db/installed",
           "annotations": {
             "evidence": "primary"
@@ -2379,6 +2949,14 @@
             {
               "path": "/lib/apk/db/installed",
               "layerID": "sha256:08000c18d16dadf9553d747a58cf44023423a9ab010aab96cf263d2216b8b350",
+              "accessPath": "/lib/apk/db/installed",
+              "annotations": {
+                "evidence": "primary"
+              }
+            },
+            {
+              "path": "/lib/apk/db/installed",
+              "layerID": "sha256:3a4fd63e485ad89a612fc673cb5a9d8ba5990460fc1a3b3828f7a85974bd43e4",
               "accessPath": "/lib/apk/db/installed",
               "annotations": {
                 "evidence": "primary"
@@ -2448,6 +3026,14 @@
           "annotations": {
             "evidence": "primary"
           }
+        },
+        {
+          "path": "/lib/apk/db/installed",
+          "layerID": "sha256:3a4fd63e485ad89a612fc673cb5a9d8ba5990460fc1a3b3828f7a85974bd43e4",
+          "accessPath": "/lib/apk/db/installed",
+          "annotations": {
+            "evidence": "primary"
+          }
         }
       ],
       "licenses": [
@@ -2460,6 +3046,14 @@
             {
               "path": "/lib/apk/db/installed",
               "layerID": "sha256:08000c18d16dadf9553d747a58cf44023423a9ab010aab96cf263d2216b8b350",
+              "accessPath": "/lib/apk/db/installed",
+              "annotations": {
+                "evidence": "primary"
+              }
+            },
+            {
+              "path": "/lib/apk/db/installed",
+              "layerID": "sha256:3a4fd63e485ad89a612fc673cb5a9d8ba5990460fc1a3b3828f7a85974bd43e4",
               "accessPath": "/lib/apk/db/installed",
               "annotations": {
                 "evidence": "primary"
@@ -2551,6 +3145,14 @@
           "annotations": {
             "evidence": "primary"
           }
+        },
+        {
+          "path": "/lib/apk/db/installed",
+          "layerID": "sha256:3a4fd63e485ad89a612fc673cb5a9d8ba5990460fc1a3b3828f7a85974bd43e4",
+          "accessPath": "/lib/apk/db/installed",
+          "annotations": {
+            "evidence": "primary"
+          }
         }
       ],
       "licenses": [
@@ -2563,6 +3165,14 @@
             {
               "path": "/lib/apk/db/installed",
               "layerID": "sha256:08000c18d16dadf9553d747a58cf44023423a9ab010aab96cf263d2216b8b350",
+              "accessPath": "/lib/apk/db/installed",
+              "annotations": {
+                "evidence": "primary"
+              }
+            },
+            {
+              "path": "/lib/apk/db/installed",
+              "layerID": "sha256:3a4fd63e485ad89a612fc673cb5a9d8ba5990460fc1a3b3828f7a85974bd43e4",
               "accessPath": "/lib/apk/db/installed",
               "annotations": {
                 "evidence": "primary"
@@ -2631,81 +3241,6 @@
   ],
   "artifactRelationships": [
     {
-      "parent": "017a1751b7035bb2cc16a0e1f10b0a50b6d92ef2846aa00be2c7b66043637677",
-      "child": "1b755d45cb2df26e",
-      "type": "contains"
-    },
-    {
-      "parent": "017a1751b7035bb2cc16a0e1f10b0a50b6d92ef2846aa00be2c7b66043637677",
-      "child": "3f63eb64a79c1189",
-      "type": "contains"
-    },
-    {
-      "parent": "017a1751b7035bb2cc16a0e1f10b0a50b6d92ef2846aa00be2c7b66043637677",
-      "child": "4cdf6e36df19cc09",
-      "type": "contains"
-    },
-    {
-      "parent": "017a1751b7035bb2cc16a0e1f10b0a50b6d92ef2846aa00be2c7b66043637677",
-      "child": "5732e2d080a0a28c",
-      "type": "contains"
-    },
-    {
-      "parent": "017a1751b7035bb2cc16a0e1f10b0a50b6d92ef2846aa00be2c7b66043637677",
-      "child": "5dd53a4dcb46e28e",
-      "type": "contains"
-    },
-    {
-      "parent": "017a1751b7035bb2cc16a0e1f10b0a50b6d92ef2846aa00be2c7b66043637677",
-      "child": "5e649c7c3eb5dfed",
-      "type": "contains"
-    },
-    {
-      "parent": "017a1751b7035bb2cc16a0e1f10b0a50b6d92ef2846aa00be2c7b66043637677",
-      "child": "641201b6e05dde0f",
-      "type": "contains"
-    },
-    {
-      "parent": "017a1751b7035bb2cc16a0e1f10b0a50b6d92ef2846aa00be2c7b66043637677",
-      "child": "6cadff4303b9c142",
-      "type": "contains"
-    },
-    {
-      "parent": "017a1751b7035bb2cc16a0e1f10b0a50b6d92ef2846aa00be2c7b66043637677",
-      "child": "84efb3a8cf5f4e8d",
-      "type": "contains"
-    },
-    {
-      "parent": "017a1751b7035bb2cc16a0e1f10b0a50b6d92ef2846aa00be2c7b66043637677",
-      "child": "86cf615978380604",
-      "type": "contains"
-    },
-    {
-      "parent": "017a1751b7035bb2cc16a0e1f10b0a50b6d92ef2846aa00be2c7b66043637677",
-      "child": "bdb7f2c637679326",
-      "type": "contains"
-    },
-    {
-      "parent": "017a1751b7035bb2cc16a0e1f10b0a50b6d92ef2846aa00be2c7b66043637677",
-      "child": "c1faa35efa11da10",
-      "type": "contains"
-    },
-    {
-      "parent": "017a1751b7035bb2cc16a0e1f10b0a50b6d92ef2846aa00be2c7b66043637677",
-      "child": "cd1596a99504840a",
-      "type": "contains"
-    },
-    {
-      "parent": "017a1751b7035bb2cc16a0e1f10b0a50b6d92ef2846aa00be2c7b66043637677",
-      "child": "d8b802483dfb52ac",
-      "type": "contains"
-    },
-    {
-      "parent": "017a1751b7035bb2cc16a0e1f10b0a50b6d92ef2846aa00be2c7b66043637677",
-      "child": "e0326841c471a81b",
-      "type": "contains"
-    },
-    {
       "parent": "1b755d45cb2df26e",
       "child": "3a0af964c1c82ae1",
       "type": "evident-by",
@@ -2724,6 +3259,19 @@
       "type": "contains"
     },
     {
+      "parent": "1b755d45cb2df26e",
+      "child": "84b459c645f41dcd",
+      "type": "evident-by",
+      "metadata": {
+        "kind": "primary"
+      }
+    },
+    {
+      "parent": "1b755d45cb2df26e",
+      "child": "d1245af6d67c0bc1",
+      "type": "dependency-of"
+    },
+    {
       "parent": "3f63eb64a79c1189",
       "child": "12882a4a8a31f349",
       "type": "contains"
@@ -2731,6 +3279,14 @@
     {
       "parent": "3f63eb64a79c1189",
       "child": "3a0af964c1c82ae1",
+      "type": "evident-by",
+      "metadata": {
+        "kind": "primary"
+      }
+    },
+    {
+      "parent": "3f63eb64a79c1189",
+      "child": "84b459c645f41dcd",
       "type": "evident-by",
       "metadata": {
         "kind": "primary"
@@ -2756,12 +3312,56 @@
     },
     {
       "parent": "4cdf6e36df19cc09",
+      "child": "84b459c645f41dcd",
+      "type": "evident-by",
+      "metadata": {
+        "kind": "primary"
+      }
+    },
+    {
+      "parent": "4cdf6e36df19cc09",
       "child": "84efb3a8cf5f4e8d",
+      "type": "dependency-of"
+    },
+    {
+      "parent": "4cdf6e36df19cc09",
+      "child": "d1245af6d67c0bc1",
+      "type": "dependency-of"
+    },
+    {
+      "parent": "4e1fccfa53cdf449",
+      "child": "23c8ac7fa6b73f6d",
+      "type": "contains"
+    },
+    {
+      "parent": "4e1fccfa53cdf449",
+      "child": "49b257a2623d0e0a",
+      "type": "contains"
+    },
+    {
+      "parent": "4e1fccfa53cdf449",
+      "child": "84b459c645f41dcd",
+      "type": "evident-by",
+      "metadata": {
+        "kind": "primary"
+      }
+    },
+    {
+      "parent": "4e1fccfa53cdf449",
+      "child": "d1245af6d67c0bc1",
       "type": "dependency-of"
     },
     {
       "parent": "5732e2d080a0a28c",
       "child": "3a0af964c1c82ae1",
+      "type": "evident-by",
+      "metadata": {
+        "kind": "primary"
+      }
+    },
+    {
+      "parent": "5732e2d080a0a28c",
+      "child": "84b459c645f41dcd",
       "type": "evident-by",
       "metadata": {
         "kind": "primary"
@@ -2844,6 +3444,14 @@
       "parent": "5dd53a4dcb46e28e",
       "child": "7dc19bf0e5732683",
       "type": "contains"
+    },
+    {
+      "parent": "5dd53a4dcb46e28e",
+      "child": "84b459c645f41dcd",
+      "type": "evident-by",
+      "metadata": {
+        "kind": "primary"
+      }
     },
     {
       "parent": "5dd53a4dcb46e28e",
@@ -2940,6 +3548,24 @@
     },
     {
       "parent": "5e649c7c3eb5dfed",
+      "child": "84b459c645f41dcd",
+      "type": "evident-by",
+      "metadata": {
+        "kind": "primary"
+      }
+    },
+    {
+      "parent": "5e649c7c3eb5dfed",
+      "child": "8f4a3410737bbeb8",
+      "type": "contains"
+    },
+    {
+      "parent": "5e649c7c3eb5dfed",
+      "child": "98061c7f84d4d14f",
+      "type": "contains"
+    },
+    {
+      "parent": "5e649c7c3eb5dfed",
       "child": "9af9d9f629fac01b",
       "type": "contains"
     },
@@ -2985,6 +3611,11 @@
     },
     {
       "parent": "5e649c7c3eb5dfed",
+      "child": "e9262add2ac66cae",
+      "type": "contains"
+    },
+    {
+      "parent": "5e649c7c3eb5dfed",
       "child": "f0118fa09c562403",
       "type": "contains"
     },
@@ -3005,6 +3636,14 @@
       "parent": "641201b6e05dde0f",
       "child": "4aa4b218618531fb",
       "type": "contains"
+    },
+    {
+      "parent": "641201b6e05dde0f",
+      "child": "84b459c645f41dcd",
+      "type": "evident-by",
+      "metadata": {
+        "kind": "primary"
+      }
     },
     {
       "parent": "641201b6e05dde0f",
@@ -3061,6 +3700,14 @@
     },
     {
       "parent": "6cadff4303b9c142",
+      "child": "84b459c645f41dcd",
+      "type": "evident-by",
+      "metadata": {
+        "kind": "primary"
+      }
+    },
+    {
+      "parent": "6cadff4303b9c142",
       "child": "98e07e10339c390a",
       "type": "contains"
     },
@@ -3077,6 +3724,14 @@
     {
       "parent": "84efb3a8cf5f4e8d",
       "child": "3a0af964c1c82ae1",
+      "type": "evident-by",
+      "metadata": {
+        "kind": "primary"
+      }
+    },
+    {
+      "parent": "84efb3a8cf5f4e8d",
+      "child": "84b459c645f41dcd",
       "type": "evident-by",
       "metadata": {
         "kind": "primary"
@@ -3142,6 +3797,14 @@
     },
     {
       "parent": "86cf615978380604",
+      "child": "84b459c645f41dcd",
+      "type": "evident-by",
+      "metadata": {
+        "kind": "primary"
+      }
+    },
+    {
+      "parent": "86cf615978380604",
       "child": "84efb3a8cf5f4e8d",
       "type": "dependency-of"
     },
@@ -3149,6 +3812,11 @@
       "parent": "86cf615978380604",
       "child": "8d0b631a9fc10e86",
       "type": "contains"
+    },
+    {
+      "parent": "86cf615978380604",
+      "child": "d1245af6d67c0bc1",
+      "type": "dependency-of"
     },
     {
       "parent": "86cf615978380604",
@@ -3163,6 +3831,91 @@
     {
       "parent": "86cf615978380604",
       "child": "e80b35af09acd71c",
+      "type": "contains"
+    },
+    {
+      "parent": "8d2ee2a722a013907132620b5fa5398c0546bdef3c08606b78dea39f43efbcb1",
+      "child": "1b755d45cb2df26e",
+      "type": "contains"
+    },
+    {
+      "parent": "8d2ee2a722a013907132620b5fa5398c0546bdef3c08606b78dea39f43efbcb1",
+      "child": "3f63eb64a79c1189",
+      "type": "contains"
+    },
+    {
+      "parent": "8d2ee2a722a013907132620b5fa5398c0546bdef3c08606b78dea39f43efbcb1",
+      "child": "4cdf6e36df19cc09",
+      "type": "contains"
+    },
+    {
+      "parent": "8d2ee2a722a013907132620b5fa5398c0546bdef3c08606b78dea39f43efbcb1",
+      "child": "4e1fccfa53cdf449",
+      "type": "contains"
+    },
+    {
+      "parent": "8d2ee2a722a013907132620b5fa5398c0546bdef3c08606b78dea39f43efbcb1",
+      "child": "5732e2d080a0a28c",
+      "type": "contains"
+    },
+    {
+      "parent": "8d2ee2a722a013907132620b5fa5398c0546bdef3c08606b78dea39f43efbcb1",
+      "child": "5dd53a4dcb46e28e",
+      "type": "contains"
+    },
+    {
+      "parent": "8d2ee2a722a013907132620b5fa5398c0546bdef3c08606b78dea39f43efbcb1",
+      "child": "5e649c7c3eb5dfed",
+      "type": "contains"
+    },
+    {
+      "parent": "8d2ee2a722a013907132620b5fa5398c0546bdef3c08606b78dea39f43efbcb1",
+      "child": "641201b6e05dde0f",
+      "type": "contains"
+    },
+    {
+      "parent": "8d2ee2a722a013907132620b5fa5398c0546bdef3c08606b78dea39f43efbcb1",
+      "child": "6cadff4303b9c142",
+      "type": "contains"
+    },
+    {
+      "parent": "8d2ee2a722a013907132620b5fa5398c0546bdef3c08606b78dea39f43efbcb1",
+      "child": "84efb3a8cf5f4e8d",
+      "type": "contains"
+    },
+    {
+      "parent": "8d2ee2a722a013907132620b5fa5398c0546bdef3c08606b78dea39f43efbcb1",
+      "child": "86cf615978380604",
+      "type": "contains"
+    },
+    {
+      "parent": "8d2ee2a722a013907132620b5fa5398c0546bdef3c08606b78dea39f43efbcb1",
+      "child": "bdb7f2c637679326",
+      "type": "contains"
+    },
+    {
+      "parent": "8d2ee2a722a013907132620b5fa5398c0546bdef3c08606b78dea39f43efbcb1",
+      "child": "c1faa35efa11da10",
+      "type": "contains"
+    },
+    {
+      "parent": "8d2ee2a722a013907132620b5fa5398c0546bdef3c08606b78dea39f43efbcb1",
+      "child": "cd1596a99504840a",
+      "type": "contains"
+    },
+    {
+      "parent": "8d2ee2a722a013907132620b5fa5398c0546bdef3c08606b78dea39f43efbcb1",
+      "child": "d1245af6d67c0bc1",
+      "type": "contains"
+    },
+    {
+      "parent": "8d2ee2a722a013907132620b5fa5398c0546bdef3c08606b78dea39f43efbcb1",
+      "child": "d8b802483dfb52ac",
+      "type": "contains"
+    },
+    {
+      "parent": "8d2ee2a722a013907132620b5fa5398c0546bdef3c08606b78dea39f43efbcb1",
+      "child": "e0326841c471a81b",
       "type": "contains"
     },
     {
@@ -3200,6 +3953,14 @@
     },
     {
       "parent": "bdb7f2c637679326",
+      "child": "84b459c645f41dcd",
+      "type": "evident-by",
+      "metadata": {
+        "kind": "primary"
+      }
+    },
+    {
+      "parent": "bdb7f2c637679326",
       "child": "8b2093a54bbe1b8f",
       "type": "contains"
     },
@@ -3216,6 +3977,14 @@
     {
       "parent": "c1faa35efa11da10",
       "child": "3a0af964c1c82ae1",
+      "type": "evident-by",
+      "metadata": {
+        "kind": "primary"
+      }
+    },
+    {
+      "parent": "c1faa35efa11da10",
+      "child": "84b459c645f41dcd",
       "type": "evident-by",
       "metadata": {
         "kind": "primary"
@@ -3241,12 +4010,88 @@
     },
     {
       "parent": "cd1596a99504840a",
+      "child": "84b459c645f41dcd",
+      "type": "evident-by",
+      "metadata": {
+        "kind": "primary"
+      }
+    },
+    {
+      "parent": "cd1596a99504840a",
       "child": "84efb3a8cf5f4e8d",
       "type": "dependency-of"
     },
     {
       "parent": "cd1596a99504840a",
       "child": "c326dc77797360a0",
+      "type": "contains"
+    },
+    {
+      "parent": "cd1596a99504840a",
+      "child": "d1245af6d67c0bc1",
+      "type": "dependency-of"
+    },
+    {
+      "parent": "d1245af6d67c0bc1",
+      "child": "03d3db87e587b474",
+      "type": "contains"
+    },
+    {
+      "parent": "d1245af6d67c0bc1",
+      "child": "1822d55950db0a4e",
+      "type": "contains"
+    },
+    {
+      "parent": "d1245af6d67c0bc1",
+      "child": "3ad9dd65658963c2",
+      "type": "contains"
+    },
+    {
+      "parent": "d1245af6d67c0bc1",
+      "child": "3eab3ebbe5038fc8",
+      "type": "contains"
+    },
+    {
+      "parent": "d1245af6d67c0bc1",
+      "child": "41910e3098f5de84",
+      "type": "contains"
+    },
+    {
+      "parent": "d1245af6d67c0bc1",
+      "child": "53ee91a1a7068c57",
+      "type": "contains"
+    },
+    {
+      "parent": "d1245af6d67c0bc1",
+      "child": "84b459c645f41dcd",
+      "type": "evident-by",
+      "metadata": {
+        "kind": "primary"
+      }
+    },
+    {
+      "parent": "d1245af6d67c0bc1",
+      "child": "b1db9c6b0cdbe431",
+      "type": "contains"
+    },
+    {
+      "parent": "d1245af6d67c0bc1",
+      "child": "bd05a78b67bc8ecb",
+      "type": "contains"
+    },
+    {
+      "parent": "d1245af6d67c0bc1",
+      "child": "c4bde30e6ab5adce",
+      "type": "contains"
+    },
+    {
+      "parent": "d1245af6d67c0bc1",
+      "child": "d0000905d450b127",
+      "type": "contains"
+    },
+    {
+      "parent": "d1245af6d67c0bc1",
+      "child": "f3c2f22b4f02b641",
       "type": "contains"
     },
     {
@@ -3269,8 +4114,21 @@
     },
     {
       "parent": "d8b802483dfb52ac",
+      "child": "4e1fccfa53cdf449",
+      "type": "dependency-of"
+    },
+    {
+      "parent": "d8b802483dfb52ac",
       "child": "5732e2d080a0a28c",
       "type": "dependency-of"
+    },
+    {
+      "parent": "d8b802483dfb52ac",
+      "child": "84b459c645f41dcd",
+      "type": "evident-by",
+      "metadata": {
+        "kind": "primary"
+      }
     },
     {
       "parent": "d8b802483dfb52ac",
@@ -3299,6 +4157,11 @@
     },
     {
       "parent": "d8b802483dfb52ac",
+      "child": "d1245af6d67c0bc1",
+      "type": "dependency-of"
+    },
+    {
+      "parent": "d8b802483dfb52ac",
       "child": "e0326841c471a81b",
       "type": "dependency-of"
     },
@@ -3320,6 +4183,14 @@
     {
       "parent": "e0326841c471a81b",
       "child": "3a0af964c1c82ae1",
+      "type": "evident-by",
+      "metadata": {
+        "kind": "primary"
+      }
+    },
+    {
+      "parent": "e0326841c471a81b",
+      "child": "84b459c645f41dcd",
       "type": "evident-by",
       "metadata": {
         "kind": "primary"
@@ -3630,6 +4501,31 @@
       ]
     },
     {
+      "id": "e9262add2ac66cae",
+      "location": {
+        "path": "/etc/group",
+        "layerID": "sha256:3a4fd63e485ad89a612fc673cb5a9d8ba5990460fc1a3b3828f7a85974bd43e4"
+      },
+      "metadata": {
+        "mode": 644,
+        "type": "RegularFile",
+        "userID": 0,
+        "groupID": 0,
+        "mimeType": "text/plain",
+        "size": 533
+      },
+      "digests": [
+        {
+          "algorithm": "sha1",
+          "value": "3b0fcea0114927a3e7733f1c866526868da6fbab"
+        },
+        {
+          "algorithm": "sha256",
+          "value": "86a688acf6fbce3aebe967ea5eb87b0206b626d443657730da6082882fdbd23f"
+        }
+      ]
+    },
+    {
       "id": "0d4e8a58553adb9f",
       "location": {
         "path": "/etc/hostname",
@@ -3751,6 +4647,31 @@
         {
           "algorithm": "sha256",
           "value": "d608a3b7715886b5735def0cc50a6359fd364fac2e0e0a459c588c04be471031"
+        }
+      ]
+    },
+    {
+      "id": "b1db9c6b0cdbe431",
+      "location": {
+        "path": "/etc/logrotate.d/nginx",
+        "layerID": "sha256:3a4fd63e485ad89a612fc673cb5a9d8ba5990460fc1a3b3828f7a85974bd43e4"
+      },
+      "metadata": {
+        "mode": 644,
+        "type": "RegularFile",
+        "userID": 0,
+        "groupID": 0,
+        "mimeType": "text/plain",
+        "size": 122
+      },
+      "digests": [
+        {
+          "algorithm": "sha1",
+          "value": "d21a96358a10b731f8847e6d32799efdc2a7f421"
+        },
+        {
+          "algorithm": "sha256",
+          "value": "b063611c6cb2d33bd43c4b17bf4135dda25f209bb77e4e66d1b156cffc37fbe6"
         }
       ]
     },
@@ -3930,6 +4851,156 @@
       ]
     },
     {
+      "id": "3eab3ebbe5038fc8",
+      "location": {
+        "path": "/etc/nginx/fastcgi.conf",
+        "layerID": "sha256:3a4fd63e485ad89a612fc673cb5a9d8ba5990460fc1a3b3828f7a85974bd43e4"
+      },
+      "metadata": {
+        "mode": 644,
+        "type": "RegularFile",
+        "userID": 0,
+        "groupID": 0,
+        "mimeType": "text/plain",
+        "size": 1077
+      },
+      "digests": [
+        {
+          "algorithm": "sha1",
+          "value": "cbf596ddb3433a8e0d325f3c188bec9c1bb746b3"
+        },
+        {
+          "algorithm": "sha256",
+          "value": "b2c3d480a58f61f3a7dc61850b461e892e36f236317765a4f2f6d558c928fa57"
+        }
+      ]
+    },
+    {
+      "id": "c4bde30e6ab5adce",
+      "location": {
+        "path": "/etc/nginx/fastcgi_params",
+        "layerID": "sha256:3a4fd63e485ad89a612fc673cb5a9d8ba5990460fc1a3b3828f7a85974bd43e4"
+      },
+      "metadata": {
+        "mode": 644,
+        "type": "RegularFile",
+        "userID": 0,
+        "groupID": 0,
+        "mimeType": "text/plain",
+        "size": 1007
+      },
+      "digests": [
+        {
+          "algorithm": "sha1",
+          "value": "da38e2a0dded838afbe0eade6cb837ac30fd8046"
+        },
+        {
+          "algorithm": "sha256",
+          "value": "f37852d0113de30fa6bfc3d9b180ef99383c06739530dd482a8538503afd5a58"
+        }
+      ]
+    },
+    {
+      "id": "41910e3098f5de84",
+      "location": {
+        "path": "/etc/nginx/mime.types",
+        "layerID": "sha256:3a4fd63e485ad89a612fc673cb5a9d8ba5990460fc1a3b3828f7a85974bd43e4"
+      },
+      "metadata": {
+        "mode": 644,
+        "type": "RegularFile",
+        "userID": 0,
+        "groupID": 0,
+        "mimeType": "text/plain",
+        "size": 5349
+      },
+      "digests": [
+        {
+          "algorithm": "sha1",
+          "value": "9b85e5091018455091d7f135c4a160ad9487516a"
+        },
+        {
+          "algorithm": "sha256",
+          "value": "6f95d1d7d75e3c072907d845622a69d23110d1266c16ff122b3109b8b21f3ae9"
+        }
+      ]
+    },
+    {
+      "id": "bd05a78b67bc8ecb",
+      "location": {
+        "path": "/etc/nginx/nginx.conf",
+        "layerID": "sha256:3a4fd63e485ad89a612fc673cb5a9d8ba5990460fc1a3b3828f7a85974bd43e4"
+      },
+      "metadata": {
+        "mode": 644,
+        "type": "RegularFile",
+        "userID": 0,
+        "groupID": 0,
+        "mimeType": "text/plain",
+        "size": 3214
+      },
+      "digests": [
+        {
+          "algorithm": "sha1",
+          "value": "120dc100822b0916cd6392c8c1eb2da79d4abf7e"
+        },
+        {
+          "algorithm": "sha256",
+          "value": "ca4278d6b81120988a6056c2a71891ea2719aad4535d2fc4f7ab7ac8da560c2f"
+        }
+      ]
+    },
+    {
+      "id": "53ee91a1a7068c57",
+      "location": {
+        "path": "/etc/nginx/scgi_params",
+        "layerID": "sha256:3a4fd63e485ad89a612fc673cb5a9d8ba5990460fc1a3b3828f7a85974bd43e4"
+      },
+      "metadata": {
+        "mode": 644,
+        "type": "RegularFile",
+        "userID": 0,
+        "groupID": 0,
+        "mimeType": "text/plain",
+        "size": 636
+      },
+      "digests": [
+        {
+          "algorithm": "sha1",
+          "value": "379c1e2a2a5ffb8c91a07328d4c9be2bc58799fd"
+        },
+        {
+          "algorithm": "sha256",
+          "value": "f27b2027c571ccafcfb0fbb3f54d7aeee11a984e3a0f5a1fdf14629030fc9011"
+        }
+      ]
+    },
+    {
+      "id": "3ad9dd65658963c2",
+      "location": {
+        "path": "/etc/nginx/uwsgi_params",
+        "layerID": "sha256:3a4fd63e485ad89a612fc673cb5a9d8ba5990460fc1a3b3828f7a85974bd43e4"
+      },
+      "metadata": {
+        "mode": 644,
+        "type": "RegularFile",
+        "userID": 0,
+        "groupID": 0,
+        "mimeType": "text/plain",
+        "size": 664
+      },
+      "digests": [
+        {
+          "algorithm": "sha1",
+          "value": "cc2fcdb4605dcac23d59f667889ccbdfdc6e3668"
+        },
+        {
+          "algorithm": "sha256",
+          "value": "015cb581c2eb84b1a1ac9b575521d5881f791f632bfa62f34b26ba97d70c0d4f"
+        }
+      ]
+    },
+    {
       "id": "35e1567023a591d9",
       "location": {
         "path": "/etc/nsswitch.conf",
@@ -3976,6 +5047,31 @@
         {
           "algorithm": "sha256",
           "value": "31a94f06f17bc3b9085fccab1d0fa6ee9e79c4a1e4d91f617fa5de95863be015"
+        }
+      ]
+    },
+    {
+      "id": "98061c7f84d4d14f",
+      "location": {
+        "path": "/etc/passwd",
+        "layerID": "sha256:3a4fd63e485ad89a612fc673cb5a9d8ba5990460fc1a3b3828f7a85974bd43e4"
+      },
+      "metadata": {
+        "mode": 644,
+        "type": "RegularFile",
+        "userID": 0,
+        "groupID": 0,
+        "mimeType": "text/plain",
+        "size": 753
+      },
+      "digests": [
+        {
+          "algorithm": "sha1",
+          "value": "b550ae2a9cc9b2b97140a0a8231b93f76eeb44b8"
+        },
+        {
+          "algorithm": "sha256",
+          "value": "a3a4d9829e4049b6606215a8da7a39a731f724b8978d0bbb858c24e2fb21a3c3"
         }
       ]
     },
@@ -4205,6 +5301,31 @@
       ]
     },
     {
+      "id": "8f4a3410737bbeb8",
+      "location": {
+        "path": "/etc/shadow",
+        "layerID": "sha256:3a4fd63e485ad89a612fc673cb5a9d8ba5990460fc1a3b3828f7a85974bd43e4"
+      },
+      "metadata": {
+        "mode": 640,
+        "type": "RegularFile",
+        "userID": 0,
+        "groupID": 42,
+        "mimeType": "text/plain",
+        "size": 287
+      },
+      "digests": [
+        {
+          "algorithm": "sha1",
+          "value": "420adf631e9d743185b0098b1c118ba6f426c4d3"
+        },
+        {
+          "algorithm": "sha256",
+          "value": "0fdd52133edc56f6a4b734966ae58cb99f91e38a5ca92867517f4722d85bc73d"
+        }
+      ]
+    },
+    {
       "id": "d190416ae3d25d6f",
       "location": {
         "path": "/etc/shells",
@@ -4426,6 +5547,31 @@
         {
           "algorithm": "sha256",
           "value": "e1f0af0b0eec5a1b3d5fb663ce398865ab38cbee1daa81ca337fb4ab9b8aba0b"
+        }
+      ]
+    },
+    {
+      "id": "84b459c645f41dcd",
+      "location": {
+        "path": "/lib/apk/db/installed",
+        "layerID": "sha256:3a4fd63e485ad89a612fc673cb5a9d8ba5990460fc1a3b3828f7a85974bd43e4"
+      },
+      "metadata": {
+        "mode": 644,
+        "type": "RegularFile",
+        "userID": 0,
+        "groupID": 0,
+        "mimeType": "text/plain",
+        "size": 16947
+      },
+      "digests": [
+        {
+          "algorithm": "sha1",
+          "value": "444fc8a7d4e64721df3875d7cf46362a635832cf"
+        },
+        {
+          "algorithm": "sha256",
+          "value": "baa54002d6a3248f3dd85bb356ac5b58aedc1830c43d667cdb9257fc14da4ea8"
         }
       ]
     },
@@ -5039,6 +6185,91 @@
       }
     },
     {
+      "id": "23c8ac7fa6b73f6d",
+      "location": {
+        "path": "/usr/lib/libpcre.so.1.2.13",
+        "layerID": "sha256:3a4fd63e485ad89a612fc673cb5a9d8ba5990460fc1a3b3828f7a85974bd43e4"
+      },
+      "metadata": {
+        "mode": 755,
+        "type": "RegularFile",
+        "userID": 0,
+        "groupID": 0,
+        "mimeType": "application/x-sharedlib",
+        "size": 374504
+      },
+      "digests": [
+        {
+          "algorithm": "sha1",
+          "value": "2787b1a21b9f2f481bd535552ebcd7996bdc7093"
+        },
+        {
+          "algorithm": "sha256",
+          "value": "c51d015c8ea34f87446a7305ce77f98390a248d094496a9a962a6e9021487174"
+        }
+      ],
+      "executable": {
+        "format": "elf",
+        "hasExports": true,
+        "hasEntrypoint": false,
+        "importedLibraries": [
+          "libc.musl-x86_64.so.1"
+        ],
+        "elfSecurityFeatures": {
+          "symbolTableStripped": true,
+          "stackCanary": true,
+          "nx": true,
+          "relRO": "full",
+          "pie": false,
+          "dso": true,
+          "safeStack": false
+        }
+      }
+    },
+    {
+      "id": "49b257a2623d0e0a",
+      "location": {
+        "path": "/usr/lib/libpcreposix.so.0.0.7",
+        "layerID": "sha256:3a4fd63e485ad89a612fc673cb5a9d8ba5990460fc1a3b3828f7a85974bd43e4"
+      },
+      "metadata": {
+        "mode": 755,
+        "type": "RegularFile",
+        "userID": 0,
+        "groupID": 0,
+        "mimeType": "application/x-sharedlib",
+        "size": 14016
+      },
+      "digests": [
+        {
+          "algorithm": "sha1",
+          "value": "a34f29db9311c12844f2cd838c934ee1f354af1c"
+        },
+        {
+          "algorithm": "sha256",
+          "value": "5f9651e892cf072810bbf7bfbeb932b5194bc7ce29d73e4293fc00c4879d3999"
+        }
+      ],
+      "executable": {
+        "format": "elf",
+        "hasExports": true,
+        "hasEntrypoint": false,
+        "importedLibraries": [
+          "libpcre.so.1",
+          "libc.musl-x86_64.so.1"
+        ],
+        "elfSecurityFeatures": {
+          "symbolTableStripped": true,
+          "stackCanary": true,
+          "nx": true,
+          "relRO": "full",
+          "pie": false,
+          "dso": true,
+          "safeStack": false
+        }
+      }
+    },
+    {
       "id": "50435cf8abf856fa",
       "location": {
         "path": "/usr/lib/libssl.so.3",
@@ -5217,10 +6448,10 @@
       ]
     },
     {
-      "id": "a3ada3d9796d09c0",
+      "id": "65cd25bf0c9136bd",
       "location": {
         "path": "/usr/local/bin/proxma",
-        "layerID": "sha256:7d7b5852aaee3830f55e8d3b943a09364735ed624bee8ee6557e50f76a562180"
+        "layerID": "sha256:5f7b3b61444b7137b4681e6c6cbee5930d4d9fc24d589097110a356696906e3e"
       },
       "executable": {
         "format": "elf",
@@ -5242,6 +6473,52 @@
       "unknowns": [
         "unknowns-labeler: no package identified in executable file"
       ]
+    },
+    {
+      "id": "03d3db87e587b474",
+      "location": {
+        "path": "/usr/sbin/nginx",
+        "layerID": "sha256:3a4fd63e485ad89a612fc673cb5a9d8ba5990460fc1a3b3828f7a85974bd43e4"
+      },
+      "metadata": {
+        "mode": 755,
+        "type": "RegularFile",
+        "userID": 0,
+        "groupID": 0,
+        "mimeType": "application/x-sharedlib",
+        "size": 1010552
+      },
+      "digests": [
+        {
+          "algorithm": "sha1",
+          "value": "a18df249db49e6d0e7984de5891c45d11c1034f4"
+        },
+        {
+          "algorithm": "sha256",
+          "value": "0e896c2bfbde601481f058e73c57edf09be6c29d886616fd5cc5849ecda1e603"
+        }
+      ],
+      "executable": {
+        "format": "elf",
+        "hasExports": true,
+        "hasEntrypoint": true,
+        "importedLibraries": [
+          "libpcre.so.1",
+          "libssl.so.3",
+          "libcrypto.so.3",
+          "libz.so.1",
+          "libc.musl-x86_64.so.1"
+        ],
+        "elfSecurityFeatures": {
+          "symbolTableStripped": true,
+          "stackCanary": true,
+          "nx": true,
+          "relRO": "full",
+          "pie": true,
+          "dso": true,
+          "safeStack": false
+        }
+      }
     },
     {
       "id": "ddda4295196c95fe",
@@ -5694,6 +6971,31 @@
       ]
     },
     {
+      "id": "f3c2f22b4f02b641",
+      "location": {
+        "path": "/usr/share/nginx/http-default_server.conf",
+        "layerID": "sha256:3a4fd63e485ad89a612fc673cb5a9d8ba5990460fc1a3b3828f7a85974bd43e4"
+      },
+      "metadata": {
+        "mode": 644,
+        "type": "RegularFile",
+        "userID": 0,
+        "groupID": 0,
+        "mimeType": "text/plain",
+        "size": 342
+      },
+      "digests": [
+        {
+          "algorithm": "sha1",
+          "value": "7b2a4da1a14166442c10cbf9e357fa9fb53542ca"
+        },
+        {
+          "algorithm": "sha256",
+          "value": "f53fd49af9b4bc308653abb85d9989879ce1fb48e43c508f5f45c84f74513865"
+        }
+      ]
+    },
+    {
       "id": "97b5696b6dcc25ed",
       "location": {
         "path": "/usr/share/udhcpc/default.script",
@@ -5717,22 +7019,72 @@
           "value": "c4e5a7c4783a7a73dec48dee009ee687015d2de7ff86b269679b95bef2c60e13"
         }
       ]
+    },
+    {
+      "id": "d0000905d450b127",
+      "location": {
+        "path": "/var/lib/nginx/html/50x.html",
+        "layerID": "sha256:3a4fd63e485ad89a612fc673cb5a9d8ba5990460fc1a3b3828f7a85974bd43e4"
+      },
+      "metadata": {
+        "mode": 644,
+        "type": "RegularFile",
+        "userID": 0,
+        "groupID": 0,
+        "mimeType": "text/html",
+        "size": 497
+      },
+      "digests": [
+        {
+          "algorithm": "sha1",
+          "value": "835b9dec419c01420e78602527a9fba8c463521c"
+        },
+        {
+          "algorithm": "sha256",
+          "value": "876766b4e80133fd490603e073d3567425b88794828a9292104244c9e40875ed"
+        }
+      ]
+    },
+    {
+      "id": "1822d55950db0a4e",
+      "location": {
+        "path": "/var/lib/nginx/html/index.html",
+        "layerID": "sha256:3a4fd63e485ad89a612fc673cb5a9d8ba5990460fc1a3b3828f7a85974bd43e4"
+      },
+      "metadata": {
+        "mode": 644,
+        "type": "RegularFile",
+        "userID": 0,
+        "groupID": 0,
+        "mimeType": "text/html",
+        "size": 615
+      },
+      "digests": [
+        {
+          "algorithm": "sha1",
+          "value": "c51a3f0e6de4eb802d5630941c3fd9e1d0efae4b"
+        },
+        {
+          "algorithm": "sha256",
+          "value": "fb47468a2cd3953c7131431991afcc6a2703f14640520102eea0a685a7e8d6de"
+        }
+      ]
     }
   ],
   "source": {
-    "id": "017a1751b7035bb2cc16a0e1f10b0a50b6d92ef2846aa00be2c7b66043637677",
+    "id": "8d2ee2a722a013907132620b5fa5398c0546bdef3c08606b78dea39f43efbcb1",
     "name": "ghcr.io/ercindedeoglu/proxma",
-    "version": "520632b",
+    "version": "544b956",
     "type": "image",
     "metadata": {
-      "userInput": "ghcr.io/ercindedeoglu/proxma:520632b",
-      "imageID": "sha256:a583f1e43d1c177b36075b3d5fb5b501f60779d10b5b2b1398c60017a75c942e",
-      "manifestDigest": "sha256:017a1751b7035bb2cc16a0e1f10b0a50b6d92ef2846aa00be2c7b66043637677",
+      "userInput": "ghcr.io/ercindedeoglu/proxma:544b956",
+      "imageID": "sha256:cc6e522e48257a2163a61f8b80c5bc81d8080e910b426902aa40da83d0b5d242",
+      "manifestDigest": "sha256:8d2ee2a722a013907132620b5fa5398c0546bdef3c08606b78dea39f43efbcb1",
       "mediaType": "application/vnd.docker.distribution.manifest.v2+json",
       "tags": [
-        "ghcr.io/ercindedeoglu/proxma:520632b"
+        "ghcr.io/ercindedeoglu/proxma:544b956"
       ],
-      "imageSize": 11343432,
+      "imageSize": 12792785,
       "layers": [
         {
           "mediaType": "application/vnd.docker.image.rootfs.diff.tar.gzip",
@@ -5741,21 +7093,41 @@
         },
         {
           "mediaType": "application/vnd.docker.image.rootfs.diff.tar.gzip",
-          "digest": "sha256:7d7b5852aaee3830f55e8d3b943a09364735ed624bee8ee6557e50f76a562180",
+          "digest": "sha256:3a4fd63e485ad89a612fc673cb5a9d8ba5990460fc1a3b3828f7a85974bd43e4",
+          "size": 1448994
+        },
+        {
+          "mediaType": "application/vnd.docker.image.rootfs.diff.tar.gzip",
+          "digest": "sha256:a3c97fdd1283477aaecc7e50dd45c58a3f72b634a92e000e06f7bb9d2253841d",
+          "size": 169
+        },
+        {
+          "mediaType": "application/vnd.docker.image.rootfs.diff.tar.gzip",
+          "digest": "sha256:a5c29ecee7ddace60f8d7a532b964a2a9a51749fdde6cef6ea1108aac6457a5b",
+          "size": 190
+        },
+        {
+          "mediaType": "application/vnd.docker.image.rootfs.diff.tar.gzip",
+          "digest": "sha256:5f7b3b61444b7137b4681e6c6cbee5930d4d9fc24d589097110a356696906e3e",
           "size": 3514016
+        },
+        {
+          "mediaType": "application/vnd.docker.image.rootfs.diff.tar.gzip",
+          "digest": "sha256:5f70bf18a086007016e948b04aed3b82103a36bea41755b6cddfaf10ace3c6ef",
+          "size": 0
         }
       ],
-      "manifest": "eyJzY2hlbWFWZXJzaW9uIjoyLCJtZWRpYVR5cGUiOiJhcHBsaWNhdGlvbi92bmQuZG9ja2VyLmRpc3RyaWJ1dGlvbi5tYW5pZmVzdC52Mitqc29uIiwiY29uZmlnIjp7Im1lZGlhVHlwZSI6ImFwcGxpY2F0aW9uL3ZuZC5kb2NrZXIuY29udGFpbmVyLmltYWdlLnYxK2pzb24iLCJzaXplIjoxMTU0LCJkaWdlc3QiOiJzaGEyNTY6YTU4M2YxZTQzZDFjMTc3YjM2MDc1YjNkNWZiNWI1MDFmNjA3NzlkMTBiNWIyYjEzOThjNjAwMTdhNzVjOTQyZSJ9LCJsYXllcnMiOlt7Im1lZGlhVHlwZSI6ImFwcGxpY2F0aW9uL3ZuZC5kb2NrZXIuaW1hZ2Uucm9vdGZzLmRpZmYudGFyLmd6aXAiLCJzaXplIjo4MTIwODMyLCJkaWdlc3QiOiJzaGEyNTY6MDgwMDBjMThkMTZkYWRmOTU1M2Q3NDdhNThjZjQ0MDIzNDIzYTlhYjAxMGFhYjk2Y2YyNjNkMjIxNmI4YjM1MCJ9LHsibWVkaWFUeXBlIjoiYXBwbGljYXRpb24vdm5kLmRvY2tlci5pbWFnZS5yb290ZnMuZGlmZi50YXIuZ3ppcCIsInNpemUiOjM1MTc0NDAsImRpZ2VzdCI6InNoYTI1Njo3ZDdiNTg1MmFhZWUzODMwZjU1ZThkM2I5NDNhMDkzNjQ3MzVlZDYyNGJlZThlZTY1NTdlNTBmNzZhNTYyMTgwIn1dfQ==",
-      "config": "eyJhcmNoaXRlY3R1cmUiOiJhbWQ2NCIsImNvbmZpZyI6eyJFbnYiOlsiUEFUSD0vdXNyL2xvY2FsL3NiaW46L3Vzci9sb2NhbC9iaW46L3Vzci9zYmluOi91c3IvYmluOi9zYmluOi9iaW4iXSwiRW50cnlwb2ludCI6WyIvdXNyL2xvY2FsL2Jpbi9wcm94bWEiXSwiV29ya2luZ0RpciI6Ii8iLCJMYWJlbHMiOnsib3JnLm9wZW5jb250YWluZXJzLmltYWdlLnNvdXJjZSI6Imh0dHBzOi8vZ2l0aHViLmNvbS9FcmNpbkRlZGVvZ2x1L3Byb3htYSIsIm9yZy5vcGVuY29udGFpbmVycy5pbWFnZS50aXRsZSI6InByb3htYSIsIm9yZy5vcGVuY29udGFpbmVycy5pbWFnZS52ZXJzaW9uIjoidjEuMC4xNSJ9fSwiY3JlYXRlZCI6IjIwMjUtMDMtMDJUMDk6NDI6MDUuOTM3OTUyNTcyWiIsImhpc3RvcnkiOlt7ImNyZWF0ZWQiOiIyMDI1LTAyLTE0VDAzOjI4OjM2WiIsImNyZWF0ZWRfYnkiOiJBREQgYWxwaW5lLW1pbmlyb290ZnMtMy4yMS4zLXg4Nl82NC50YXIuZ3ogLyAjIGJ1aWxka2l0IiwiY29tbWVudCI6ImJ1aWxka2l0LmRvY2tlcmZpbGUudjAifSx7ImNyZWF0ZWQiOiIyMDI1LTAyLTE0VDAzOjI4OjM2WiIsImNyZWF0ZWRfYnkiOiJDTUQgW1wiL2Jpbi9zaFwiXSIsImNvbW1lbnQiOiJidWlsZGtpdC5kb2NrZXJmaWxlLnYwIiwiZW1wdHlfbGF5ZXIiOnRydWV9LHsiY3JlYXRlZCI6IjIwMjUtMDMtMDJUMDk6NDI6MDUuOTM3OTUyNTcyWiIsImNyZWF0ZWRfYnkiOiJDT1BZIC9wcm94bWEgL3Vzci9sb2NhbC9iaW4vcHJveG1hICMgYnVpbGRraXQiLCJjb21tZW50IjoiYnVpbGRraXQuZG9ja2VyZmlsZS52MCJ9LHsiY3JlYXRlZCI6IjIwMjUtMDMtMDJUMDk6NDI6MDUuOTM3OTUyNTcyWiIsImNyZWF0ZWRfYnkiOiJFTlRSWVBPSU5UIFtcIi91c3IvbG9jYWwvYmluL3Byb3htYVwiXSIsImNvbW1lbnQiOiJidWlsZGtpdC5kb2NrZXJmaWxlLnYwIiwiZW1wdHlfbGF5ZXIiOnRydWV9XSwib3MiOiJsaW51eCIsInJvb3RmcyI6eyJ0eXBlIjoibGF5ZXJzIiwiZGlmZl9pZHMiOlsic2hhMjU2OjA4MDAwYzE4ZDE2ZGFkZjk1NTNkNzQ3YTU4Y2Y0NDAyMzQyM2E5YWIwMTBhYWI5NmNmMjYzZDIyMTZiOGIzNTAiLCJzaGEyNTY6N2Q3YjU4NTJhYWVlMzgzMGY1NWU4ZDNiOTQzYTA5MzY0NzM1ZWQ2MjRiZWU4ZWU2NTU3ZTUwZjc2YTU2MjE4MCJdfX0=",
+      "manifest": "eyJzY2hlbWFWZXJzaW9uIjoyLCJtZWRpYVR5cGUiOiJhcHBsaWNhdGlvbi92bmQuZG9ja2VyLmRpc3RyaWJ1dGlvbi5tYW5pZmVzdC52Mitqc29uIiwiY29uZmlnIjp7Im1lZGlhVHlwZSI6ImFwcGxpY2F0aW9uL3ZuZC5kb2NrZXIuY29udGFpbmVyLmltYWdlLnYxK2pzb24iLCJzaXplIjoyMTc1LCJkaWdlc3QiOiJzaGEyNTY6Y2M2ZTUyMmU0ODI1N2EyMTYzYTYxZjhiODBjNWJjODFkODA4MGU5MTBiNDI2OTAyYWE0MGRhODNkMGI1ZDI0MiJ9LCJsYXllcnMiOlt7Im1lZGlhVHlwZSI6ImFwcGxpY2F0aW9uL3ZuZC5kb2NrZXIuaW1hZ2Uucm9vdGZzLmRpZmYudGFyLmd6aXAiLCJzaXplIjo4MTIwODMyLCJkaWdlc3QiOiJzaGEyNTY6MDgwMDBjMThkMTZkYWRmOTU1M2Q3NDdhNThjZjQ0MDIzNDIzYTlhYjAxMGFhYjk2Y2YyNjNkMjIxNmI4YjM1MCJ9LHsibWVkaWFUeXBlIjoiYXBwbGljYXRpb24vdm5kLmRvY2tlci5pbWFnZS5yb290ZnMuZGlmZi50YXIuZ3ppcCIsInNpemUiOjE0ODYzMzYsImRpZ2VzdCI6InNoYTI1NjozYTRmZDYzZTQ4NWFkODlhNjEyZmM2NzNjYjVhOWQ4YmE1OTkwNDYwZmMxYTNiMzgyOGY3YTg1OTc0YmQ0M2U0In0seyJtZWRpYVR5cGUiOiJhcHBsaWNhdGlvbi92bmQuZG9ja2VyLmltYWdlLnJvb3Rmcy5kaWZmLnRhci5nemlwIiwic2l6ZSI6MzU4NCwiZGlnZXN0Ijoic2hhMjU2OmEzYzk3ZmRkMTI4MzQ3N2FhZWNjN2U1MGRkNDVjNThhM2Y3MmI2MzRhOTJlMDAwZTA2ZjdiYjlkMjI1Mzg0MWQifSx7Im1lZGlhVHlwZSI6ImFwcGxpY2F0aW9uL3ZuZC5kb2NrZXIuaW1hZ2Uucm9vdGZzLmRpZmYudGFyLmd6aXAiLCJzaXplIjozNTg0LCJkaWdlc3QiOiJzaGEyNTY6YTVjMjllY2VlN2RkYWNlNjBmOGQ3YTUzMmI5NjRhMmE5YTUxNzQ5ZmRkZTZjZWY2ZWExMTA4YWFjNjQ1N2E1YiJ9LHsibWVkaWFUeXBlIjoiYXBwbGljYXRpb24vdm5kLmRvY2tlci5pbWFnZS5yb290ZnMuZGlmZi50YXIuZ3ppcCIsInNpemUiOjM1MTc0NDAsImRpZ2VzdCI6InNoYTI1Njo1ZjdiM2I2MTQ0NGI3MTM3YjQ2ODFlNmM2Y2JlZTU5MzBkNGQ5ZmMyNGQ1ODkwOTcxMTBhMzU2Njk2OTA2ZTNlIn0seyJtZWRpYVR5cGUiOiJhcHBsaWNhdGlvbi92bmQuZG9ja2VyLmltYWdlLnJvb3Rmcy5kaWZmLnRhci5nemlwIiwic2l6ZSI6MTAyNCwiZGlnZXN0Ijoic2hhMjU2OjVmNzBiZjE4YTA4NjAwNzAxNmU5NDhiMDRhZWQzYjgyMTAzYTM2YmVhNDE3NTViNmNkZGZhZjEwYWNlM2M2ZWYifV19",
+      "config": "eyJhcmNoaXRlY3R1cmUiOiJhbWQ2NCIsImNvbmZpZyI6eyJFbnYiOlsiUEFUSD0vdXNyL2xvY2FsL3NiaW46L3Vzci9sb2NhbC9iaW46L3Vzci9zYmluOi91c3IvYmluOi9zYmluOi9iaW4iXSwiQ21kIjpbIi9iaW4vc2giLCItYyIsIihuZ2lueCAtZyBcImRhZW1vbiBvZmY7XCIgXHUwMDI2KSBcdTAwMjZcdTAwMjYgZXhlYyAvdXNyL2xvY2FsL2Jpbi9wcm94bWEiXSwiV29ya2luZ0RpciI6Ii8iLCJMYWJlbHMiOnsib3JnLm9wZW5jb250YWluZXJzLmltYWdlLnNvdXJjZSI6Imh0dHBzOi8vZ2l0aHViLmNvbS9FcmNpbkRlZGVvZ2x1L3Byb3htYSIsIm9yZy5vcGVuY29udGFpbmVycy5pbWFnZS50aXRsZSI6InByb3htYSIsIm9yZy5vcGVuY29udGFpbmVycy5pbWFnZS52ZXJzaW9uIjoidjEuMC4xNiJ9LCJBcmdzRXNjYXBlZCI6dHJ1ZX0sImNyZWF0ZWQiOiIyMDI1LTAzLTAyVDEwOjAxOjAzLjUzMzQwNjQ3WiIsImhpc3RvcnkiOlt7ImNyZWF0ZWQiOiIyMDI1LTAyLTE0VDAzOjI4OjM2WiIsImNyZWF0ZWRfYnkiOiJBREQgYWxwaW5lLW1pbmlyb290ZnMtMy4yMS4zLXg4Nl82NC50YXIuZ3ogLyAjIGJ1aWxka2l0IiwiY29tbWVudCI6ImJ1aWxka2l0LmRvY2tlcmZpbGUudjAifSx7ImNyZWF0ZWQiOiIyMDI1LTAyLTE0VDAzOjI4OjM2WiIsImNyZWF0ZWRfYnkiOiJDTUQgW1wiL2Jpbi9zaFwiXSIsImNvbW1lbnQiOiJidWlsZGtpdC5kb2NrZXJmaWxlLnYwIiwiZW1wdHlfbGF5ZXIiOnRydWV9LHsiY3JlYXRlZCI6IjIwMjUtMDMtMDJUMTA6MDA6MTIuNTg0OTIwNDU0WiIsImNyZWF0ZWRfYnkiOiJSVU4gL2Jpbi9zaCAtYyBhcGsgYWRkIC0tbm8tY2FjaGUgbmdpbnggIyBidWlsZGtpdCIsImNvbW1lbnQiOiJidWlsZGtpdC5kb2NrZXJmaWxlLnYwIn0seyJjcmVhdGVkIjoiMjAyNS0wMy0wMlQxMDowMDoxMi42MDcwMjMwMDRaIiwiY3JlYXRlZF9ieSI6IkNPUFkgc3JjL25naW54LmNvbmYgL2V0Yy9uZ2lueC9odHRwLmQvZGVmYXVsdC5jb25mICMgYnVpbGRraXQiLCJjb21tZW50IjoiYnVpbGRraXQuZG9ja2VyZmlsZS52MCJ9LHsiY3JlYXRlZCI6IjIwMjUtMDMtMDJUMTA6MDA6MTIuNjI1NzcwNDc0WiIsImNyZWF0ZWRfYnkiOiJDT1BZIHNyYy93ZWJzaXRlIC92YXIvd3d3L2h0bWwgIyBidWlsZGtpdCIsImNvbW1lbnQiOiJidWlsZGtpdC5kb2NrZXJmaWxlLnYwIn0seyJjcmVhdGVkIjoiMjAyNS0wMy0wMlQxMDowMTowMy40NDc0NDEzNzhaIiwiY3JlYXRlZF9ieSI6IkNPUFkgL3Byb3htYSAvdXNyL2xvY2FsL2Jpbi9wcm94bWEgIyBidWlsZGtpdCIsImNvbW1lbnQiOiJidWlsZGtpdC5kb2NrZXJmaWxlLnYwIn0seyJjcmVhdGVkIjoiMjAyNS0wMy0wMlQxMDowMTowMy41MzM0MDY0N1oiLCJjcmVhdGVkX2J5IjoiUlVOIC9iaW4vc2ggLWMgbWtkaXIgLXAgL3J1bi9uZ2lueCAjIGJ1aWxka2l0IiwiY29tbWVudCI6ImJ1aWxka2l0LmRvY2tlcmZpbGUudjAifSx7ImNyZWF0ZWQiOiIyMDI1LTAzLTAyVDEwOjAxOjAzLjUzMzQwNjQ3WiIsImNyZWF0ZWRfYnkiOiJDTUQgW1wiL2Jpbi9zaFwiIFwiLWNcIiBcIihuZ2lueCAtZyBcXFwiZGFlbW9uIG9mZjtcXFwiIFx1MDAyNikgXHUwMDI2XHUwMDI2IGV4ZWMgL3Vzci9sb2NhbC9iaW4vcHJveG1hXCJdIiwiY29tbWVudCI6ImJ1aWxka2l0LmRvY2tlcmZpbGUudjAiLCJlbXB0eV9sYXllciI6dHJ1ZX1dLCJvcyI6ImxpbnV4Iiwicm9vdGZzIjp7InR5cGUiOiJsYXllcnMiLCJkaWZmX2lkcyI6WyJzaGEyNTY6MDgwMDBjMThkMTZkYWRmOTU1M2Q3NDdhNThjZjQ0MDIzNDIzYTlhYjAxMGFhYjk2Y2YyNjNkMjIxNmI4YjM1MCIsInNoYTI1NjozYTRmZDYzZTQ4NWFkODlhNjEyZmM2NzNjYjVhOWQ4YmE1OTkwNDYwZmMxYTNiMzgyOGY3YTg1OTc0YmQ0M2U0Iiwic2hhMjU2OmEzYzk3ZmRkMTI4MzQ3N2FhZWNjN2U1MGRkNDVjNThhM2Y3MmI2MzRhOTJlMDAwZTA2ZjdiYjlkMjI1Mzg0MWQiLCJzaGEyNTY6YTVjMjllY2VlN2RkYWNlNjBmOGQ3YTUzMmI5NjRhMmE5YTUxNzQ5ZmRkZTZjZWY2ZWExMTA4YWFjNjQ1N2E1YiIsInNoYTI1Njo1ZjdiM2I2MTQ0NGI3MTM3YjQ2ODFlNmM2Y2JlZTU5MzBkNGQ5ZmMyNGQ1ODkwOTcxMTBhMzU2Njk2OTA2ZTNlIiwic2hhMjU2OjVmNzBiZjE4YTA4NjAwNzAxNmU5NDhiMDRhZWQzYjgyMTAzYTM2YmVhNDE3NTViNmNkZGZhZjEwYWNlM2M2ZWYiXX19",
       "repoDigests": [
-        "ghcr.io/ercindedeoglu/proxma@sha256:7b15c3511a3bc1551ffe986db98b7543ef822062b8c1f2ad1cfe8f409b4dc023"
+        "ghcr.io/ercindedeoglu/proxma@sha256:80536a2aa899f48e55be46fed83e3be13e9833c9380266ebf213405ec2731ebb"
       ],
       "architecture": "amd64",
       "os": "linux",
       "labels": {
         "org.opencontainers.image.source": "https://github.com/ErcinDedeoglu/proxma",
         "org.opencontainers.image.title": "proxma",
-        "org.opencontainers.image.version": "v1.0.15"
+        "org.opencontainers.image.version": "v1.0.16"
       }
     }
   },
