@@ -1,7 +1,20 @@
 repomix --no-file-summary --no-security-check \
-  --include "src/**,docker-compose.yml" \
-  --ignore "src/proxy-manager/go.mod,src/proxy-manager/go.sum" \
+  --include "src/**,Cargo.toml" \
   --output "repopack.yml"
+
+docker build -t dublok/proxma:latest -f src/Dockerfile .
+docker run -it --rm -v /var/run/docker.sock:/var/run/docker.sock dublok/proxma:latest
+
+# NO-CACHE BUILD
+docker build -t dublok/proxma:latest -f src/Dockerfile . --no-cache
+
+# Run with shell to debug
+docker run -it --rm -v /var/run/docker.sock:/var/run/docker.sock --entrypoint /bin/sh dublok/proxma:latest
+ls -la /usr/local/bin/
+
+
+
+##################
 
 
 docker build -t dublok/proxma:latest -f src/Dockerfile src

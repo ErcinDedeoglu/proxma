@@ -1,26 +1,30 @@
-# If you prefer the allow list template instead of the deny list, see community template:
-# https://github.com/github/gitignore/blob/main/community/Golang/Go.AllowList.gitignore
-#
-# Binaries for programs and plugins
-*.exe
-*.exe~
-*.dll
-*.so
-*.dylib
+# Target directory created by cargo build
+/target/
 
-# Test binary, built with `go test -c`
-*.test
+# Ignore Cargo.lock for libraries, leave it unignored for binary projects
+# Cargo.lock
 
-# Output of the go coverage tool, specifically when used with LiteIDE
-*.out
+# Logs and temporary files
+*.log
 
-# Dependency directories (remove the comment below to include it)
-# vendor/
+# By-products of testing
+*.rs.bk
 
-# Go workspace file
-go.work
-go.work.sum
+# Backup files created by rustfmt / editors
+*.bk
 
-# env file
+# Ignore IDE and editor specific files
+.idea/
+.vscode/
+*.swp
+*~
+
+# Generated documentation (optional)
+doc/
+
+# Environment variables file
 .env
+
+# Ignore node_modules if you are using WebAssembly or frameworks with Rust
+node_modules/
 repopack.yml
