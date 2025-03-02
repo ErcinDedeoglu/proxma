@@ -24,8 +24,8 @@ async fn main() {
 }
 
 fn setup_nginx_example() -> Result<(), Box<dyn std::error::Error>> {
-    let mut manager = NginxManager::new("/etc/nginx/conf.d/default.conf");
-    
+    let mut manager = NginxManager::new("/etc/nginx/conf.d/proxma-proxy-rules.conf");
+
     manager.add_rule(ProxyRule {
         id: "ercin.info".into(),
         domains: vec![

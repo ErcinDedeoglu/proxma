@@ -4,8 +4,9 @@ repomix --no-file-summary --no-security-check \
 
 docker build -t dublok/proxma:latest -f src/Dockerfile .
 docker buildx build --platform linux/amd64,linux/arm64 -t dublok/proxma:latest -f src/Dockerfile .
-docker run -it --rm -v /var/run/docker.sock:/var/run/docker.sock dublok/proxma:latest
-docker run -it --rm -v /var/run/docker.sock:/var/run/docker.sock  -p 80:80 -p 443:443 dublok/proxma:latest
+docker run -it --rm --name proxma -v /var/run/docker.sock:/var/run/docker.sock dublok/proxma:latest
+
+docker run -it --rm --rm --name -v /var/run/docker.sock:/var/run/docker.sock  -p 80:80 -p 443:443 dublok/proxma:latest
 
 # NO-CACHE BUILD
 docker build -t dublok/proxma:latest -f src/Dockerfile . --no-cache
@@ -14,7 +15,15 @@ docker build -t dublok/proxma:latest -f src/Dockerfile . --no-cache
 docker run -it --rm -v /var/run/docker.sock:/var/run/docker.sock --entrypoint /bin/sh dublok/proxma:latest
 ls -la /usr/local/bin/
 
-
+###################
+### DEBUG:
+docker run -it --rm --rm --name proxma2 -v /var/run/docker.sock:/var/run/docker.sock  -p 80:80 -p 443:443 dublok/proxma:latest
+# Connect to the running container
+docker exec -it proxma2 /bin/sh
+# Check if the proxy rules file exists
+ls -la /etc/nginx/conf.d/
+# View the contents of the proxy rules file
+cat /etc/nginx/conf.d/proxma-proxy-rules.conf
 
 ##################
 

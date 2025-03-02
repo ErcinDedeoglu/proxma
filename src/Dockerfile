@@ -43,7 +43,8 @@ RUN mkdir -p /run/nginx /var/www/html && \
     chown -R nginx:nginx /var/www/html /run/nginx
 
 # Copy files
-COPY src/webserver/nginx.conf /etc/nginx/conf.d/default.conf
+COPY src/webserver/nginx/nginx.conf /etc/nginx/nginx.conf
+COPY src/webserver/nginx/conf.d/default.conf /etc/nginx/conf.d/default.conf
 COPY src/webserver/website /var/www/html
 
 # Ensure proper permissions

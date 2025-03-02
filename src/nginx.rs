@@ -93,25 +93,11 @@ impl NginxManager {
     fn generate_config(&self) -> Result<(), NginxError> {
         let mut config = String::new();
         
-        // Preserve the default server configuration
-        config.push_str(r#"server {
-        listen 80 default_server;
-        listen [::]:80 default_server;
-        server_name _;
-        root /var/www/html;
-        index index.html;
-        location / {
-            try_files $uri $uri/ /index.html;
-        }
-    }
-    "#);
-        
-        // Add proxy rules as additional server blocks
+        // Only generate proxy rules, no default server
         for rule in &self.rules {
             let server_names = rule.domains.join(" ");
             config.push_str(&format!(
-                r#"
-    server {{
+                r#"server {{
         listen 80;
         server_name {};
     
