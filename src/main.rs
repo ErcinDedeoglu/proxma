@@ -33,6 +33,11 @@ fn setup_nginx_example() -> Result<(), Box<dyn std::error::Error>> {
             "www.ercin.info".into()
         ],
         upstream: "http://ercin.info:80".into(),
+        redirects: vec![
+            ("www.ercin.info".into(), "ercin.info".into()),
+            ("blog.ercin.info".into(), "ercin.info".into()),
+            // Add as many redirects as needed
+        ],
     })?;
 
     // // Remove the rule by its ID
