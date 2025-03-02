@@ -2649,81 +2649,6 @@
       "type": "contains"
     },
     {
-      "parent": "1d6bbeb734392aee27ea6203c14443aa9532803fc19a8cf38c955c8f40eac031",
-      "child": "1b755d45cb2df26e",
-      "type": "contains"
-    },
-    {
-      "parent": "1d6bbeb734392aee27ea6203c14443aa9532803fc19a8cf38c955c8f40eac031",
-      "child": "3f63eb64a79c1189",
-      "type": "contains"
-    },
-    {
-      "parent": "1d6bbeb734392aee27ea6203c14443aa9532803fc19a8cf38c955c8f40eac031",
-      "child": "4cdf6e36df19cc09",
-      "type": "contains"
-    },
-    {
-      "parent": "1d6bbeb734392aee27ea6203c14443aa9532803fc19a8cf38c955c8f40eac031",
-      "child": "5732e2d080a0a28c",
-      "type": "contains"
-    },
-    {
-      "parent": "1d6bbeb734392aee27ea6203c14443aa9532803fc19a8cf38c955c8f40eac031",
-      "child": "5dd53a4dcb46e28e",
-      "type": "contains"
-    },
-    {
-      "parent": "1d6bbeb734392aee27ea6203c14443aa9532803fc19a8cf38c955c8f40eac031",
-      "child": "5e649c7c3eb5dfed",
-      "type": "contains"
-    },
-    {
-      "parent": "1d6bbeb734392aee27ea6203c14443aa9532803fc19a8cf38c955c8f40eac031",
-      "child": "641201b6e05dde0f",
-      "type": "contains"
-    },
-    {
-      "parent": "1d6bbeb734392aee27ea6203c14443aa9532803fc19a8cf38c955c8f40eac031",
-      "child": "6cadff4303b9c142",
-      "type": "contains"
-    },
-    {
-      "parent": "1d6bbeb734392aee27ea6203c14443aa9532803fc19a8cf38c955c8f40eac031",
-      "child": "84efb3a8cf5f4e8d",
-      "type": "contains"
-    },
-    {
-      "parent": "1d6bbeb734392aee27ea6203c14443aa9532803fc19a8cf38c955c8f40eac031",
-      "child": "86cf615978380604",
-      "type": "contains"
-    },
-    {
-      "parent": "1d6bbeb734392aee27ea6203c14443aa9532803fc19a8cf38c955c8f40eac031",
-      "child": "bdb7f2c637679326",
-      "type": "contains"
-    },
-    {
-      "parent": "1d6bbeb734392aee27ea6203c14443aa9532803fc19a8cf38c955c8f40eac031",
-      "child": "c1faa35efa11da10",
-      "type": "contains"
-    },
-    {
-      "parent": "1d6bbeb734392aee27ea6203c14443aa9532803fc19a8cf38c955c8f40eac031",
-      "child": "cd1596a99504840a",
-      "type": "contains"
-    },
-    {
-      "parent": "1d6bbeb734392aee27ea6203c14443aa9532803fc19a8cf38c955c8f40eac031",
-      "child": "d8b802483dfb52ac",
-      "type": "contains"
-    },
-    {
-      "parent": "1d6bbeb734392aee27ea6203c14443aa9532803fc19a8cf38c955c8f40eac031",
-      "child": "e0326841c471a81b",
-      "type": "contains"
-    },
-    {
       "parent": "3f63eb64a79c1189",
       "child": "12882a4a8a31f349",
       "type": "contains"
@@ -3301,6 +3226,81 @@
       "parent": "d8b802483dfb52ac",
       "child": "e0326841c471a81b",
       "type": "dependency-of"
+    },
+    {
+      "parent": "dbb6f869d98f6b3dfae2b45345e6cdaf5f43d98726498e1e2c385fe8775685d1",
+      "child": "1b755d45cb2df26e",
+      "type": "contains"
+    },
+    {
+      "parent": "dbb6f869d98f6b3dfae2b45345e6cdaf5f43d98726498e1e2c385fe8775685d1",
+      "child": "3f63eb64a79c1189",
+      "type": "contains"
+    },
+    {
+      "parent": "dbb6f869d98f6b3dfae2b45345e6cdaf5f43d98726498e1e2c385fe8775685d1",
+      "child": "4cdf6e36df19cc09",
+      "type": "contains"
+    },
+    {
+      "parent": "dbb6f869d98f6b3dfae2b45345e6cdaf5f43d98726498e1e2c385fe8775685d1",
+      "child": "5732e2d080a0a28c",
+      "type": "contains"
+    },
+    {
+      "parent": "dbb6f869d98f6b3dfae2b45345e6cdaf5f43d98726498e1e2c385fe8775685d1",
+      "child": "5dd53a4dcb46e28e",
+      "type": "contains"
+    },
+    {
+      "parent": "dbb6f869d98f6b3dfae2b45345e6cdaf5f43d98726498e1e2c385fe8775685d1",
+      "child": "5e649c7c3eb5dfed",
+      "type": "contains"
+    },
+    {
+      "parent": "dbb6f869d98f6b3dfae2b45345e6cdaf5f43d98726498e1e2c385fe8775685d1",
+      "child": "641201b6e05dde0f",
+      "type": "contains"
+    },
+    {
+      "parent": "dbb6f869d98f6b3dfae2b45345e6cdaf5f43d98726498e1e2c385fe8775685d1",
+      "child": "6cadff4303b9c142",
+      "type": "contains"
+    },
+    {
+      "parent": "dbb6f869d98f6b3dfae2b45345e6cdaf5f43d98726498e1e2c385fe8775685d1",
+      "child": "84efb3a8cf5f4e8d",
+      "type": "contains"
+    },
+    {
+      "parent": "dbb6f869d98f6b3dfae2b45345e6cdaf5f43d98726498e1e2c385fe8775685d1",
+      "child": "86cf615978380604",
+      "type": "contains"
+    },
+    {
+      "parent": "dbb6f869d98f6b3dfae2b45345e6cdaf5f43d98726498e1e2c385fe8775685d1",
+      "child": "bdb7f2c637679326",
+      "type": "contains"
+    },
+    {
+      "parent": "dbb6f869d98f6b3dfae2b45345e6cdaf5f43d98726498e1e2c385fe8775685d1",
+      "child": "c1faa35efa11da10",
+      "type": "contains"
+    },
+    {
+      "parent": "dbb6f869d98f6b3dfae2b45345e6cdaf5f43d98726498e1e2c385fe8775685d1",
+      "child": "cd1596a99504840a",
+      "type": "contains"
+    },
+    {
+      "parent": "dbb6f869d98f6b3dfae2b45345e6cdaf5f43d98726498e1e2c385fe8775685d1",
+      "child": "d8b802483dfb52ac",
+      "type": "contains"
+    },
+    {
+      "parent": "dbb6f869d98f6b3dfae2b45345e6cdaf5f43d98726498e1e2c385fe8775685d1",
+      "child": "e0326841c471a81b",
+      "type": "contains"
     },
     {
       "parent": "e0326841c471a81b",
@@ -5217,10 +5217,10 @@
       ]
     },
     {
-      "id": "926baf2b8b702771",
+      "id": "145ae4a0afd9f33c",
       "location": {
         "path": "/usr/local/bin/proxma",
-        "layerID": "sha256:60c7663ee9b63d0e811a849f880580edae66b37d26e4c908873a4cfc4bc72608"
+        "layerID": "sha256:c78aecb55685331efede06c36555210050ff70b1251e40f952032659bd1c4148"
       },
       "executable": {
         "format": "elf",
@@ -5720,19 +5720,19 @@
     }
   ],
   "source": {
-    "id": "1d6bbeb734392aee27ea6203c14443aa9532803fc19a8cf38c955c8f40eac031",
+    "id": "dbb6f869d98f6b3dfae2b45345e6cdaf5f43d98726498e1e2c385fe8775685d1",
     "name": "ghcr.io/ercindedeoglu/proxma",
-    "version": "e871673",
+    "version": "6f737ac",
     "type": "image",
     "metadata": {
-      "userInput": "ghcr.io/ercindedeoglu/proxma:e871673",
-      "imageID": "sha256:970f7c21e5714b810ecb3bc84b86b6b3bbf1afba129622598d787a98489708cc",
-      "manifestDigest": "sha256:1d6bbeb734392aee27ea6203c14443aa9532803fc19a8cf38c955c8f40eac031",
+      "userInput": "ghcr.io/ercindedeoglu/proxma:6f737ac",
+      "imageID": "sha256:2badf6cd1af617ecdae7073bcd397fc81bd00828298ee4c568fd60abc537d066",
+      "manifestDigest": "sha256:dbb6f869d98f6b3dfae2b45345e6cdaf5f43d98726498e1e2c385fe8775685d1",
       "mediaType": "application/vnd.docker.distribution.manifest.v2+json",
       "tags": [
-        "ghcr.io/ercindedeoglu/proxma:e871673"
+        "ghcr.io/ercindedeoglu/proxma:6f737ac"
       ],
-      "imageSize": 11351760,
+      "imageSize": 11350896,
       "layers": [
         {
           "mediaType": "application/vnd.docker.image.rootfs.diff.tar.gzip",
@@ -5741,21 +5741,21 @@
         },
         {
           "mediaType": "application/vnd.docker.image.rootfs.diff.tar.gzip",
-          "digest": "sha256:60c7663ee9b63d0e811a849f880580edae66b37d26e4c908873a4cfc4bc72608",
-          "size": 3522344
+          "digest": "sha256:c78aecb55685331efede06c36555210050ff70b1251e40f952032659bd1c4148",
+          "size": 3521480
         }
       ],
-      "manifest": "eyJzY2hlbWFWZXJzaW9uIjoyLCJtZWRpYVR5cGUiOiJhcHBsaWNhdGlvbi92bmQuZG9ja2VyLmRpc3RyaWJ1dGlvbi5tYW5pZmVzdC52Mitqc29uIiwiY29uZmlnIjp7Im1lZGlhVHlwZSI6ImFwcGxpY2F0aW9uL3ZuZC5kb2NrZXIuY29udGFpbmVyLmltYWdlLnYxK2pzb24iLCJzaXplIjoxMTU0LCJkaWdlc3QiOiJzaGEyNTY6OTcwZjdjMjFlNTcxNGI4MTBlY2IzYmM4NGI4NmI2YjNiYmYxYWZiYTEyOTYyMjU5OGQ3ODdhOTg0ODk3MDhjYyJ9LCJsYXllcnMiOlt7Im1lZGlhVHlwZSI6ImFwcGxpY2F0aW9uL3ZuZC5kb2NrZXIuaW1hZ2Uucm9vdGZzLmRpZmYudGFyLmd6aXAiLCJzaXplIjo4MTIwODMyLCJkaWdlc3QiOiJzaGEyNTY6MDgwMDBjMThkMTZkYWRmOTU1M2Q3NDdhNThjZjQ0MDIzNDIzYTlhYjAxMGFhYjk2Y2YyNjNkMjIxNmI4YjM1MCJ9LHsibWVkaWFUeXBlIjoiYXBwbGljYXRpb24vdm5kLmRvY2tlci5pbWFnZS5yb290ZnMuZGlmZi50YXIuZ3ppcCIsInNpemUiOjM1MjU2MzIsImRpZ2VzdCI6InNoYTI1Njo2MGM3NjYzZWU5YjYzZDBlODExYTg0OWY4ODA1ODBlZGFlNjZiMzdkMjZlNGM5MDg4NzNhNGNmYzRiYzcyNjA4In1dfQ==",
-      "config": "eyJhcmNoaXRlY3R1cmUiOiJhbWQ2NCIsImNvbmZpZyI6eyJFbnYiOlsiUEFUSD0vdXNyL2xvY2FsL3NiaW46L3Vzci9sb2NhbC9iaW46L3Vzci9zYmluOi91c3IvYmluOi9zYmluOi9iaW4iXSwiRW50cnlwb2ludCI6WyIvdXNyL2xvY2FsL2Jpbi9wcm94bWEiXSwiV29ya2luZ0RpciI6Ii8iLCJMYWJlbHMiOnsib3JnLm9wZW5jb250YWluZXJzLmltYWdlLnNvdXJjZSI6Imh0dHBzOi8vZ2l0aHViLmNvbS9FcmNpbkRlZGVvZ2x1L3Byb3htYSIsIm9yZy5vcGVuY29udGFpbmVycy5pbWFnZS50aXRsZSI6InByb3htYSIsIm9yZy5vcGVuY29udGFpbmVycy5pbWFnZS52ZXJzaW9uIjoidjEuMC4xMyJ9fSwiY3JlYXRlZCI6IjIwMjUtMDMtMDJUMDg6MzQ6MDMuNzQ5OTc5MjE3WiIsImhpc3RvcnkiOlt7ImNyZWF0ZWQiOiIyMDI1LTAyLTE0VDAzOjI4OjM2WiIsImNyZWF0ZWRfYnkiOiJBREQgYWxwaW5lLW1pbmlyb290ZnMtMy4yMS4zLXg4Nl82NC50YXIuZ3ogLyAjIGJ1aWxka2l0IiwiY29tbWVudCI6ImJ1aWxka2l0LmRvY2tlcmZpbGUudjAifSx7ImNyZWF0ZWQiOiIyMDI1LTAyLTE0VDAzOjI4OjM2WiIsImNyZWF0ZWRfYnkiOiJDTUQgW1wiL2Jpbi9zaFwiXSIsImNvbW1lbnQiOiJidWlsZGtpdC5kb2NrZXJmaWxlLnYwIiwiZW1wdHlfbGF5ZXIiOnRydWV9LHsiY3JlYXRlZCI6IjIwMjUtMDMtMDJUMDg6MzQ6MDMuNzQ5OTc5MjE3WiIsImNyZWF0ZWRfYnkiOiJDT1BZIC9wcm94bWEgL3Vzci9sb2NhbC9iaW4vcHJveG1hICMgYnVpbGRraXQiLCJjb21tZW50IjoiYnVpbGRraXQuZG9ja2VyZmlsZS52MCJ9LHsiY3JlYXRlZCI6IjIwMjUtMDMtMDJUMDg6MzQ6MDMuNzQ5OTc5MjE3WiIsImNyZWF0ZWRfYnkiOiJFTlRSWVBPSU5UIFtcIi91c3IvbG9jYWwvYmluL3Byb3htYVwiXSIsImNvbW1lbnQiOiJidWlsZGtpdC5kb2NrZXJmaWxlLnYwIiwiZW1wdHlfbGF5ZXIiOnRydWV9XSwib3MiOiJsaW51eCIsInJvb3RmcyI6eyJ0eXBlIjoibGF5ZXJzIiwiZGlmZl9pZHMiOlsic2hhMjU2OjA4MDAwYzE4ZDE2ZGFkZjk1NTNkNzQ3YTU4Y2Y0NDAyMzQyM2E5YWIwMTBhYWI5NmNmMjYzZDIyMTZiOGIzNTAiLCJzaGEyNTY6NjBjNzY2M2VlOWI2M2QwZTgxMWE4NDlmODgwNTgwZWRhZTY2YjM3ZDI2ZTRjOTA4ODczYTRjZmM0YmM3MjYwOCJdfX0=",
+      "manifest": "eyJzY2hlbWFWZXJzaW9uIjoyLCJtZWRpYVR5cGUiOiJhcHBsaWNhdGlvbi92bmQuZG9ja2VyLmRpc3RyaWJ1dGlvbi5tYW5pZmVzdC52Mitqc29uIiwiY29uZmlnIjp7Im1lZGlhVHlwZSI6ImFwcGxpY2F0aW9uL3ZuZC5kb2NrZXIuY29udGFpbmVyLmltYWdlLnYxK2pzb24iLCJzaXplIjoxMTU0LCJkaWdlc3QiOiJzaGEyNTY6MmJhZGY2Y2QxYWY2MTdlY2RhZTcwNzNiY2QzOTdmYzgxYmQwMDgyODI5OGVlNGM1NjhmZDYwYWJjNTM3ZDA2NiJ9LCJsYXllcnMiOlt7Im1lZGlhVHlwZSI6ImFwcGxpY2F0aW9uL3ZuZC5kb2NrZXIuaW1hZ2Uucm9vdGZzLmRpZmYudGFyLmd6aXAiLCJzaXplIjo4MTIwODMyLCJkaWdlc3QiOiJzaGEyNTY6MDgwMDBjMThkMTZkYWRmOTU1M2Q3NDdhNThjZjQ0MDIzNDIzYTlhYjAxMGFhYjk2Y2YyNjNkMjIxNmI4YjM1MCJ9LHsibWVkaWFUeXBlIjoiYXBwbGljYXRpb24vdm5kLmRvY2tlci5pbWFnZS5yb290ZnMuZGlmZi50YXIuZ3ppcCIsInNpemUiOjM1MjQ2MDgsImRpZ2VzdCI6InNoYTI1NjpjNzhhZWNiNTU2ODUzMzFlZmVkZTA2YzM2NTU1MjEwMDUwZmY3MGIxMjUxZTQwZjk1MjAzMjY1OWJkMWM0MTQ4In1dfQ==",
+      "config": "eyJhcmNoaXRlY3R1cmUiOiJhbWQ2NCIsImNvbmZpZyI6eyJFbnYiOlsiUEFUSD0vdXNyL2xvY2FsL3NiaW46L3Vzci9sb2NhbC9iaW46L3Vzci9zYmluOi91c3IvYmluOi9zYmluOi9iaW4iXSwiRW50cnlwb2ludCI6WyIvdXNyL2xvY2FsL2Jpbi9wcm94bWEiXSwiV29ya2luZ0RpciI6Ii8iLCJMYWJlbHMiOnsib3JnLm9wZW5jb250YWluZXJzLmltYWdlLnNvdXJjZSI6Imh0dHBzOi8vZ2l0aHViLmNvbS9FcmNpbkRlZGVvZ2x1L3Byb3htYSIsIm9yZy5vcGVuY29udGFpbmVycy5pbWFnZS50aXRsZSI6InByb3htYSIsIm9yZy5vcGVuY29udGFpbmVycy5pbWFnZS52ZXJzaW9uIjoidjEuMC4xNCJ9fSwiY3JlYXRlZCI6IjIwMjUtMDMtMDJUMDk6MDM6NDcuMjUwODg2NjgyWiIsImhpc3RvcnkiOlt7ImNyZWF0ZWQiOiIyMDI1LTAyLTE0VDAzOjI4OjM2WiIsImNyZWF0ZWRfYnkiOiJBREQgYWxwaW5lLW1pbmlyb290ZnMtMy4yMS4zLXg4Nl82NC50YXIuZ3ogLyAjIGJ1aWxka2l0IiwiY29tbWVudCI6ImJ1aWxka2l0LmRvY2tlcmZpbGUudjAifSx7ImNyZWF0ZWQiOiIyMDI1LTAyLTE0VDAzOjI4OjM2WiIsImNyZWF0ZWRfYnkiOiJDTUQgW1wiL2Jpbi9zaFwiXSIsImNvbW1lbnQiOiJidWlsZGtpdC5kb2NrZXJmaWxlLnYwIiwiZW1wdHlfbGF5ZXIiOnRydWV9LHsiY3JlYXRlZCI6IjIwMjUtMDMtMDJUMDk6MDM6NDcuMjUwODg2NjgyWiIsImNyZWF0ZWRfYnkiOiJDT1BZIC9wcm94bWEgL3Vzci9sb2NhbC9iaW4vcHJveG1hICMgYnVpbGRraXQiLCJjb21tZW50IjoiYnVpbGRraXQuZG9ja2VyZmlsZS52MCJ9LHsiY3JlYXRlZCI6IjIwMjUtMDMtMDJUMDk6MDM6NDcuMjUwODg2NjgyWiIsImNyZWF0ZWRfYnkiOiJFTlRSWVBPSU5UIFtcIi91c3IvbG9jYWwvYmluL3Byb3htYVwiXSIsImNvbW1lbnQiOiJidWlsZGtpdC5kb2NrZXJmaWxlLnYwIiwiZW1wdHlfbGF5ZXIiOnRydWV9XSwib3MiOiJsaW51eCIsInJvb3RmcyI6eyJ0eXBlIjoibGF5ZXJzIiwiZGlmZl9pZHMiOlsic2hhMjU2OjA4MDAwYzE4ZDE2ZGFkZjk1NTNkNzQ3YTU4Y2Y0NDAyMzQyM2E5YWIwMTBhYWI5NmNmMjYzZDIyMTZiOGIzNTAiLCJzaGEyNTY6Yzc4YWVjYjU1Njg1MzMxZWZlZGUwNmMzNjU1NTIxMDA1MGZmNzBiMTI1MWU0MGY5NTIwMzI2NTliZDFjNDE0OCJdfX0=",
       "repoDigests": [
-        "ghcr.io/ercindedeoglu/proxma@sha256:9387eeb7d294be0ce872d19267f231df4e66af37875cf48be115be8a9773a97a"
+        "ghcr.io/ercindedeoglu/proxma@sha256:79782e1dd93d4884a1ca2f52f7c99022df1af3500f5158df58268d15a9bfb9e0"
       ],
       "architecture": "amd64",
       "os": "linux",
       "labels": {
         "org.opencontainers.image.source": "https://github.com/ErcinDedeoglu/proxma",
         "org.opencontainers.image.title": "proxma",
-        "org.opencontainers.image.version": "v1.0.13"
+        "org.opencontainers.image.version": "v1.0.14"
       }
     }
   },
