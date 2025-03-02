@@ -1,13 +1,16 @@
+# Stage 1: Chef setup
 FROM rust:alpine AS chef
 RUN apk add --no-cache musl-dev build-base && \
     rustup target add x86_64-unknown-linux-musl aarch64-unknown-linux-musl && \
     cargo install cargo-chef
 WORKDIR /app
 
+# Stage 2: Recipe planner
 FROM chef AS planner
 COPY . .
 RUN cargo chef prepare --recipe-path recipe.json
 
+# Stage 3: Dependency caching
 FROM chef AS cacher
 COPY --from=planner /app/recipe.json recipe.json
 ARG TARGETPLATFORM
@@ -18,6 +21,7 @@ RUN case "$TARGETPLATFORM" in \
     esac && \
     cargo chef cook --release --target $RUST_TARGET --recipe-path recipe.json
 
+# Stage 4: Builder
 FROM chef AS builder
 COPY . .
 COPY --from=cacher /app/target target
@@ -30,16 +34,29 @@ RUN case "$TARGETPLATFORM" in \
     cargo build --release --target $RUST_TARGET && \
     cp target/$RUST_TARGET/release/proxma /proxma
 
+# Final stage
 FROM alpine:latest
-RUN apk add --no-cache nginx
+RUN apk add --no-cache nginx tini
 
-# Copy Nginx configuration and website
+# Create directories and set permissions
+RUN mkdir -p /run/nginx /var/www/html && \
+    chown -R nginx:nginx /var/www/html /run/nginx
+
+# Copy files
 COPY src/nginx.conf /etc/nginx/http.d/default.conf
 COPY src/website /var/www/html
+
+# Ensure proper permissions
+RUN chmod -R 755 /var/www/html
 
 # Copy Rust binary
 COPY --from=builder /proxma /usr/local/bin/proxma
 
-# Create nginx runtime directory and start services
-RUN mkdir -p /run/nginx
-CMD (nginx -g "daemon off;" &) && exec /usr/local/bin/proxma
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s CMD nginx -t
+
+# Use tini as the entrypoint
+ENTRYPOINT ["/sbin/tini", "--"]
+
+# Start both nginx and proxma
+CMD nginx -g "daemon off;" & exec /usr/local/bin/proxma
