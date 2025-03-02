@@ -31,7 +31,7 @@
         esac
     
     # ----------- 2. Final Runtime Stage -----------
-    FROM --platform=$TARGETPLATFORM alpine:latest
+    FROM alpine:latest
     
     # Copy binary from builder stage (now in a common location)
     COPY --from=builder /app/proxma /usr/local/bin/proxma
