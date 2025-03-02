@@ -91,41 +91,45 @@ impl NginxManager {
     }
 
     fn generate_config(&self) -> Result<(), NginxError> {
-        let mut config = String::new();
+        // Begin with http context
+        let mut config = String::from("http {\n");
         
         // Add proxy rules
         for rule in &self.rules {
             let server_names = rule.domains.join(" ");
             config.push_str(&format!(
-                r#"server {{
-        listen 80;
-        server_name {};
-    
-        location / {{
-            proxy_pass {};
-            proxy_set_header Host $host;
-            proxy_set_header X-Real-IP $remote_addr;
-            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-            proxy_set_header X-Forwarded-Proto $scheme;
+                r#"    server {{
+            listen 80;
+            server_name {};
+        
+            location / {{
+                proxy_pass {};
+                proxy_set_header Host $host;
+                proxy_set_header X-Real-IP $remote_addr;
+                proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                proxy_set_header X-Forwarded-Proto $scheme;
+            }}
         }}
-    }}
-    "#,
-                server_names,  // Use joined domains
+        "#,
+                server_names,
                 rule.upstream
             ));
         }
-    
+        
         // Add default server if no rules exist
         if self.rules.is_empty() {
             config.push_str(
-                r#"server {
-        listen 80 default_server;
-        return 404;
-    }
-    "#,
+                r#"    server {
+            listen 80 default_server;
+            return 404;
+        }
+        "#,
             );
         }
-    
+        
+        // Close http context
+        config.push_str("}\n");
+        
         std::fs::write(&self.config_path, config)?;
         Ok(())
     }
