@@ -55,30 +55,43 @@ pub async fn stream_container_events() -> Result<Pin<Box<dyn Stream<Item=Contain
     let initial = docker.list_containers(Some(ListContainersOptions::<String> {
         all: false, ..Default::default()
     })).await?;
-
-    let initial_stream = futures::stream::iter(initial).then({
-        let docker = docker.clone();
-        move |summary| {
-            let docker = docker.clone();
-            async move { summary_to_event(docker, &summary, "start").await }
-        }
+    
+    let docker_initial = docker.clone();
+    let initial_stream = futures::stream::iter(initial).then(move |summary| {
+        let docker = docker_initial.clone();
+        async move { summary_to_event(docker, &summary, "start").await }
     }).filter_map(|e| async move { e });
 
-    let filters = [("type", vec!["container"])].into_iter().collect();
+    // Correct Filtering via HashMap<String, Vec<String>>
+    let mut filters = HashMap::new();
+    filters.insert("type".to_string(), vec!["container".to_string()]);
+    filters.insert(
+        "event".to_string(),
+        vec![
+            "create".to_string(),
+            "start".to_string(),
+            "stop".to_string(),
+            "restart".to_string(),
+            "die".to_string(),
+            "destroy".to_string(),
+            "pause".to_string(),
+            "unpause".to_string(),
+            // Add more events if needed, but omit exec_* explicitly
+        ],
+    );
+
+    let docker_live = docker.clone();
     let live_stream = docker.events(Some(EventsOptions {
         filters,
         ..Default::default()
-    })).filter_map({
-        let docker = docker.clone();
-        move |e| {
-            let docker = docker.clone();
-            async move {
-                match e {
-                    Ok(ev) => event_message_to_event(docker.clone(), &ev).await,
-                    Err(err) => {
-                        eprintln!("Error receiving docker event: {}", err);
-                        None
-                    }
+    })).filter_map(move |e| {
+        let docker = docker_live.clone();
+        async move {
+            match e {
+                Ok(ev) => event_message_to_event(docker.clone(), &ev).await,
+                Err(err) => {
+                    eprintln!("Error receiving docker event: {}", err);
+                    None
                 }
             }
         }
