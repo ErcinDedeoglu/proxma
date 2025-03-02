@@ -62,20 +62,20 @@ pub async fn stream_container_events() -> Result<Pin<Box<dyn Stream<Item=Contain
         async move { summary_to_event(docker, &summary, "start").await }
     }).filter_map(|e| async move { e });
 
-    // Correct Filtering via HashMap<String, Vec<String>>
+    // create → start → (running) → die → stop → destroy    
     let mut filters = HashMap::new();
     filters.insert("type".to_string(), vec!["container".to_string()]);
     filters.insert(
         "event".to_string(),
         vec![
-            "create".to_string(),
+            // "create".to_string(),
             "start".to_string(),
-            "stop".to_string(),
-            "restart".to_string(),
+            // "stop".to_string(),
+            // "restart".to_string(),
             "die".to_string(),
-            "destroy".to_string(),
-            "pause".to_string(),
-            "unpause".to_string(),
+            // "destroy".to_string(),
+            // "pause".to_string(),
+            // "unpause".to_string(),
             // Add more events if needed, but omit exec_* explicitly
         ],
     );
