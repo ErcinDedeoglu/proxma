@@ -3,6 +3,7 @@ repomix --no-file-summary --no-security-check \
   --output "repopack.yml"
 
 docker build -t dublok/proxma:latest -f src/Dockerfile .
+docker buildx build --platform linux/amd64,linux/arm64 -t dublok/proxma:latest -f src/Dockerfile .
 docker run -it --rm -v /var/run/docker.sock:/var/run/docker.sock dublok/proxma:latest
 
 # NO-CACHE BUILD
