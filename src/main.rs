@@ -25,7 +25,7 @@ async fn main() {
 }
 
 fn setup_nginx_example() -> Result<(), Box<dyn std::error::Error>> {
-    let mut manager = NginxManager::new("/etc/nginx/conf.d/proxma-proxy-rules.conf", "/var/www/html");
+    let manager = NginxManager::new("/etc/nginx/conf.d/proxma-proxy-rules.conf", "/var/www/html");
 
     manager.add_rule(ProxyRule {
         id: "ercin.info".into(),
@@ -40,11 +40,11 @@ fn setup_nginx_example() -> Result<(), Box<dyn std::error::Error>> {
         ],
     })?;
 
-    // // Remove the rule by its ID
-    // manager.remove_rule_by_id(rule_id)?;
+    // Remove the rule by its ID
+    manager.remove_rule_by_id("ercin.info")?;
 
-    // // Alternatively, remove a rule by one of its domains
-    // manager.remove_rule_by_domain("api.myapp.com")?;
+    // Alternatively, remove a rule by one of its domains
+    manager.remove_rule_by_domain("api.myapp.com")?;
 
     Ok(())
 }
