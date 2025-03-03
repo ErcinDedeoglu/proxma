@@ -58,7 +58,10 @@ fn setup_certbot_example() -> Result<(), Box<dyn std::error::Error>> {
     let certbot = Certbot::new("/var/www/html", "dublokcom@gmail.com")
         .agree_tos(true)
         .staging(true)
-        .no_eff_email(false);  
+        .no_eff_email(false)
+        .config_dir("/var/proxma/letsencrypt")
+        .work_dir("/var/proxma/letsencrypt/work")
+        .logs_dir("/var/proxma/letsencrypt/logs"); 
     
     // Handle error specifically for certificate requests
     if let Err(e) = certbot.request_certificate(&["ercin.info", "www.ercin.info"]) {
