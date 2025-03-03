@@ -89,14 +89,14 @@ impl NginxManager {
                 ));
             }
         }
-        
-        // Write config file while still holding the lock
-        std::fs::write(&state.config_path, config)?;
     
         // Create certificate links before reloading Nginx
         if rule.ssl {
-            self.create_default_certificate_links(&rule)?;
+            self.ensure_domain_certificate_paths(&rule)?;
         }
+        
+        // Write config file while still holding the lock
+        std::fs::write(&state.config_path, config)?;
         
         // Reload nginx while still holding the lock
         self.reload_nginx()
@@ -207,63 +207,41 @@ impl NginxManager {
                 if is_running { "reload" } else { "start" }, error)))
         }
     }
-
-    fn create_default_certificate_links(&self, rule: &ProxyRule) -> Result<(), NginxError> {
-        // Define default certificate paths
-        let default_cert_dir = Path::new("/var/proxma/ssl");
-        let default_fullchain = default_cert_dir.join("default.fullchain.crt.pem");
-        let default_privkey = default_cert_dir.join("default.privkey.key.pem");
-        
-        // Create the default certificate directory if it doesn't exist
-        if !default_cert_dir.exists() {
-            fs::create_dir_all(default_cert_dir)
-                .map_err(|e| NginxError::Io(e))?;
-        }
-        
-        // Only proceed if links don't already exist
-        if default_fullchain.exists() && default_privkey.exists() {
+    
+    fn ensure_domain_certificate_paths(&self, rule: &ProxyRule) -> Result<(), NginxError> {
+        if !rule.ssl {
             return Ok(());
         }
+    
+        // Default certificate locations (these already exist)
+        let default_fullchain = Path::new("/var/proxma/ssl/default.fullchain.crt.pem");
+        let default_privkey = Path::new("/var/proxma/ssl/default.privkey.key.pem");
         
-        // Handle both primary domains and redirect domains
+        // Process all domains
         let mut all_domains = rule.domains.clone();
-        let redirect_domains: Vec<String> = rule.redirects.iter()
-            .map(|(from, _)| from.clone())
-            .collect();
-        all_domains.extend(redirect_domains);
+        all_domains.extend(rule.redirects.iter().map(|(from, _)| from.clone()));
         
-        // Try each domain until we find one with valid certificates
         for domain in all_domains {
-            let domain_cert_dir = format!("/var/proxma/letsencrypt/live/{}", domain);
-            let domain_fullchain = Path::new(&domain_cert_dir).join("fullchain.pem");
-            let domain_privkey = Path::new(&domain_cert_dir).join("privkey.pem");
+            // Domain certificate path that Nginx will look for
+            let domain_dir = Path::new("/var/proxma/letsencrypt/live").join(&domain);
+            let domain_fullchain = domain_dir.join("fullchain.pem");
+            let domain_privkey = domain_dir.join("privkey.pem");
             
-            // Skip if certificates don't exist for this domain
-            if !domain_fullchain.exists() || !domain_privkey.exists() {
-                continue;
+            // Create directory if needed
+            if !domain_dir.exists() {
+                fs::create_dir_all(&domain_dir)?;
             }
             
-            // Create symlinks if destination files don't exist
-            if !default_fullchain.exists() {
-                unix_fs::symlink(&domain_fullchain, &default_fullchain)
-                    .map_err(|e| NginxError::Io(e))?;
-                println!("Created certificate symlink: {} -> {}", 
-                    default_fullchain.display(), domain_fullchain.display());
+            // Create symlinks if they don't exist
+            if !domain_fullchain.exists() {
+                unix_fs::symlink(&default_fullchain, &domain_fullchain)?;
             }
             
-            if !default_privkey.exists() {
-                unix_fs::symlink(&domain_privkey, &default_privkey)
-                    .map_err(|e| NginxError::Io(e))?;
-                println!("Created key symlink: {} -> {}", 
-                    default_privkey.display(), domain_privkey.display());
+            if !domain_privkey.exists() {
+                unix_fs::symlink(&default_privkey, &domain_privkey)?;
             }
-            
-            // If we got here, we successfully handled at least one domain
-            return Ok(());
         }
         
-        // If no domain had valid certificates, log a warning but don't fail
-        println!("Warning: No valid certificates found for any domains in this rule");
         Ok(())
     }
 }
