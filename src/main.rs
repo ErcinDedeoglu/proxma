@@ -103,22 +103,17 @@ async fn main() {
                             
                             // Request SSL certificates if needed
                             if ssl {
-                                // Collect all domains that need certificates
+                                // Collect all domains needing certificates (main domains + redirect sources)
                                 let mut all_domains = domains.clone();
-                                
-                                // Add redirect source domains (the 'from' part)
                                 all_domains.extend(redirect_domains.clone());
-                                
-                                // Remove duplicates
                                 all_domains.sort();
                                 all_domains.dedup();
-                                
-                                // Convert to &str for certbot
-                                let domain_refs: Vec<&str> = all_domains.iter().map(|s| s.as_str()).collect();
-                                
-                                match certbot.request_certificate(&domain_refs) {
-                                    Ok(_) => println!("🔒 Requested SSL certificates for: {}", all_domains.join(", ")),
-                                    Err(e) => eprintln!("⚠️ Failed to request SSL certificates: {}", e),
+                            
+                                for domain in &all_domains {
+                                    match certbot.request_certificate(&[domain]) {
+                                        Ok(_) => println!("🔒 Requested SSL certificate successfully for domain: {}", domain),
+                                        Err(e) => eprintln!("⚠️ Failed to request SSL certificate for domain '{}': {}", domain, e),
+                                    }
                                 }
                             }
                         },

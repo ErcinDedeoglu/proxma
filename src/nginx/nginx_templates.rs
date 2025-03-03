@@ -7,8 +7,8 @@ pub fn generate_proxy_server_block(rule: &ProxyRule, webroot_path: &str) -> Stri
         let ssl_block = if rule.ssl {
             format!(
                 r#"    listen 443 ssl;
-    ssl_certificate /var/proxma/ssl/default.crt;
-    ssl_certificate_key /var/proxma/ssl/default.key;
+    ssl_certificate /var/proxma/ssl/default.crt.pem;
+    ssl_certificate_key /var/proxma/ssl/default.key.pem;
     location /.well-known/acme-challenge/ {{
         root {};
     }}"#,
@@ -47,8 +47,8 @@ pub fn generate_redirect_server_block(from_domain: &str, to_domain: &str, ssl: b
     let ssl_block = if ssl {
         format!(
             r#"    listen 443 ssl;
-    ssl_certificate /var/proxma/ssl/default.crt;
-    ssl_certificate_key /var/proxma/ssl/default.key;
+    ssl_certificate /var/proxma/ssl/default.crt.pem;
+    ssl_certificate_key /var/proxma/ssl/default.key.pem;
     location /.well-known/acme-challenge/ {{
         root {};
     }}"#,

@@ -7,7 +7,7 @@ repomix --no-file-summary --no-security-check \
   --include "src/main.rs,src/nginx/**" \
   --output "repopack.yml"
 
-# nginx
+# certbot
 repomix --no-file-summary --no-security-check \
   --include "src/main.rs,src/certbot.rs" \
   --output "repopack.yml"
@@ -41,6 +41,9 @@ cat /etc/nginx/conf.d/proxma-proxy-rules.conf
 # List certificates
 certbot certificates --config-dir /var/proxma/letsencrypt --work-dir /var/proxma/letsencrypt/work --logs-dir /var/proxma/logs
 ##################
+### DEV
+# BUILD & PUSH
+docker build -t dublok/proxma:dev -f src/Dockerfile . && docker push dublok/proxma:dev
 
 
 docker build -t dublok/proxma:latest -f src/Dockerfile src
