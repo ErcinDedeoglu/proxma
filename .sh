@@ -38,7 +38,8 @@ docker exec -it proxma2 /bin/sh
 ls -la /etc/nginx/conf.d/
 # View the contents of the proxy rules file
 cat /etc/nginx/conf.d/proxma-proxy-rules.conf
-
+# List certificates
+certbot certificates --config-dir /var/proxma/letsencrypt --work-dir /var/proxma/letsencrypt/work --logs-dir /var/proxma/logs
 ##################
 
 

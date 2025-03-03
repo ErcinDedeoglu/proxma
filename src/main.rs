@@ -30,13 +30,17 @@ fn setup_nginx_example() -> Result<(), Box<dyn std::error::Error>> {
     if let Err(e) = manager.add_rule(ProxyRule {
         id: "ercin.info".into(),
         domains: vec![
-            "ercin.info".into(),
-            "www.ercin.info".into()
+            "ercin.info".into()
         ],
         upstream: "http://ercin.info:80".into(),
         redirects: vec![
+            ("x1.ercin.info".into(), "x.ercin.info".into()),
             ("www.ercin.info".into(), "ercin.info".into()),
-            ("blog.ercin.info".into(), "ercin.info".into()),
+            ("blog1.ercin.info".into(), "ercin.info".into()),
+            ("blog2.ercin.info".into(), "ercin.info".into()),
+            ("blog3.ercin.info".into(), "ercin.info".into()),
+            ("blog4.ercin.info".into(), "ercin.info".into()),
+            ("blog5.ercin.info".into(), "ercin.info".into()),
         ],
     }) {
         eprintln!("Failed to add Nginx proxy rule: {}", e);

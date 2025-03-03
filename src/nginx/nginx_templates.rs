@@ -2,9 +2,11 @@ use crate::nginx::nginx_proxy_rule::ProxyRule;
 
 /// Generate an Nginx server block for proxying requests
 pub fn generate_proxy_server_block(rule: &ProxyRule, webroot_path: &str) -> String {
-    let server_names = rule.domains.join(" ");
-    format!(
-        r#"server {{
+    let mut server_blocks = String::new();
+    
+    for domain in &rule.domains {
+        server_blocks.push_str(&format!(
+            r#"server {{
     listen 80;
     listen 443 ssl;
     server_name {};
@@ -28,10 +30,13 @@ pub fn generate_proxy_server_block(rule: &ProxyRule, webroot_path: &str) -> Stri
     }}
 }}
 "#,
-        server_names,
-        webroot_path,
-        rule.upstream
-    )
+            domain,
+            webroot_path,
+            rule.upstream
+        ));
+    }
+    
+    server_blocks
 }
 
 /// Generate an Nginx server block for redirecting requests with SSL support
