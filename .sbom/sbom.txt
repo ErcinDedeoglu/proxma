@@ -36,6 +36,7 @@ musl                        1.2.5-r9          apk
 musl-utils                  1.2.5-r9          apk       
 ncurses-terminfo-base       6.5_p20241006-r3  apk       
 nginx                       1.26.2-r4         apk       
+openssl                     3.3.3-r0          apk       
 packaging                   24.2              python    
 parsedatetime               2.6               python    
 pcre                        8.45-r3           apk       
