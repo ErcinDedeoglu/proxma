@@ -17,7 +17,10 @@ async fn main() {
         .config_dir("/var/proxma/letsencrypt")
         .work_dir("/var/proxma/letsencrypt/work")
         .logs_dir("/var/proxma/logs");
-
+    
+    // Track active rules by container name for better cleanup
+    let mut active_containers: std::collections::HashMap<String, (Vec<String>, Vec<String>)> = std::collections::HashMap::new();
+    
     // Start streaming container events
     let mut stream = docker::stream_container_events()
         .await
@@ -69,24 +72,52 @@ async fn main() {
                         })
                         .unwrap_or_else(Vec::new);
                     
+                    // Track redirect domains for cleanup
+                    let redirect_domains: Vec<String> = redirects
+                        .iter()
+                        .map(|(from, _)| from.clone())
+                        .collect();
+                    
+                    // Store domains for later reference during die events
+                    active_containers.insert(
+                        event.name.clone(),
+                        (domains.clone(), redirect_domains.clone())
+                    );
+                    
                     // Create and add proxy rule
                     let rule = ProxyRule {
                         id: event.name.clone(),
                         domains: domains.clone(),
                         upstream: format!("http://{}:{}", event.name, port),
-                        redirects,
+                        redirects: redirects.clone(),
                         ssl,
                     };
                     
                     match nginx_manager.add_rule(rule) {
                         Ok(_) => {
                             println!("✅ Added proxy rule for container: {}", event.name);
+                            println!("   - Main domains: {}", domains.join(", "));
+                            if !redirect_domains.is_empty() {
+                                println!("   - Redirect domains: {}", redirect_domains.join(", "));
+                            }
                             
                             // Request SSL certificates if needed
                             if ssl {
-                                let domain_refs: Vec<&str> = domains.iter().map(|s| s.as_str()).collect();
+                                // Collect all domains that need certificates
+                                let mut all_domains = domains.clone();
+                                
+                                // Add redirect source domains (the 'from' part)
+                                all_domains.extend(redirect_domains.clone());
+                                
+                                // Remove duplicates
+                                all_domains.sort();
+                                all_domains.dedup();
+                                
+                                // Convert to &str for certbot
+                                let domain_refs: Vec<&str> = all_domains.iter().map(|s| s.as_str()).collect();
+                                
                                 match certbot.request_certificate(&domain_refs) {
-                                    Ok(_) => println!("🔒 Requested SSL certificates for: {}", domains.join(", ")),
+                                    Ok(_) => println!("🔒 Requested SSL certificates for: {}", all_domains.join(", ")),
                                     Err(e) => eprintln!("⚠️ Failed to request SSL certificates: {}", e),
                                 }
                             }
@@ -98,8 +129,21 @@ async fn main() {
             "die" => {
                 // Remove proxy rule when container dies
                 if event.labels.contains_key("proxma.hosts") {
+                    // Get domains that were associated with this container
+                    let domains_info = active_containers.remove(&event.name);
+                    
                     match nginx_manager.remove_rule_by_id(&event.name) {
-                        Ok(_) => println!("🗑️ Removed proxy rule for container: {}", event.name),
+                        Ok(_) => {
+                            println!("🗑️ Removed proxy rule for container: {}", event.name);
+                            
+                            // Log the specific domains that were removed
+                            if let Some((main_domains, redirect_domains)) = domains_info {
+                                println!("   - Removed main domains: {}", main_domains.join(", "));
+                                if !redirect_domains.is_empty() {
+                                    println!("   - Removed redirect domains: {}", redirect_domains.join(", "));
+                                }
+                            }
+                        },
                         Err(e) => eprintln!("❌ Failed to remove Nginx proxy rule: {}", e),
                     }
                 }
