@@ -61,7 +61,7 @@ fn setup_certbot_example() -> Result<(), Box<dyn std::error::Error>> {
         .no_eff_email(false)
         .config_dir("/var/proxma/letsencrypt")
         .work_dir("/var/proxma/letsencrypt/work")
-        .logs_dir("/var/proxma/letsencrypt/logs"); 
+        .logs_dir("/var/proxma/logs"); 
     
     // Handle error specifically for certificate requests
     if let Err(e) = certbot.request_certificate(&["ercin.info", "www.ercin.info"]) {

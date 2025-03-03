@@ -36,12 +36,22 @@ RUN case "$TARGETPLATFORM" in \
 
 # Final stage
 FROM alpine:latest
-RUN apk add --no-cache nginx tini certbot
+
+# Add OpenSSL to the packages
+RUN apk add --no-cache nginx tini certbot openssl
 
 # Create directories and set permissions
-RUN mkdir -p /run/nginx /var/www/html/.well-known/acme-challenge && \
+RUN mkdir -p /run/nginx /var/www/html/.well-known/acme-challenge /etc/nginx/ssl /var/proxma/ssl && \
     chown -R nginx:nginx /var/www/html /run/nginx
 
+# Generate self-signed certificate
+RUN openssl req -x509 -nodes -days 3650 -newkey rsa:2048 \
+    -keyout /var/proxma/ssl/default.key \
+    -out /var/proxma/ssl/default.crt \
+    -subj "/C=US/ST=California/L=San Francisco/O=Dublok/OU=Proxma/CN=dublok.com/emailAddress=dublokcom@gmail.com" && \
+    chmod 644 /var/proxma/ssl/default.crt && \
+    chmod 600 /var/proxma/ssl/default.key
+    
 # Copy files
 COPY src/webserver/nginx/nginx.conf /etc/nginx/nginx.conf
 COPY src/webserver/nginx/conf.d/default.conf /etc/nginx/conf.d/default.conf
@@ -60,4 +70,4 @@ HEALTHCHECK --interval=30s --timeout=3s CMD nginx -t
 ENTRYPOINT ["/sbin/tini", "--"]
 
 # Start both nginx and proxma
-CMD nginx -g "daemon off;" & exec /usr/local/bin/proxma
+CMD ["sh", "-c", "nginx -g \"daemon off;\" & exec /usr/local/bin/proxma"]

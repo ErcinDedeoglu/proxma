@@ -6,13 +6,18 @@ pub fn generate_proxy_server_block(rule: &ProxyRule, webroot_path: &str) -> Stri
     format!(
         r#"server {{
     listen 80;
+    listen 443 ssl;
     server_name {};
-
+    
+    # Self-signed certificate (will be replaced by certbot later)
+    ssl_certificate /var/proxma/ssl/default.crt;
+    ssl_certificate_key /var/proxma/ssl/default.key;
+    
     # Serve certbot validation files from given webroot_path
     location /.well-known/acme-challenge/ {{
         root {};
     }}
-
+    
     # Proxy everything else
     location / {{
         proxy_pass {};
@@ -29,12 +34,17 @@ pub fn generate_proxy_server_block(rule: &ProxyRule, webroot_path: &str) -> Stri
     )
 }
 
-/// Generate an Nginx server block for redirecting requests
+/// Generate an Nginx server block for redirecting requests with SSL support
 pub fn generate_redirect_server_block(from_domain: &str, to_domain: &str) -> String {
     format!(
         r#"server {{
     listen 80;
+    listen 443 ssl;
     server_name {};
+    
+    # Self-signed certificate (will be replaced by certbot later)
+    ssl_certificate /var/proxma/ssl/default.crt;
+    ssl_certificate_key /var/proxma/ssl/default.key;
     
     # Allow certbot challenge on redirects too
     location /.well-known/acme-challenge/ {{
