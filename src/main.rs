@@ -34,7 +34,7 @@ fn setup_nginx_example() -> Result<(), Box<dyn std::error::Error>> {
         ],
         upstream: "http://ercin.info:80".into(),
         redirects: vec![
-            ("x1.ercin.info".into(), "x.ercin.info".into()),
+            ("x1.ercin.info".into(), "ercin.info".into()),
             ("www.ercin.info".into(), "ercin.info".into()),
             ("blog1.ercin.info".into(), "ercin.info".into()),
             ("blog2.ercin.info".into(), "ercin.info".into()),
