@@ -4,7 +4,12 @@ repomix --no-file-summary --no-security-check \
 
 # nginx
 repomix --no-file-summary --no-security-check \
-  --include "main.rs,src/nginx/**" \
+  --include "src/main.rs,src/nginx/**" \
+  --output "repopack.yml"
+
+# nginx
+repomix --no-file-summary --no-security-check \
+  --include "src/main.rs,src/certbot.rs" \
   --output "repopack.yml"
 
 

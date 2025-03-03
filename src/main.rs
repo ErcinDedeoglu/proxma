@@ -1,15 +1,16 @@
 mod docker;
 mod nginx;
+mod certbot;
 
 use futures::StreamExt;
 use crate::nginx::{NginxManager, ProxyRule};
+use crate::certbot::Certbot;
 
 #[tokio::main]
 async fn main() {
-    // Example nginx setup (in separate method)
     setup_nginx_example().expect("Nginx setup failed");
+    // setup_certbot_example().expect("Certbot certificate provisioning failed");
 
-    // Existing event loop remains unchanged
     let mut stream = docker::stream_container_events()
         .await
         .expect("Event stream failure");
@@ -24,7 +25,7 @@ async fn main() {
 }
 
 fn setup_nginx_example() -> Result<(), Box<dyn std::error::Error>> {
-    let mut manager = NginxManager::new("/etc/nginx/conf.d/proxma-proxy-rules.conf");
+    let mut manager = NginxManager::new("/etc/nginx/conf.d/proxma-proxy-rules.conf", "/var/www/html");
 
     manager.add_rule(ProxyRule {
         id: "ercin.info".into(),
@@ -36,7 +37,6 @@ fn setup_nginx_example() -> Result<(), Box<dyn std::error::Error>> {
         redirects: vec![
             ("www.ercin.info".into(), "ercin.info".into()),
             ("blog.ercin.info".into(), "ercin.info".into()),
-            // Add as many redirects as needed
         ],
     })?;
 
@@ -46,5 +46,16 @@ fn setup_nginx_example() -> Result<(), Box<dyn std::error::Error>> {
     // // Alternatively, remove a rule by one of its domains
     // manager.remove_rule_by_domain("api.myapp.com")?;
 
+    Ok(())
+}
+
+fn setup_certbot_example() -> Result<(), Box<dyn std::error::Error>> {
+    let certbot = Certbot::new("/var/www/html", "dublokcom@gmail.com")
+        .agree_tos(true)
+        .staging(true)
+        .no_eff_email(false);  
+    
+    certbot.request_certificate(&["ercin.info", "www.ercin.info"])?;
+  
     Ok(())
 }

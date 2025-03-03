@@ -36,7 +36,7 @@ RUN case "$TARGETPLATFORM" in \
 
 # Final stage
 FROM alpine:latest
-RUN apk add --no-cache nginx tini
+RUN apk add --no-cache nginx tini certbot
 
 # Create directories and set permissions
 RUN mkdir -p /run/nginx /var/www/html && \
