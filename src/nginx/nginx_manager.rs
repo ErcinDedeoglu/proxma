@@ -70,6 +70,10 @@ impl NginxManager {
             let existing_all = existing_primary.union(&existing_redirects).cloned().collect::<HashSet<_>>();
             existing_all.is_disjoint(&all_domains)
         });
+    
+        if rule.ssl {
+            self.ensure_domain_certificate_paths(&rule)?;
+        }
         
         state.rules.push(rule.clone()); // Clone the rule to use it after releasing the lock
         
@@ -88,11 +92,6 @@ impl NginxManager {
                     &self.webroot_path.to_string_lossy(),
                 ));
             }
-        }
-    
-        // Create certificate links before reloading Nginx
-        if rule.ssl {
-            self.ensure_domain_certificate_paths(&rule)?;
         }
         
         // Write config file while still holding the lock
@@ -213,32 +212,46 @@ impl NginxManager {
             return Ok(());
         }
     
-        // Default certificate locations (these already exist)
+        // Default certificate locations
         let default_fullchain = Path::new("/var/proxma/ssl/default.fullchain.crt.pem");
         let default_privkey = Path::new("/var/proxma/ssl/default.privkey.key.pem");
         
-        // Process all domains
+        // Verify default certificates exist
+        if !default_fullchain.exists() {
+            println!("Warning: Default certificate not found at {}", default_fullchain.display());
+        }
+        
+        if !default_privkey.exists() {
+            println!("Warning: Default private key not found at {}", default_privkey.display());
+        }
+        
+        // Create certificate paths for all domains (primary + redirects)
         let mut all_domains = rule.domains.clone();
         all_domains.extend(rule.redirects.iter().map(|(from, _)| from.clone()));
         
+        println!("Creating certificate paths for domains: {:?}", all_domains);
+        
         for domain in all_domains {
-            // Domain certificate path that Nginx will look for
+            // Ensure the directory structure exists
             let domain_dir = Path::new("/var/proxma/letsencrypt/live").join(&domain);
             let domain_fullchain = domain_dir.join("fullchain.pem");
             let domain_privkey = domain_dir.join("privkey.pem");
             
-            // Create directory if needed
+            // Create the directory path
             if !domain_dir.exists() {
+                println!("Creating directory: {}", domain_dir.display());
                 fs::create_dir_all(&domain_dir)?;
             }
             
-            // Create symlinks if they don't exist
-            if !domain_fullchain.exists() {
-                unix_fs::symlink(&default_fullchain, &domain_fullchain)?;
+            // Create symbolic links to default certificates
+            if !domain_fullchain.exists() && default_fullchain.exists() {
+                println!("Creating symlink: {} -> {}", domain_fullchain.display(), default_fullchain.display());
+                unix_fs::symlink(default_fullchain, &domain_fullchain)?;
             }
             
-            if !domain_privkey.exists() {
-                unix_fs::symlink(&default_privkey, &domain_privkey)?;
+            if !domain_privkey.exists() && default_privkey.exists() {
+                println!("Creating symlink: {} -> {}", domain_privkey.display(), default_privkey.display());
+                unix_fs::symlink(default_privkey, &domain_privkey)?;
             }
         }
         
