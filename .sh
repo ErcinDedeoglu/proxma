@@ -8,6 +8,9 @@ docker run -it --rm --name proxma -v /var/run/docker.sock:/var/run/docker.sock d
 
 docker run -it --rm --rm --name -v /var/run/docker.sock:/var/run/docker.sock  -p 80:80 -p 443:443 dublok/proxma:latest
 
+# BUILD
+docker build -t dublok/proxma:latest -f src/Dockerfile .
+
 # NO-CACHE BUILD
 docker build -t dublok/proxma:latest -f src/Dockerfile . --no-cache
 

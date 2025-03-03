@@ -143,10 +143,21 @@ impl NginxManager {
         let mut config = String::new();
         
         for rule in &self.rules {
-            // Primary server block for direct handling
-            let server_names = rule.domains.join(" ");
-            config.push_str(&format!(
-                r#"server {{
+            config.push_str(&self.generate_proxy_server_block(rule));
+            
+            for (from_domain, to_domain) in &rule.redirects {
+                config.push_str(&self.generate_redirect_server_block(from_domain, to_domain));
+            }
+        }
+        
+        std::fs::write(&self.config_path, config)?;
+        Ok(())
+    }
+
+    fn generate_proxy_server_block(&self, rule: &ProxyRule) -> String {
+        let server_names = rule.domains.join(" ");
+        format!(
+            r#"server {{
         listen 80;
         server_name {};
     
@@ -159,14 +170,14 @@ impl NginxManager {
         }}
     }}
     "#,
-                server_names,
-                rule.upstream
-            ));
-            
-            // Separate server blocks for each redirect
-            for (from_domain, to_domain) in &rule.redirects {
-                config.push_str(&format!(
-                    r#"server {{
+            server_names,
+            rule.upstream
+        )
+    }
+
+    fn generate_redirect_server_block(&self, from_domain: &str, to_domain: &str) -> String {
+        format!(
+            r#"server {{
         listen 80;
         server_name {};
         
@@ -174,14 +185,9 @@ impl NginxManager {
         return 301 $scheme://{}$request_uri;
     }}
     "#,
-                    from_domain,
-                    to_domain
-                ));
-            }
-        }
-        
-        std::fs::write(&self.config_path, config)?;
-        Ok(())
+            from_domain,
+            to_domain
+        )
     }
 
     fn reload_nginx(&self) -> Result<(), NginxError> {
