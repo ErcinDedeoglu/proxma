@@ -1,3 +1,5 @@
+use std::fs;
+use std::os::unix::fs as unix_fs;
 use std::collections::HashSet;
 use std::path::{Path, PathBuf};
 use std::sync::Mutex;
@@ -31,7 +33,7 @@ impl NginxManager {
         // Lock the entire state for the duration of the method
         let mut state = self.state.lock()
             .map_err(|_| NginxError::InvalidRule("Failed to acquire state lock".into()))?;
-            
+        
         if rule.domains.is_empty() {
             return Err(NginxError::InvalidRule("At least one domain required".into()));
         }
@@ -58,29 +60,26 @@ impl NginxManager {
                 ));
             }
         }
-            
-        let all_domains: HashSet<_> = primary_domains.union(&redirect_sources).cloned().collect();
         
+        let all_domains: HashSet<_> = primary_domains.union(&redirect_sources).cloned().collect();
         state.rules.retain(|existing_rule| {
             let existing_primary = existing_rule.domains.iter().cloned().collect::<HashSet<_>>();
             let existing_redirects = existing_rule.redirects.iter()
                 .map(|(from, _)| from.clone())
                 .collect::<HashSet<_>>();
             let existing_all = existing_primary.union(&existing_redirects).cloned().collect::<HashSet<_>>();
-            
             existing_all.is_disjoint(&all_domains)
         });
         
-        state.rules.push(rule);
+        state.rules.push(rule.clone()); // Clone the rule to use it after releasing the lock
         
         // Generate config while still holding the lock
         let mut config = String::new();
         for rule in &state.rules {
             config.push_str(&generate_proxy_server_block(
-                rule, 
+                rule,
                 &self.webroot_path.to_string_lossy()
             ));
-    
             for (from_domain, to_domain) in &rule.redirects {
                 config.push_str(&generate_redirect_server_block(
                     from_domain,
@@ -93,6 +92,11 @@ impl NginxManager {
         
         // Write config file while still holding the lock
         std::fs::write(&state.config_path, config)?;
+    
+        // Create certificate links before reloading Nginx
+        if rule.ssl {
+            self.create_default_certificate_links(&rule)?;
+        }
         
         // Reload nginx while still holding the lock
         self.reload_nginx()
@@ -202,5 +206,64 @@ impl NginxManager {
             Err(NginxError::ReloadFailed(format!("Nginx {} failed: {}", 
                 if is_running { "reload" } else { "start" }, error)))
         }
+    }
+
+    fn create_default_certificate_links(&self, rule: &ProxyRule) -> Result<(), NginxError> {
+        // Define default certificate paths
+        let default_cert_dir = Path::new("/var/proxma/ssl");
+        let default_fullchain = default_cert_dir.join("default.fullchain.crt.pem");
+        let default_privkey = default_cert_dir.join("default.privkey.key.pem");
+        
+        // Create the default certificate directory if it doesn't exist
+        if !default_cert_dir.exists() {
+            fs::create_dir_all(default_cert_dir)
+                .map_err(|e| NginxError::Io(e))?;
+        }
+        
+        // Only proceed if links don't already exist
+        if default_fullchain.exists() && default_privkey.exists() {
+            return Ok(());
+        }
+        
+        // Handle both primary domains and redirect domains
+        let mut all_domains = rule.domains.clone();
+        let redirect_domains: Vec<String> = rule.redirects.iter()
+            .map(|(from, _)| from.clone())
+            .collect();
+        all_domains.extend(redirect_domains);
+        
+        // Try each domain until we find one with valid certificates
+        for domain in all_domains {
+            let domain_cert_dir = format!("/var/proxma/letsencrypt/live/{}", domain);
+            let domain_fullchain = Path::new(&domain_cert_dir).join("fullchain.pem");
+            let domain_privkey = Path::new(&domain_cert_dir).join("privkey.pem");
+            
+            // Skip if certificates don't exist for this domain
+            if !domain_fullchain.exists() || !domain_privkey.exists() {
+                continue;
+            }
+            
+            // Create symlinks if destination files don't exist
+            if !default_fullchain.exists() {
+                unix_fs::symlink(&domain_fullchain, &default_fullchain)
+                    .map_err(|e| NginxError::Io(e))?;
+                println!("Created certificate symlink: {} -> {}", 
+                    default_fullchain.display(), domain_fullchain.display());
+            }
+            
+            if !default_privkey.exists() {
+                unix_fs::symlink(&domain_privkey, &default_privkey)
+                    .map_err(|e| NginxError::Io(e))?;
+                println!("Created key symlink: {} -> {}", 
+                    default_privkey.display(), domain_privkey.display());
+            }
+            
+            // If we got here, we successfully handled at least one domain
+            return Ok(());
+        }
+        
+        // If no domain had valid certificates, log a warning but don't fail
+        println!("Warning: No valid certificates found for any domains in this rule");
+        Ok(())
     }
 }

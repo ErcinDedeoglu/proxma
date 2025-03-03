@@ -46,11 +46,11 @@ RUN mkdir -p /run/nginx /var/www/html/.well-known/acme-challenge /etc/nginx/ssl 
 
 # Generate self-signed certificate in PEM format (key and cert)
 RUN openssl req -x509 -nodes -days 3650 -newkey rsa:2048 \
-    -keyout /var/proxma/ssl/default.key.pem \
-    -out /var/proxma/ssl/default.crt.pem \
+    -keyout /var/proxma/ssl/default.privkey.key.pem \
+    -out /var/proxma/ssl/default.fullchain.crt.pem \
     -subj "/C=US/ST=California/L=San Francisco/O=Dublok/OU=Proxma/CN=dublok.com/emailAddress=dublokcom@gmail.com" && \
-    chmod 644 /var/proxma/ssl/default.crt.pem && \
-    chmod 600 /var/proxma/ssl/default.key.pem
+    chmod 644 /var/proxma/ssl/default.fullchain.crt.pem && \
+    chmod 600 /var/proxma/ssl/default.privkey.key.pem
     
 # Copy files
 COPY src/webserver/nginx/nginx.conf /etc/nginx/nginx.conf

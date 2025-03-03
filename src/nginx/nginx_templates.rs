@@ -7,12 +7,12 @@ pub fn generate_proxy_server_block(rule: &ProxyRule, webroot_path: &str) -> Stri
         let ssl_block = if rule.ssl {
             format!(
                 r#"    listen 443 ssl;
-    ssl_certificate /var/proxma/ssl/default.crt.pem;
-    ssl_certificate_key /var/proxma/ssl/default.key.pem;
+    ssl_certificate /var/proxma/letsencrypt/live/{}/fullchain.pem;
+    ssl_certificate_key /var/proxma/letsencrypt/live/{}/privkey.pem;
     location /.well-known/acme-challenge/ {{
         root {};
     }}"#,
-                webroot_path
+                domain, domain, webroot_path
             )
         } else {
             // Add HSTS prevention when SSL is disabled
@@ -20,6 +20,7 @@ pub fn generate_proxy_server_block(rule: &ProxyRule, webroot_path: &str) -> Stri
     add_header Strict-Transport-Security "max-age=0" always;
     add_header Referrer-Policy "no-referrer-when-downgrade" always;"#.into()
         };
+        
         server_blocks.push_str(&format!(
             r#"server {{
     listen 80;
@@ -47,12 +48,12 @@ pub fn generate_redirect_server_block(from_domain: &str, to_domain: &str, ssl: b
     let ssl_block = if ssl {
         format!(
             r#"    listen 443 ssl;
-    ssl_certificate /var/proxma/ssl/default.crt.pem;
-    ssl_certificate_key /var/proxma/ssl/default.key.pem;
+    ssl_certificate /var/proxma/letsencrypt/live/{}/fullchain.pem;
+    ssl_certificate_key /var/proxma/letsencrypt/live/{}/privkey.pem;
     location /.well-known/acme-challenge/ {{
         root {};
     }}"#,
-            webroot_path
+            from_domain, from_domain, webroot_path
         )
     } else {
         // Add HSTS prevention when SSL is disabled
@@ -60,6 +61,7 @@ pub fn generate_redirect_server_block(from_domain: &str, to_domain: &str, ssl: b
     add_header Strict-Transport-Security "max-age=0" always;
     add_header Referrer-Policy "no-referrer-when-downgrade" always;"#.into()
     };
+    
     format!(
         r#"server {{
     listen 80;
@@ -75,3 +77,4 @@ pub fn generate_redirect_server_block(from_domain: &str, to_domain: &str, ssl: b
         to_domain
     )
 }
+
