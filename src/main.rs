@@ -9,7 +9,7 @@ use crate::certbot::Certbot;
 #[tokio::main]
 async fn main() {
     setup_nginx_example().expect("Nginx setup failed");
-    // setup_certbot_example().expect("Certbot certificate provisioning failed");
+    setup_certbot_example().expect("Certbot certificate provisioning failed");
 
     let mut stream = docker::stream_container_events()
         .await
@@ -27,7 +27,7 @@ async fn main() {
 fn setup_nginx_example() -> Result<(), Box<dyn std::error::Error>> {
     let manager = NginxManager::new("/etc/nginx/conf.d/proxma-proxy-rules.conf", "/var/www/html");
 
-    manager.add_rule(ProxyRule {
+    if let Err(e) = manager.add_rule(ProxyRule {
         id: "ercin.info".into(),
         domains: vec![
             "ercin.info".into(),
@@ -38,13 +38,18 @@ fn setup_nginx_example() -> Result<(), Box<dyn std::error::Error>> {
             ("www.ercin.info".into(), "ercin.info".into()),
             ("blog.ercin.info".into(), "ercin.info".into()),
         ],
-    })?;
+    }) {
+        eprintln!("Failed to add Nginx proxy rule: {}", e);
+        // Continue execution despite the error
+    } else {
+        println!("Successfully added Nginx rule for ercin.info");
+    }
 
-    // Remove the rule by its ID
-    manager.remove_rule_by_id("ercin.info")?;
+    // // Remove the rule by its ID
+    // manager.remove_rule_by_id("ercin.info")?;
 
-    // Alternatively, remove a rule by one of its domains
-    manager.remove_rule_by_domain("api.myapp.com")?;
+    // // Alternatively, remove a rule by one of its domains
+    // manager.remove_rule_by_domain("api.myapp.com")?;
 
     Ok(())
 }
@@ -55,7 +60,13 @@ fn setup_certbot_example() -> Result<(), Box<dyn std::error::Error>> {
         .staging(true)
         .no_eff_email(false);  
     
-    certbot.request_certificate(&["ercin.info", "www.ercin.info"])?;
+    // Handle error specifically for certificate requests
+    if let Err(e) = certbot.request_certificate(&["ercin.info", "www.ercin.info"]) {
+        eprintln!("Certificate provisioning failed: {}", e);
+        // Continue execution despite the error
+    } else {
+        println!("Successfully requested certificates for domains");
+    }
   
     Ok(())
 }

@@ -39,7 +39,7 @@ FROM alpine:latest
 RUN apk add --no-cache nginx tini certbot
 
 # Create directories and set permissions
-RUN mkdir -p /run/nginx /var/www/html && \
+RUN mkdir -p /run/nginx /var/www/html/.well-known/acme-challenge && \
     chown -R nginx:nginx /var/www/html /run/nginx
 
 # Copy files

@@ -36,8 +36,15 @@ pub fn generate_redirect_server_block(from_domain: &str, to_domain: &str) -> Str
     listen 80;
     server_name {};
     
-    # Permanent redirect
-    return 301 $scheme://{}$request_uri;
+    # Allow certbot challenge on redirects too
+    location /.well-known/acme-challenge/ {{
+        root /var/www/html;
+    }}
+    
+    # Permanent redirect for everything else
+    location / {{
+        return 301 $scheme://{}$request_uri;
+    }}
 }}
 "#,
         from_domain,

@@ -61,10 +61,9 @@ impl Certbot {
             args.push(domain.as_ref());
         }
 
-        let status = Command::new("sudo")
-            .arg("certbot")
-            .args(&args)
-            .status()?;
+        let status = Command::new("certbot")
+        .args(&args)
+        .status()?;
 
         if status.success() {
             Ok(())
