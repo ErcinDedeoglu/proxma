@@ -4,6 +4,7 @@ pub struct ProxyRule {
     pub domains: Vec<String>,
     pub upstream: String,
     pub redirects: Vec<(String, String)>,
+    pub ssl: bool, 
 }
 
 impl Default for ProxyRule {
@@ -13,6 +14,7 @@ impl Default for ProxyRule {
             domains: Vec::new(),
             upstream: String::new(),
             redirects: Vec::new(),
+            ssl: false,
         }
     }
 }

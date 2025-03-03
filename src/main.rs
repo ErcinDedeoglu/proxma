@@ -8,8 +8,8 @@ use crate::certbot::Certbot;
 
 #[tokio::main]
 async fn main() {
-    setup_nginx_example().expect("Nginx setup failed");
-    setup_certbot_example().expect("Certbot certificate provisioning failed");
+    // setup_nginx_example().expect("Nginx setup failed");
+    // setup_certbot_example().expect("Certbot certificate provisioning failed");
 
     let mut stream = docker::stream_container_events()
         .await
@@ -42,6 +42,7 @@ fn setup_nginx_example() -> Result<(), Box<dyn std::error::Error>> {
             ("blog4.ercin.info".into(), "ercin.info".into()),
             ("blog5.ercin.info".into(), "ercin.info".into()),
         ],
+        ssl: true
     }) {
         eprintln!("Failed to add Nginx proxy rule: {}", e);
         // Continue execution despite the error
@@ -65,7 +66,7 @@ fn setup_certbot_example() -> Result<(), Box<dyn std::error::Error>> {
         .no_eff_email(false)
         .config_dir("/var/proxma/letsencrypt")
         .work_dir("/var/proxma/letsencrypt/work")
-        .logs_dir("/var/proxma/logs"); 
+        .logs_dir("/var/proxma/logs");
     
     // Handle error specifically for certificate requests
     if let Err(e) = certbot.request_certificate(&["ercin.info", "www.ercin.info"]) {

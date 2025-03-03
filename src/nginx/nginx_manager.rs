@@ -82,7 +82,12 @@ impl NginxManager {
             ));
     
             for (from_domain, to_domain) in &rule.redirects {
-                config.push_str(&generate_redirect_server_block(from_domain, to_domain));
+                config.push_str(&generate_redirect_server_block(
+                    from_domain,
+                    to_domain,
+                    rule.ssl,
+                    &self.webroot_path.to_string_lossy(),
+                ));
             }
         }
         
@@ -111,7 +116,12 @@ impl NginxManager {
                 ));
         
                 for (from_domain, to_domain) in &rule.redirects {
-                    config.push_str(&generate_redirect_server_block(from_domain, to_domain));
+                    config.push_str(&generate_redirect_server_block(
+                        from_domain,
+                        to_domain,
+                        rule.ssl,
+                        &self.webroot_path.to_string_lossy(),
+                    ));
                 }
             }
             
@@ -143,7 +153,12 @@ impl NginxManager {
                 ));
         
                 for (from_domain, to_domain) in &rule.redirects {
-                    config.push_str(&generate_redirect_server_block(from_domain, to_domain));
+                    config.push_str(&generate_redirect_server_block(
+                        from_domain,
+                        to_domain,
+                        rule.ssl,
+                        &self.webroot_path.to_string_lossy(),
+                    ));
                 }
             }
             

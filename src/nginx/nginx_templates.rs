@@ -3,24 +3,30 @@ use crate::nginx::nginx_proxy_rule::ProxyRule;
 /// Generate an Nginx server block for proxying requests
 pub fn generate_proxy_server_block(rule: &ProxyRule, webroot_path: &str) -> String {
     let mut server_blocks = String::new();
-    
+
     for domain in &rule.domains {
+        let ssl_block = if rule.ssl {
+            format!(
+                r#"    listen 443 ssl;
+
+    ssl_certificate /var/proxma/ssl/default.crt;
+    ssl_certificate_key /var/proxma/ssl/default.key;
+
+    location /.well-known/acme-challenge/ {{
+        root {};
+    }}"#,
+                webroot_path
+            )
+        } else {
+            "".into()
+        };
+
         server_blocks.push_str(&format!(
             r#"server {{
     listen 80;
-    listen 443 ssl;
+{}
     server_name {};
-    
-    # Self-signed certificate (will be replaced by certbot later)
-    ssl_certificate /var/proxma/ssl/default.crt;
-    ssl_certificate_key /var/proxma/ssl/default.key;
-    
-    # Serve certbot validation files from given webroot_path
-    location /.well-known/acme-challenge/ {{
-        root {};
-    }}
-    
-    # Proxy everything else
+
     location / {{
         proxy_pass {};
         proxy_set_header Host $host;
@@ -30,38 +36,45 @@ pub fn generate_proxy_server_block(rule: &ProxyRule, webroot_path: &str) -> Stri
     }}
 }}
 "#,
+            ssl_block,
             domain,
-            webroot_path,
             rule.upstream
         ));
     }
-    
+
     server_blocks
 }
 
 /// Generate an Nginx server block for redirecting requests with SSL support
-pub fn generate_redirect_server_block(from_domain: &str, to_domain: &str) -> String {
+pub fn generate_redirect_server_block(from_domain: &str, to_domain: &str, ssl: bool, webroot_path: &str) -> String {
+    let ssl_block = if ssl {
+        format!(
+            r#"    listen 443 ssl;
+
+    ssl_certificate /var/proxma/ssl/default.crt;
+    ssl_certificate_key /var/proxma/ssl/default.key;
+
+    location /.well-known/acme-challenge/ {{
+        root {};
+    }}"#,
+            webroot_path
+        )
+    } else {
+        "".into()
+    };
+
     format!(
         r#"server {{
     listen 80;
-    listen 443 ssl;
+{}
     server_name {};
-    
-    # Self-signed certificate (will be replaced by certbot later)
-    ssl_certificate /var/proxma/ssl/default.crt;
-    ssl_certificate_key /var/proxma/ssl/default.key;
-    
-    # Allow certbot challenge on redirects too
-    location /.well-known/acme-challenge/ {{
-        root /var/www/html;
-    }}
-    
-    # Permanent redirect for everything else
+
     location / {{
         return 301 $scheme://{}$request_uri;
     }}
 }}
 "#,
+        ssl_block,
         from_domain,
         to_domain
     )
