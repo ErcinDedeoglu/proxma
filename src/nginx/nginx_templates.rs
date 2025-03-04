@@ -1,28 +1,24 @@
-use crate::nginx::nginx_proxy_rule::ProxyRule;
-
 /// Generate an Nginx server block for proxying requests
-pub fn generate_proxy_server_block(rule: &ProxyRule, webroot_path: &str) -> String {
-    let mut server_blocks = String::new();
-    for domain in &rule.domains {
-        let ssl_block = if rule.ssl {
-            format!(
-                r#"    listen 443 ssl;
+pub fn generate_proxy_server_block(domain: &str, upstream: &str, ssl: bool, webroot_path: &str) -> String {
+    let ssl_block = if ssl {
+        format!(
+            r#"    listen 443 ssl;
     ssl_certificate /var/proxma/letsencrypt/live/{}/fullchain.pem;
     ssl_certificate_key /var/proxma/letsencrypt/live/{}/privkey.pem;
     location /.well-known/acme-challenge/ {{
         root {};
     }}"#,
-                domain, domain, webroot_path
-            )
-        } else {
-            // Add HSTS prevention when SSL is disabled
-            r#"    # Prevent browsers from automatically redirecting to HTTPS
+            domain, domain, webroot_path
+        )
+    } else {
+        // Add HSTS prevention when SSL is disabled
+        r#"    # Prevent browsers from automatically redirecting to HTTPS
     add_header Strict-Transport-Security "max-age=0" always;
     add_header Referrer-Policy "no-referrer-when-downgrade" always;"#.into()
-        };
-        
-        server_blocks.push_str(&format!(
-            r#"server {{
+    };
+    
+    format!(
+        r#"server {{
     listen 80;
 {}
     server_name {};
@@ -35,12 +31,10 @@ pub fn generate_proxy_server_block(rule: &ProxyRule, webroot_path: &str) -> Stri
     }}
 }}
 "#,
-            ssl_block,
-            domain,
-            rule.upstream
-        ));
-    }
-    server_blocks
+        ssl_block,
+        domain,
+        upstream
+    )
 }
 
 /// Generate an Nginx server block for redirecting requests with SSL support

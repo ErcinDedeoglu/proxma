@@ -74,10 +74,15 @@ impl NginxManager {
         // Generate config while still holding the lock
         let mut config = String::new();
         for rule in &state.rules {
-            config.push_str(&generate_proxy_server_block(
-                rule,
-                &self.webroot_path.to_string_lossy()
-            ));
+            for domain in &rule.domains {
+                config.push_str(&generate_proxy_server_block(
+                    domain,
+                    &rule.upstream,
+                    rule.ssl,
+                    &self.webroot_path.to_string_lossy()
+                ));
+            }
+            
             for (from_domain, to_domain) in &rule.redirects {
                 config.push_str(&generate_redirect_server_block(
                     from_domain,
@@ -107,11 +112,15 @@ impl NginxManager {
             // Generate config while still holding the lock
             let mut config = String::new();
             for rule in &state.rules {
-                config.push_str(&generate_proxy_server_block(
-                    rule, 
-                    &self.webroot_path.to_string_lossy()
-                ));
-        
+                for domain in &rule.domains {
+                    config.push_str(&generate_proxy_server_block(
+                        domain,
+                        &rule.upstream,
+                        rule.ssl,
+                        &self.webroot_path.to_string_lossy()
+                    ));
+                }
+                
                 for (from_domain, to_domain) in &rule.redirects {
                     config.push_str(&generate_redirect_server_block(
                         from_domain,
