@@ -2,6 +2,12 @@ use super::Dequeue;
 use tokio::time::sleep;
 use std::time::Duration;
 use super::models::{Host, Redirect};
+use crate::nginx::NginxManager;
+use lazy_static::lazy_static;
+
+lazy_static! {
+    pub static ref NGINX_MANAGER: NginxManager = NginxManager::new("/etc/nginx/conf.d/proxma-proxy-rules.conf", "/var/www/html");
+}
 
 pub struct QueueProcessor;
 
