@@ -60,6 +60,10 @@ COPY src/webserver/website /var/www/html
 # Ensure proper permissions
 RUN chmod -R 755 /var/www/html
 
+# Add dummy file for ACME challenge
+RUN echo "proxma" > /var/www/html/.well-known/acme-challenge/proxma.proxma \
+    && chmod 644 /var/www/html/.well-known/acme-challenge/proxma.proxma
+
 # Copy Rust binary
 COPY --from=builder /proxma /usr/local/bin/proxma
 
