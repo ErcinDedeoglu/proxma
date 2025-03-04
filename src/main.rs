@@ -111,7 +111,10 @@ async fn main() {
                             
                                 for domain in &all_domains {
                                     match certbot.request_certificate(&[domain]) {
-                                        Ok(_) => println!("🔒 Requested SSL certificate successfully for domain: {}", domain),
+                                        Ok(_) => {
+                                            // TODO: Change nginx rule to make it use certificate
+                                            println!("🔒 Requested SSL certificate successfully for domain: {}", domain)
+                                        },
                                         Err(e) => eprintln!("⚠️ Failed to request SSL certificate for domain '{}': {}", domain, e),
                                     }
                                 }
@@ -125,82 +128,43 @@ async fn main() {
                 // Remove proxy rule when container dies
                 if event.labels.contains_key("proxma.hosts") {
                     // Get domains that were associated with this container
-                    let domains_info = active_containers.remove(&event.name);
-                    
-                    match nginx_manager.remove_rule_by_id(&event.name) {
-                        Ok(_) => {
-                            println!("🗑️ Removed proxy rule for container: {}", event.name);
-                            
-                            // Log the specific domains that were removed
-                            if let Some((main_domains, redirect_domains)) = domains_info {
-                                println!("   - Removed main domains: {}", main_domains.join(", "));
-                                if !redirect_domains.is_empty() {
-                                    println!("   - Removed redirect domains: {}", redirect_domains.join(", "));
-                                }
+                    if let Some((main_domains, redirect_domains)) = active_containers.remove(&event.name) {
+                        // Track if we've successfully removed at least one rule
+                        let mut success = false;
+                        
+                        // Remove rules for each main domain
+                        for domain in &main_domains {
+                            match nginx_manager.remove_rule_by_domain(domain) {
+                                Ok(_) => {
+                                    success = true;
+                                    println!("   - Removed domain: {}", domain);
+                                },
+                                Err(e) => eprintln!("❌ Failed to remove Nginx proxy rule for domain '{}': {}", domain, e),
                             }
-                        },
-                        Err(e) => eprintln!("❌ Failed to remove Nginx proxy rule: {}", e),
+                        }
+                        
+                        // Remove rules for each redirect domain
+                        for domain in &redirect_domains {
+                            match nginx_manager.remove_rule_by_domain(domain) {
+                                Ok(_) => {
+                                    success = true;
+                                    println!("   - Removed redirect domain: {}", domain);
+                                },
+                                Err(e) => eprintln!("❌ Failed to remove Nginx proxy rule for redirect domain '{}': {}", domain, e),
+                            }
+                        }
+                        
+                        if success {
+                            println!("🗑️ Removed proxy rules for container: {}", event.name);
+                        }
+                    } else {
+                        eprintln!("⚠️ Container had proxma.hosts label but no domains were tracked: {}", event.name);
                     }
                 }
-            },
-            _ => {}, // Ignore other events
+            }
+            _ => {},
         }
     }
     
     println!("⚠️ Event stream ended unexpectedly");
-}
-
-fn setup_nginx_example() -> Result<(), Box<dyn std::error::Error>> {
-    let manager = NginxManager::new("/etc/nginx/conf.d/proxma-proxy-rules.conf", "/var/www/html");
-
-    if let Err(e) = manager.add_rule(ProxyRule {
-        id: "ercin.info".into(),
-        domains: vec![
-            "ercin.info".into()
-        ],
-        upstream: "http://ercin.info:80".into(),
-        redirects: vec![
-            ("x1.ercin.info".into(), "ercin.info".into()),
-            ("www.ercin.info".into(), "ercin.info".into()),
-            ("blog1.ercin.info".into(), "ercin.info".into()),
-            ("blog2.ercin.info".into(), "ercin.info".into()),
-            ("blog3.ercin.info".into(), "ercin.info".into()),
-            ("blog4.ercin.info".into(), "ercin.info".into()),
-            ("blog5.ercin.info".into(), "ercin.info".into()),
-        ],
-        ssl: true
-    }) {
-        eprintln!("Failed to add Nginx proxy rule: {}", e);
-        // Continue execution despite the error
-    } else {
-        println!("Successfully added Nginx rule for ercin.info");
-    }
-
-    // // Remove the rule by its ID
-    // manager.remove_rule_by_id("ercin.info")?;
-
-    // // Alternatively, remove a rule by one of its domains
-    // manager.remove_rule_by_domain("api.myapp.com")?;
-
-    Ok(())
-}
-
-fn setup_certbot_example() -> Result<(), Box<dyn std::error::Error>> {
-    let certbot = Certbot::new("/var/www/html", "dublokcom@gmail.com")
-        .agree_tos(true)
-        .staging(true)
-        .no_eff_email(false)
-        .config_dir("/var/proxma/letsencrypt")
-        .work_dir("/var/proxma/letsencrypt/work")
-        .logs_dir("/var/proxma/logs");
-    
-    // Handle error specifically for certificate requests
-    if let Err(e) = certbot.request_certificate(&["ercin.info", "www.ercin.info"]) {
-        eprintln!("Certificate provisioning failed: {}", e);
-        // Continue execution despite the error
-    } else {
-        println!("Successfully requested certificates for domains");
-    }
-  
-    Ok(())
 }

@@ -1,5 +1,3 @@
-use std::fs;
-use std::os::unix::fs as unix_fs;
 use std::collections::HashSet;
 use std::path::{Path, PathBuf};
 use std::sync::Mutex;
@@ -62,7 +60,7 @@ impl NginxManager {
         }
         
         let all_domains: HashSet<_> = primary_domains.union(&redirect_sources).cloned().collect();
-        state.rules.retain(|existing_rule| {
+        state.rules.retain(|existing_rule: &ProxyRule| {
             let existing_primary = existing_rule.domains.iter().cloned().collect::<HashSet<_>>();
             let existing_redirects = existing_rule.redirects.iter()
                 .map(|(from, _)| from.clone())
@@ -70,12 +68,8 @@ impl NginxManager {
             let existing_all = existing_primary.union(&existing_redirects).cloned().collect::<HashSet<_>>();
             existing_all.is_disjoint(&all_domains)
         });
-    
-        if rule.ssl {
-            self.ensure_domain_certificate_paths(&rule)?;
-        }
         
-        state.rules.push(rule.clone()); // Clone the rule to use it after releasing the lock
+        state.rules.push(rule.clone());
         
         // Generate config while still holding the lock
         let mut config = String::new();
@@ -100,44 +94,7 @@ impl NginxManager {
         // Reload nginx while still holding the lock
         self.reload_nginx()
     }
-    
-    pub fn remove_rule_by_id(&self, id: &str) -> Result<(), NginxError> {
-        // Lock the entire state for the duration of the method
-        let mut state = self.state.lock()
-            .map_err(|_| NginxError::InvalidRule("Failed to acquire state lock".into()))?;
-            
-        let initial_count = state.rules.len();
-        state.rules.retain(|r| r.id != id);
         
-        if state.rules.len() != initial_count {
-            // Generate config while still holding the lock
-            let mut config = String::new();
-            for rule in &state.rules {
-                config.push_str(&generate_proxy_server_block(
-                    rule, 
-                    &self.webroot_path.to_string_lossy()
-                ));
-        
-                for (from_domain, to_domain) in &rule.redirects {
-                    config.push_str(&generate_redirect_server_block(
-                        from_domain,
-                        to_domain,
-                        rule.ssl,
-                        &self.webroot_path.to_string_lossy(),
-                    ));
-                }
-            }
-            
-            // Write config file while still holding the lock
-            std::fs::write(&state.config_path, config)?;
-            
-            // Reload nginx while still holding the lock
-            self.reload_nginx()?;
-        }
-        
-        Ok(())
-    }
-    
     pub fn remove_rule_by_domain(&self, domain: &str) -> Result<(), NginxError> {
         // Lock the entire state for the duration of the method
         let mut state = self.state.lock()
@@ -205,56 +162,5 @@ impl NginxManager {
             Err(NginxError::ReloadFailed(format!("Nginx {} failed: {}", 
                 if is_running { "reload" } else { "start" }, error)))
         }
-    }
-    
-    fn ensure_domain_certificate_paths(&self, rule: &ProxyRule) -> Result<(), NginxError> {
-        if !rule.ssl {
-            return Ok(());
-        }
-    
-        // Default certificate locations
-        let default_fullchain = Path::new("/var/proxma/ssl/default.fullchain.crt.pem");
-        let default_privkey = Path::new("/var/proxma/ssl/default.privkey.key.pem");
-        
-        // Verify default certificates exist
-        if !default_fullchain.exists() {
-            println!("Warning: Default certificate not found at {}", default_fullchain.display());
-        }
-        
-        if !default_privkey.exists() {
-            println!("Warning: Default private key not found at {}", default_privkey.display());
-        }
-        
-        // Create certificate paths for all domains (primary + redirects)
-        let mut all_domains = rule.domains.clone();
-        all_domains.extend(rule.redirects.iter().map(|(from, _)| from.clone()));
-        
-        println!("Creating certificate paths for domains: {:?}", all_domains);
-        
-        for domain in all_domains {
-            // Ensure the directory structure exists
-            let domain_dir = Path::new("/var/proxma/letsencrypt/live").join(&domain);
-            let domain_fullchain = domain_dir.join("fullchain.pem");
-            let domain_privkey = domain_dir.join("privkey.pem");
-            
-            // Create the directory path
-            if !domain_dir.exists() {
-                println!("Creating directory: {}", domain_dir.display());
-                fs::create_dir_all(&domain_dir)?;
-            }
-            
-            // Create symbolic links to default certificates
-            if !domain_fullchain.exists() && default_fullchain.exists() {
-                println!("Creating symlink: {} -> {}", domain_fullchain.display(), default_fullchain.display());
-                unix_fs::symlink(default_fullchain, &domain_fullchain)?;
-            }
-            
-            if !domain_privkey.exists() && default_privkey.exists() {
-                println!("Creating symlink: {} -> {}", domain_privkey.display(), default_privkey.display());
-                unix_fs::symlink(default_privkey, &domain_privkey)?;
-            }
-        }
-        
-        Ok(())
     }
 }
