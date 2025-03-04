@@ -75,19 +75,23 @@ impl NginxManager {
         let mut config = String::new();
         for rule in &state.rules {
             for domain in &rule.domains {
+                let use_ssl = rule.ssl && self.check_ssl_certificates_exist(domain);
+                
                 config.push_str(&generate_proxy_server_block(
                     domain,
                     &rule.upstream,
-                    rule.ssl,
+                    use_ssl,
                     &self.webroot_path.to_string_lossy()
                 ));
             }
             
             for (from_domain, to_domain) in &rule.redirects {
+                let use_ssl = rule.ssl && self.check_ssl_certificates_exist(from_domain);
+                
                 config.push_str(&generate_redirect_server_block(
                     from_domain,
                     to_domain,
-                    rule.ssl,
+                    use_ssl,
                     &self.webroot_path.to_string_lossy(),
                 ));
             }
@@ -113,19 +117,23 @@ impl NginxManager {
             let mut config = String::new();
             for rule in &state.rules {
                 for domain in &rule.domains {
+                    let use_ssl = rule.ssl && self.check_ssl_certificates_exist(domain);
+                    
                     config.push_str(&generate_proxy_server_block(
                         domain,
                         &rule.upstream,
-                        rule.ssl,
+                        use_ssl,
                         &self.webroot_path.to_string_lossy()
                     ));
                 }
                 
                 for (from_domain, to_domain) in &rule.redirects {
+                    let use_ssl = rule.ssl && self.check_ssl_certificates_exist(from_domain);
+                    
                     config.push_str(&generate_redirect_server_block(
                         from_domain,
                         to_domain,
-                        rule.ssl,
+                        use_ssl,
                         &self.webroot_path.to_string_lossy(),
                     ));
                 }
@@ -171,5 +179,11 @@ impl NginxManager {
             Err(NginxError::ReloadFailed(format!("Nginx {} failed: {}", 
                 if is_running { "reload" } else { "start" }, error)))
         }
+    }
+
+    fn check_ssl_certificates_exist(&self, domain: &str) -> bool {
+        let cert_path = format!("/var/proxma/letsencrypt/live/{}/fullchain.pem", domain);
+        let key_path = format!("/var/proxma/letsencrypt/live/{}/privkey.pem", domain);
+        Path::new(&cert_path).exists() && Path::new(&key_path).exists()
     }
 }
