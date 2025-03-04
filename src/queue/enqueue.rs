@@ -1,11 +1,5 @@
-use std::collections::VecDeque;
-use std::sync::Mutex;
-use lazy_static::lazy_static;
 use super::models::{QueueMessage, Host, Redirect};
-
-lazy_static! {
-    static ref QUEUE: Mutex<VecDeque<QueueMessage>> = Mutex::new(VecDeque::new());
-}
+use super::shared::QUEUE;
 
 pub struct Enqueue;
 

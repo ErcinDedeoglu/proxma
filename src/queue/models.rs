@@ -1,4 +1,4 @@
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct QueueMessage {
     pub action: String,
     pub container_id: String,
@@ -11,13 +11,13 @@ pub struct QueueMessage {
     pub redirect: Option<Redirect>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Host {
     pub domain: String,
     pub port: u16,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Redirect {
     pub from: String,
     pub to: String,
