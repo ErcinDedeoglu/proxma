@@ -2,6 +2,13 @@ use std::process::Command;
 use std::io::{self, ErrorKind};
 
 #[derive(Debug)]
+pub enum CertificateRequestResult {
+    Success,
+    AcmeChallengeFailure(String), // Combined challenge failures with reason
+    CertbotError(String),         // The certbot command itself failed
+}
+
+#[derive(Debug)]
 pub struct Certbot {
     pub config_dir: Option<String>,
     pub work_dir: Option<String>,
@@ -106,6 +113,41 @@ impl Certbot {
                 ErrorKind::Other,
                 format!("Certbot command exited with status: {:?}", status.code()),
             ))
+        }
+    }
+
+    pub fn check_and_request_certificate<S: AsRef<str>>(&self, domain: S) -> io::Result<CertificateRequestResult> {
+        let domain_str = domain.as_ref();
+        let check_url = format!("http://{}/.well-known/acme-challenge/proxma.proxma", domain_str);
+        
+        // Use curl to check the challenge endpoint
+        let output = Command::new("curl")
+            .arg("--silent")
+            .arg("--show-error")
+            .arg("--fail")
+            .arg("--max-time")
+            .arg("10")  // 10 second timeout
+            .arg(&check_url)
+            .output()?;
+        
+        if !output.status.success() {
+            let error_msg = String::from_utf8_lossy(&output.stderr);
+            return Ok(CertificateRequestResult::AcmeChallengeFailure(
+                format!("Endpoint unreachable: {}", error_msg.trim())
+            ));
+        }
+        
+        let content = String::from_utf8_lossy(&output.stdout).trim().to_string();
+        if content != "proxma" {
+            return Ok(CertificateRequestResult::AcmeChallengeFailure(
+                format!("Incorrect content: '{}'", content)
+            ));
+        }
+        
+        // Challenge verification succeeded, request certificate
+        match self.request_certificate(&[domain_str]) {
+            Ok(_) => Ok(CertificateRequestResult::Success),
+            Err(e) => Ok(CertificateRequestResult::CertbotError(e.to_string()))
         }
     }
 }

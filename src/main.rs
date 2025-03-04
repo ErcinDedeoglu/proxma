@@ -5,6 +5,7 @@ mod certbot;
 use futures::StreamExt;
 use crate::nginx::{NginxManager, ProxyRule};
 use crate::certbot::Certbot;
+use crate::certbot::CertificateRequestResult;
 
 #[tokio::main]
 async fn main() {
@@ -112,22 +113,30 @@ async fn main() {
                                 all_domains.dedup();
                             
                                 for domain in &all_domains {
-                                    match certbot.request_certificate(&[domain]) {
-                                        Ok(_) => {
-                                            println!("🔒 Requested SSL certificate successfully for domain: {}", domain);
-                                            let ssl_certificate_exist: bool = nginx_manager.check_ssl_certificates_exist(domain);
-                                            if ssl_certificate_exist {
-                                                print!("🔒✅ SSL certificate already exists for domain: {}", domain);
-                                                match nginx_manager.add_rule(rule_clone.clone()) {
-                                                    Ok(_) => println!("✅ Updated proxy rule with SSL for domain: {}", domain),
-                                                    Err(e) => eprintln!("❌ Failed to update Nginx proxy rule with SSL: {}", e),
+                                    match certbot.check_and_request_certificate(domain) {
+                                        Ok(result) => match result {
+                                            CertificateRequestResult::Success => {
+                                                println!("🔒 Requested SSL certificate successfully for domain: {}", domain);
+                                                let ssl_certificate_exist: bool = nginx_manager.check_ssl_certificates_exist(domain);
+                                                if ssl_certificate_exist {
+                                                    println!("🔒✅ SSL certificate exists for domain: {}", domain);
+                                                    match nginx_manager.add_rule(rule_clone.clone()) {
+                                                        Ok(_) => println!("✅ Updated proxy rule with SSL for domain: {}", domain),
+                                                        Err(e) => eprintln!("❌ Failed to update Nginx proxy rule with SSL: {}", e),
+                                                    }
+                                                } else {
+                                                    println!("🔒❌ SSL certificate does not exist for domain: {}", domain);
                                                 }
-                                            }
-                                            else {
-                                                print!("🔒❌ SSL certificate does not exist for domain: {}", domain);
+                                            },
+                                            CertificateRequestResult::AcmeChallengeFailure(error) => {
+                                                eprintln!("⚠️ ACME challenge failed for domain '{}': {}", domain, error);
+                                                eprintln!("⚠️ Please ensure the domain is properly configured and points to this server.");
+                                            },
+                                            CertificateRequestResult::CertbotError(error) => {
+                                                eprintln!("⚠️ Certbot command failed for domain '{}': {}", domain, error);
                                             }
                                         },
-                                        Err(e) => eprintln!("⚠️ Failed to request SSL certificate for domain '{}': {}", domain, e),
+                                        Err(e) => eprintln!("⚠️ System error checking domain '{}': {}", domain, e),
                                     }
                                 }
                             }
