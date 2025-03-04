@@ -61,7 +61,13 @@ impl Enqueue {
             // Process redirects
             if let Some(redirect_str) = labels.get("proxma.redirects") {
                 for redirect in redirect_str.split(',') {
-                    let parts: Vec<&str> = redirect.trim().split(':').collect();
+                    let trimmed = redirect.trim();
+                    let parts = if trimmed.contains('>') {
+                        trimmed.split('>').collect::<Vec<&str>>()
+                    } else {
+                        trimmed.split(':').collect::<Vec<&str>>()
+                    };
+            
                     if parts.len() == 2 {
                         Self::message(QueueMessage {
                             action: action.clone(),
@@ -73,8 +79,8 @@ impl Enqueue {
                             ssl,
                             host: None,
                             redirect: Some(Redirect {
-                                from: parts[0].to_string(),
-                                to: parts[1].to_string(),
+                                from: parts[0].trim().to_string(),
+                                to: parts[1].trim().to_string(),
                             }),
                         });
                     }

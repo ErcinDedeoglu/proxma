@@ -1,9 +1,10 @@
 mod models;
+mod shared;
 mod enqueue;
 mod dequeue;
-mod shared;
+mod queue_processor;
 
 pub use models::*;
 pub use enqueue::*;
 pub use dequeue::*;
-pub use shared::*;
+pub use queue_processor::*;
