@@ -93,6 +93,8 @@ async fn main() {
                         ssl,
                     };
                     
+                    let rule_clone = rule.clone();
+
                     match nginx_manager.add_rule(rule) {
                         Ok(_) => {
                             println!("✅ Added proxy rule for container: {}", event.name);
@@ -112,8 +114,18 @@ async fn main() {
                                 for domain in &all_domains {
                                     match certbot.request_certificate(&[domain]) {
                                         Ok(_) => {
-                                            // TODO: Change nginx rule to make it use certificate
-                                            println!("🔒 Requested SSL certificate successfully for domain: {}", domain)
+                                            println!("🔒 Requested SSL certificate successfully for domain: {}", domain);
+                                            let ssl_certificate_exist: bool = nginx_manager.check_ssl_certificates_exist(domain);
+                                            if ssl_certificate_exist {
+                                                print!("🔒✅ SSL certificate already exists for domain: {}", domain);
+                                                match nginx_manager.add_rule(rule_clone.clone()) {
+                                                    Ok(_) => println!("✅ Updated proxy rule with SSL for domain: {}", domain),
+                                                    Err(e) => eprintln!("❌ Failed to update Nginx proxy rule with SSL: {}", e),
+                                                }
+                                            }
+                                            else {
+                                                print!("🔒❌ SSL certificate does not exist for domain: {}", domain);
+                                            }
                                         },
                                         Err(e) => eprintln!("⚠️ Failed to request SSL certificate for domain '{}': {}", domain, e),
                                     }
