@@ -122,6 +122,8 @@ impl Certbot {
         let domain_str = domain.as_ref();
         let check_url = format!("http://{}/.well-known/acme-challenge/proxma.proxma", domain_str);
         
+        println!("🔍 Checking ACME challenge at: {}", check_url);
+        
         // Create an HTTP client with a timeout
         let client = match Client::builder()
             .timeout(Duration::from_secs(10))
@@ -140,24 +142,37 @@ impl Certbot {
             )),
         };
         
-        if !response.status().is_success() {
-            return Ok(CertificateRequestResult::AcmeChallengeFailure(
-                format!("Endpoint returned status code: {}", response.status())
-            ));
+        // Collect detailed response information
+        let status = response.status();
+        let headers: Vec<(String, String)> = response.headers()
+            .iter()
+            .map(|(name, value)| (name.to_string(), value.to_str().unwrap_or("invalid utf-8").to_string()))
+            .collect();
+        
+        if !status.is_success() {
+            // Create detailed error message including response details
+            let error_msg = format!(
+                "Endpoint {} returned status code: {} {}\nHeaders: {:?}", 
+                check_url, status.as_u16(), status.canonical_reason().unwrap_or("Unknown"),
+                headers
+            );
+            return Ok(CertificateRequestResult::AcmeChallengeFailure(error_msg));
         }
         
         let content = match response.text() {
             Ok(t) => t.trim().to_string(),
             Err(e) => return Ok(CertificateRequestResult::AcmeChallengeFailure(
-                format!("Failed to read response: {}", e)
+                format!("Failed to read response body from {}: {}", check_url, e)
             )),
         };
         
         if content != "proxma" {
             return Ok(CertificateRequestResult::AcmeChallengeFailure(
-                format!("Incorrect content: '{}'", content)
+                format!("Incorrect content at {}: Expected 'proxma' but got '{}'", check_url, content)
             ));
         }
+        
+        println!("✅ ACME challenge verification successful for: {}", domain_str);
         
         // Challenge verification succeeded, request certificate
         match self.request_certificate(&[domain_str]) {
