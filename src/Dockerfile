@@ -1,6 +1,6 @@
 # Stage 1: Chef setup
 FROM rust:alpine AS chef
-RUN apk add --no-cache musl-dev build-base && \
+RUN apk add --no-cache musl-dev build-base openssl-dev pkgconfig curl && \
     rustup target add x86_64-unknown-linux-musl aarch64-unknown-linux-musl && \
     cargo install cargo-chef
 WORKDIR /app
@@ -31,7 +31,7 @@ RUN case "$TARGETPLATFORM" in \
         linux/arm64) export RUST_TARGET=aarch64-unknown-linux-musl ;; \
         *) echo "Unsupported $TARGETPLATFORM" && exit 1 ;; \
     esac && \
-    cargo build --release --target $RUST_TARGET && \
+    RUST_BACKTRACE=1 cargo build -v --release --target $RUST_TARGET && \
     cp target/$RUST_TARGET/release/proxma /proxma
 
 # Final stage

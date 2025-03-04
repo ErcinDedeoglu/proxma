@@ -1,5 +1,7 @@
 use std::process::Command;
 use std::io::{self, ErrorKind};
+use reqwest::blocking::Client;
+use std::time::Duration;
 
 #[derive(Debug)]
 pub enum CertificateRequestResult {
@@ -120,24 +122,37 @@ impl Certbot {
         let domain_str = domain.as_ref();
         let check_url = format!("http://{}/.well-known/acme-challenge/proxma.proxma", domain_str);
         
-        // Use curl to check the challenge endpoint
-        let output = Command::new("curl")
-            .arg("--silent")
-            .arg("--show-error")
-            .arg("--fail")
-            .arg("--max-time")
-            .arg("10")  // 10 second timeout
-            .arg(&check_url)
-            .output()?;
+        // Create an HTTP client with a timeout
+        let client = match Client::builder()
+            .timeout(Duration::from_secs(10))
+            .build() {
+                Ok(c) => c,
+                Err(e) => return Ok(CertificateRequestResult::AcmeChallengeFailure(
+                    format!("Failed to create HTTP client: {}", e)
+                )),
+            };
         
-        if !output.status.success() {
-            let error_msg = String::from_utf8_lossy(&output.stderr);
+        // Make the HTTP request
+        let response = match client.get(&check_url).send() {
+            Ok(r) => r,
+            Err(e) => return Ok(CertificateRequestResult::AcmeChallengeFailure(
+                format!("Failed to connect to {}: {}", check_url, e)
+            )),
+        };
+        
+        if !response.status().is_success() {
             return Ok(CertificateRequestResult::AcmeChallengeFailure(
-                format!("Endpoint unreachable: {}", error_msg.trim())
+                format!("Endpoint returned status code: {}", response.status())
             ));
         }
         
-        let content = String::from_utf8_lossy(&output.stdout).trim().to_string();
+        let content = match response.text() {
+            Ok(t) => t.trim().to_string(),
+            Err(e) => return Ok(CertificateRequestResult::AcmeChallengeFailure(
+                format!("Failed to read response: {}", e)
+            )),
+        };
+        
         if content != "proxma" {
             return Ok(CertificateRequestResult::AcmeChallengeFailure(
                 format!("Incorrect content: '{}'", content)
