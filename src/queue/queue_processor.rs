@@ -1,5 +1,4 @@
 use super::Dequeue;
-use std::io::Write;
 use super::models::{Host, QueueMessage, Redirect};
 use crate::nginx::NginxManager;
 use lazy_static::lazy_static;
@@ -16,8 +15,9 @@ impl QueueProcessor {
         if let Some(host) = &message.host {
             println!("🏠 Configuring host: {} (SSL: {})", host.domain, message.ssl);
             let upstream_url = format!("http://{}:{}", message.name, host.port);
-    
-            match NGINX_MANAGER.add_container_host_rule(&host.domain, &upstream_url, message.ssl) {
+            let use_ssl = message.ssl && NGINX_MANAGER.check_ssl_certificates_exist(&host.domain);
+            
+            match NGINX_MANAGER.add_container_host_rule(&host.domain, &upstream_url, use_ssl) {
                 Ok(_) => {
                     println!("📝 Created Nginx config for '{}', proxy to '{}'", host.domain, upstream_url);
                     
