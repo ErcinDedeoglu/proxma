@@ -14,21 +14,28 @@ impl QueueProcessor {
     pub async fn process_start_action(message: &QueueMessage) {
         if let Some(host) = &message.host {
             println!("🏠 Configuring host: {} (SSL: {})", host.domain, message.ssl);
-
             let upstream_url = format!("http://{}:{}", message.name, host.port);
-
             match NGINX_MANAGER.add_container_host_rule(&host.domain, &upstream_url, message.ssl) {
-                Ok(_) => match NGINX_MANAGER.reload_nginx() {
-                    Ok(_) => println!("✅ Nginx configuration added and nginx reloaded."),
-                    Err(e) => eprintln!("❌ Failed to reload nginx: {}", e),
-                },
+                Ok(_) => {
+                    match NGINX_MANAGER.validate_nginx_config() {
+                        Ok(_) => match NGINX_MANAGER.reload_nginx() {
+                            Ok(_) => println!("✅ Nginx configuration added and nginx reloaded."),
+                            Err(e) => eprintln!("❌ Failed to reload nginx: {}", e),
+                        },
+                        Err(e) => {
+                            eprintln!("❌ Nginx configuration validation failed: {}", e);
+                            if let Err(remove_err) = NGINX_MANAGER.remove_rule(&host.domain) {
+                                eprintln!("❌ Failed to remove invalid configuration: {}", remove_err);
+                            }
+                        }
+                    }
+                }
                 Err(e) => eprintln!("❌ Error adding nginx config for '{}': {}", host.domain, e),
             }
         } else if let Some(redirect) = &message.redirect {
             println!("➡️ Configuring redirect: {} -> {}", redirect.from, redirect.to);
             // Add your redirect configuration logic here
         }
-
         tokio::time::sleep(std::time::Duration::from_millis(1000)).await;
     }
 
