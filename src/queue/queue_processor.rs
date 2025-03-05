@@ -1,5 +1,5 @@
 use super::Dequeue;
-use super::models::{Host, QueueMessage, Redirect};
+use super::models::QueueMessage;
 use crate::nginx::NginxManager;
 use lazy_static::lazy_static;
 
