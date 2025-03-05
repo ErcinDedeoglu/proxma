@@ -17,6 +17,12 @@ impl QueueProcessor {
             let upstream_url = format!("http://{}:{}", message.name, host.port);
             let use_ssl = message.ssl && NGINX_MANAGER.check_ssl_certificates_exist(&host.domain);
             
+            if use_ssl {
+                println!("🔒 SSL certificate found for '{}'", host.domain);
+            } else {
+                println!("🔒 SSL certificate not found for '{}'", host.domain);
+            }
+            
             match NGINX_MANAGER.add_container_host_rule(&host.domain, &upstream_url, use_ssl) {
                 Ok(_) => {
                     println!("📝 Created Nginx config for '{}', proxy to '{}'", host.domain, upstream_url);

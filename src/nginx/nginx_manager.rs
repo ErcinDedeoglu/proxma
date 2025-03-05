@@ -2,6 +2,7 @@ use std::path::{Path, PathBuf};
 use std::sync::Mutex;
 use std::{fs, io};
 use crate::nginx::nginx_templates::generate_proxy_server_block;
+use crate::nginx::nginx_templates::generate_redirect_server_block;
 
 pub struct NginxManager {
     state: Mutex<NginxState>,
@@ -22,6 +23,26 @@ impl NginxManager {
         }
     }
 
+    pub fn add_redirect_rule(
+        &self,
+        from_domain: &str,
+        to_domain: &str,
+        ssl: bool,
+    ) -> io::Result<()> {
+        let config_content = generate_redirect_server_block(
+            from_domain,
+            to_domain,
+            ssl,
+            self.webroot_path.to_str().unwrap_or_default(),
+        );
+
+        let file_name = format!("proxma_{}.conf", from_domain.replace('.', "_"));
+        let file_path: PathBuf = self.state.lock().unwrap().config_path.join(&file_name);
+
+        fs::write(&file_path, config_content)?;
+        Ok(())
+    }
+
     pub fn add_container_host_rule(
         &self,
         domain: &str,
@@ -36,7 +57,7 @@ impl NginxManager {
         );
     
         let file_name = format!("proxma_{}.conf", domain.replace('.', "_"));
-        let file_path = self.state.lock().unwrap().config_path.join(&file_name);
+        let file_path: PathBuf = self.state.lock().unwrap().config_path.join(&file_name);
     
         fs::write(&file_path, config_content)?;
         Ok(())
