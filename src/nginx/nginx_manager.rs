@@ -2,10 +2,8 @@ use std::path::{Path, PathBuf};
 use std::sync::Mutex;
 use crate::nginx::nginx_proxy_rule::ProxyRule;
 use crate::nginx::nginx_templates::{generate_proxy_server_block, generate_redirect_server_block};
-use std::fs;
-use std::io::{self, Error, ErrorKind};
-use super::models::{Host, Redirect};
-use super::nginx_templates::{generate_proxy_server_block, generate_redirect_server_block};
+use crate::queue::Host;
+use std::{fs, io};
 
 pub struct NginxManager {
     // Single mutex for all state and operations
