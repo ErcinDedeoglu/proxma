@@ -6,7 +6,7 @@ use crate::nginx::NginxManager;
 use lazy_static::lazy_static;
 
 lazy_static! {
-    pub static ref NGINX_MANAGER: NginxManager = NginxManager::new("/etc/nginx/conf.d/proxma-proxy-rules.conf", "/var/www/html");
+    pub static ref NGINX_MANAGER: NginxManager = NginxManager::new("/etc/nginx/conf.d", "/var/www/html");
 }
 
 pub struct QueueProcessor;
@@ -16,15 +16,15 @@ impl QueueProcessor {
     pub async fn process_start_action(host: Option<&Host>, redirect: Option<&Redirect>, ssl: bool) {
         if let Some(host) = host {
             println!("🏠 Configuring host: {} (SSL: {})", host.domain, ssl);
-            // Uncomment when needed:
-            // NGINX_MANAGER.configure_host(host, ssl);
+            
+            
             sleep(Duration::from_millis(1000)).await;
         }
         
         if let Some(redirect) = redirect {
             println!("➡️ Configuring redirect: {} -> {}", redirect.from, redirect.to);
-            // Uncomment when needed:
-            // NGINX_MANAGER.configure_redirect(redirect);
+            
+            
             sleep(Duration::from_millis(1000)).await;
         }
     }
@@ -59,22 +59,15 @@ impl QueueProcessor {
                     
                     match message.action.as_str() {
                         "start" => {
-                            Self::process_start_action(
-                                message.host.as_ref(),
-                                message.redirect.as_ref(),
-                                message.ssl
-                            ).await;
+                            Self::process_start_action(message.host.as_ref(), message.redirect.as_ref(), message.ssl).await;
                         },
                         "die" => {
-                            Self::process_die_action(
-                                message.host.as_ref(),
-                                message.redirect.as_ref()
-                            ).await;
-                        },
-                        _ => println!("Unknown action: {}", message.action)
+                            Self::process_die_action(message.host.as_ref(), message.redirect.as_ref()).await;
+                        }, _ => println!("Unknown action: {}", message.action)
                     }
                 }
             }
+
             sleep(Duration::from_millis(1000)).await;
         }
     }
