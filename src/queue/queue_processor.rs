@@ -17,33 +17,44 @@ impl QueueProcessor {
         if let Some(host) = host {
             println!("🏠 Configuring host: {} (SSL: {})", host.domain, ssl);
             
-            
-            sleep(Duration::from_millis(1000)).await;
+            match NGINX_MANAGER.add_rule(host, ssl) {
+                Ok(_) => {
+                    //#1
+                    match NGINX_MANAGER.reload_nginx() {
+                        Ok(_) => {
+                            //#2
+                            println!("Nginx configuration updated and reloaded successfully");
+                        }
+                        Err(e) => {
+                            //#2
+                            eprintln!("Error reloading nginx: {}", e);
+                        }
+                    }
+                }
+                Err(e) => {
+                    //#1
+                    eprintln!("Error configuring host: {}", e);
+                }
+            }
+            //#3 or #2 of #1 is
         }
-        
-        if let Some(redirect) = redirect {
+        else if let Some(redirect) = redirect {
             println!("➡️ Configuring redirect: {} -> {}", redirect.from, redirect.to);
-            
-            
-            sleep(Duration::from_millis(1000)).await;
         }
+            
+        tokio::time::sleep(std::time::Duration::from_millis(1000)).await;
     }
-
-    // New consolidated method for "die" actions
+    
     pub async fn process_die_action(host: Option<&Host>, redirect: Option<&Redirect>) {
         if let Some(host) = host {
             println!("🏠 Removing host: {}", host.domain);
-            // Uncomment when needed:
             // NGINX_MANAGER.remove_host(host);
-            sleep(Duration::from_millis(1000)).await;
         }
-        
-        if let Some(redirect) = redirect {
+        else if let Some(redirect) = redirect {
             println!("➡️ Removing redirect: {}", redirect.from);
-            // Uncomment when needed:
             // NGINX_MANAGER.remove_redirect(redirect);
-            sleep(Duration::from_millis(1000)).await;
         }
+        tokio::time::sleep(std::time::Duration::from_millis(1000)).await;
     }
 
     // You could also simplify your start method to use the consolidated methods directly
