@@ -1,4 +1,5 @@
 use super::Dequeue;
+use std::io::Write;
 use super::models::{Host, QueueMessage, Redirect};
 use crate::nginx::NginxManager;
 use lazy_static::lazy_static;
@@ -15,17 +16,24 @@ impl QueueProcessor {
         if let Some(host) = &message.host {
             println!("🏠 Configuring host: {} (SSL: {})", host.domain, message.ssl);
             let upstream_url = format!("http://{}:{}", message.name, host.port);
+    
             match NGINX_MANAGER.add_container_host_rule(&host.domain, &upstream_url, message.ssl) {
                 Ok(_) => {
+                    println!("📝 Created Nginx config for '{}', proxy to '{}'", host.domain, upstream_url);
+                    
                     match NGINX_MANAGER.validate_nginx_config() {
-                        Ok(_) => match NGINX_MANAGER.reload_nginx() {
-                            Ok(_) => println!("✅ Nginx configuration added and nginx reloaded."),
-                            Err(e) => eprintln!("❌ Failed to reload nginx: {}", e),
+                        Ok(_) => {
+                            println!("✅ Nginx configuration is valid");
+                            match NGINX_MANAGER.reload_nginx() {
+                                Ok(_) => println!("✅ Nginx configuration reloaded successfully"),
+                                Err(e) => eprintln!("❌ Failed to reload nginx: {}", e),
+                            }
                         },
                         Err(e) => {
-                            eprintln!("❌ Nginx configuration validation failed: {}", e);
-                            if let Err(remove_err) = NGINX_MANAGER.remove_rule(&host.domain) {
-                                eprintln!("❌ Failed to remove invalid configuration: {}", remove_err);
+                            eprintln!("❌ Nginx configuration validation failed:\n{}", e);
+                            match NGINX_MANAGER.remove_rule(&host.domain) {
+                                Ok(_) => println!("✅ Invalid configuration removed successfully"),
+                                Err(e) => eprintln!("❌ Failed to remove invalid configuration: {}", e),
                             }
                         }
                     }

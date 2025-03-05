@@ -39,10 +39,6 @@ impl NginxManager {
         let file_path = self.state.lock().unwrap().config_path.join(&file_name);
     
         fs::write(&file_path, config_content)?;
-        println!(
-            "📝 Created Nginx config for '{}', proxy to '{}'",
-            domain, upstream_url
-        );
         Ok(())
     }
 
@@ -50,27 +46,18 @@ impl NginxManager {
         let output = std::process::Command::new("nginx")
             .arg("-t")
             .output()?;
-
+        
         if !output.status.success() {
             let stderr = String::from_utf8_lossy(&output.stderr);
-            eprintln!("⚠️ Nginx configuration validation failed:\n{}", stderr);
-            return Err(io::Error::new(io::ErrorKind::Other, "Nginx validation failed"));
+            return Err(io::Error::new(io::ErrorKind::Other, stderr.to_string()));
         }
-
-        println!("✅ Nginx configuration is valid.");
         Ok(())
     }
 
     pub fn remove_rule(&self, domain: &str) -> io::Result<()> {
         let file_name = format!("proxma_{}.conf", domain.replace('.', "_"));
         let file_path = self.state.lock().unwrap().config_path.join(&file_name);
-        
-        if let Err(e) = fs::remove_file(&file_path) {
-            eprintln!("❌ Failed to remove configuration file: {}", e);
-            return Err(e);
-        }
-        
-        println!("🗑️ Removed configuration file: {}", file_path.display());
+        fs::remove_file(&file_path)?;
         Ok(())
     }
 
@@ -79,17 +66,11 @@ impl NginxManager {
             .arg("-s")
             .arg("reload")
             .output()?;
-
-        if output.status.success() {
-            println!("🔄 Nginx configuration reloaded successfully.");
-            Ok(())
-        } else {
+            
+        if !output.status.success() {
             let stderr = String::from_utf8_lossy(&output.stderr);
-            eprintln!("⚠️ Failed to reload nginx:\n{}", stderr);
-            Err(io::Error::new(
-                io::ErrorKind::Other,
-                "Failed to reload nginx configuration",
-            ))
+            return Err(io::Error::new(io::ErrorKind::Other, stderr.to_string()));
         }
+        Ok(())
     }
 }
