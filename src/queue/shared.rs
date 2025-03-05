@@ -1,8 +1,8 @@
-use std::collections::VecDeque;
-use std::sync::Mutex;
 use lazy_static::lazy_static;
-use super::models::QueueMessage;
+use super::models::{NginxQueueMessage, CertificateQueueMessage};
+use super::generic_queue::GenericQueue;
 
 lazy_static! {
-    pub(crate) static ref QUEUE: Mutex<VecDeque<QueueMessage>> = Mutex::new(VecDeque::new());
+    pub static ref NGINX_QUEUE: GenericQueue<NginxQueueMessage> = GenericQueue::new();
+    pub static ref CERT_QUEUE: GenericQueue<CertificateQueueMessage> = GenericQueue::new();
 }

@@ -1,16 +1,15 @@
-use super::models::{QueueMessage, Host, Redirect};
-use super::shared::QUEUE;
+use super::models::{NginxQueueMessage, Host, Redirect};
+use super::shared::NGINX_QUEUE;
 
-pub struct Enqueue;
+pub struct NginxEnqueue;
 
-impl Enqueue {
-    pub fn message(message: QueueMessage) {
-        let mut queue = QUEUE.lock().unwrap();
-        queue.push_back(message);
+impl NginxEnqueue {
+    pub fn message(message: NginxQueueMessage) {
+        NGINX_QUEUE.enqueue(message);
     }
 
     pub fn size() -> usize {
-        QUEUE.lock().unwrap().len()
+        NGINX_QUEUE.size()
     }
 
     pub fn should_process_container(labels: &std::collections::HashMap<String, String>) -> bool {
@@ -42,7 +41,7 @@ impl Enqueue {
 
             // Process domains
             for domain in domains {
-                Self::message(QueueMessage {
+                Self::message(NginxQueueMessage {
                     action: action.clone(),
                     container_id: container_id.clone(),
                     name: name.clone(),
@@ -69,7 +68,7 @@ impl Enqueue {
                     };
             
                     if parts.len() == 2 {
-                        Self::message(QueueMessage {
+                        Self::message(NginxQueueMessage {
                             action: action.clone(),
                             container_id: container_id.clone(),
                             name: name.clone(),

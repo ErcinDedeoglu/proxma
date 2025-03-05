@@ -1,5 +1,7 @@
+use chrono::{DateTime, Utc};
+
 #[derive(Debug, Clone)]
-pub struct QueueMessage {
+pub struct NginxQueueMessage {
     pub action: String,
     pub container_id: String,
     pub name: String,
@@ -21,4 +23,9 @@ pub struct Host {
 pub struct Redirect {
     pub from: String,
     pub to: String,
+}
+
+#[derive(Debug, Clone)]
+pub struct CertificateQueueMessage {
+    pub domain: String,
 }

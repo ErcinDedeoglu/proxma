@@ -4,13 +4,18 @@ mod certbot;
 mod queue;
 
 use futures::StreamExt;
-use queue::{Enqueue, QueueProcessor};
+use queue::{NginxEnqueue, NginxQueueProcessor, CertQueueProcessor};
 
 #[tokio::main]
 async fn main() {
     tokio::spawn(async {
-        QueueProcessor::start().await;
+        NginxQueueProcessor::start().await;
     });
+    
+    tokio::spawn(async {
+        CertQueueProcessor::start().await;
+    });
+    
 
     let mut stream = docker::stream_container_events()
         .await
@@ -25,8 +30,8 @@ async fn main() {
 
         match event.action.as_str() {
             "start" | "die" => {
-                if Enqueue::should_process_container(&event.labels) {
-                    Enqueue::process_container_event(
+                if NginxEnqueue::should_process_container(&event.labels) {
+                    NginxEnqueue::process_container_event(
                         event.action,
                         event.container_id,
                         event.name,
@@ -34,7 +39,7 @@ async fn main() {
                         event.networks,
                         event.labels,
                     );
-                    println!("Queue size: {}", Enqueue::size());
+                    println!("Queue size: {}", NginxEnqueue::size());
                 }
             },
             _ => {},

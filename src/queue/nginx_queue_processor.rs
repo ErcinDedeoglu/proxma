@@ -1,6 +1,7 @@
-use super::Dequeue;
-use super::models::QueueMessage;
+use super::NginxDequeue;
+use super::models::NginxQueueMessage;
 use crate::nginx::NginxManager;
+use crate::queue::cert_enqueue::CertEnqueue;
 use lazy_static::lazy_static;
 
 lazy_static! {
@@ -8,10 +9,10 @@ lazy_static! {
         NginxManager::new("/etc/nginx/conf.d", "/var/www/html");
 }
 
-pub struct QueueProcessor;
+pub struct NginxQueueProcessor;
 
-impl QueueProcessor {
-    pub async fn process_start_action(message: &QueueMessage) {
+impl NginxQueueProcessor {
+    pub async fn process_start_action(message: &NginxQueueMessage) {
         if let Some(host) = &message.host {
             println!("🏠 Configuring host: {} (SSL: {})", host.domain, message.ssl);
             let upstream_url = format!("http://{}:{}", message.name, host.port);
@@ -31,7 +32,12 @@ impl QueueProcessor {
                         Ok(_) => {
                             println!("✅ Nginx configuration is valid");
                             match NGINX_MANAGER.reload_nginx() {
-                                Ok(_) => println!("✅ Nginx configuration reloaded successfully"),
+                                Ok(_) => {
+                                    println!("✅ Nginx configuration reloaded successfully");
+                                    CertEnqueue::message(
+                                        "example.com".to_string(),
+                                    );                                    
+                                },
                                 Err(e) => eprintln!("❌ Failed to reload nginx: {}", e),
                             }
                         },
@@ -83,7 +89,7 @@ impl QueueProcessor {
         tokio::time::sleep(std::time::Duration::from_millis(1000)).await;
     }
 
-    pub async fn process_die_action(message: &QueueMessage) {
+    pub async fn process_die_action(message: &NginxQueueMessage) {
         if let Some(host) = &message.host {
             println!("🏠 Removing host: {}", host.domain);
             match NGINX_MANAGER.remove_rule(&host.domain) {
@@ -114,8 +120,8 @@ impl QueueProcessor {
 
     pub async fn start() {
         loop {
-            if !Dequeue::is_empty() {
-                if let Some(message) = Dequeue::message() {
+            if !NginxDequeue::is_empty() {
+                if let Some(message) = NginxDequeue::message() {
                     println!(
                         "📨 Processing message - hosting: {}, has_host: {}, has_redirect: {}",
                         message.hosting,

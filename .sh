@@ -12,6 +12,11 @@ repomix --no-file-summary --no-security-check \
   --include "src/main.rs,src/certbot.rs" \
   --output "repopack.yml"
 
+# queue
+repomix --no-file-summary --no-security-check \
+  --include "src/main.rs,src/queue/**" \
+  --output "repopack.yml"
+
 
 docker build -t dublok/proxma:latest -f src/Dockerfile .
 docker buildx build --platform linux/amd64,linux/arm64 -t dublok/proxma:latest -f src/Dockerfile .
