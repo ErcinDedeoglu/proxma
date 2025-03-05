@@ -47,8 +47,38 @@ impl QueueProcessor {
                 Err(e) => eprintln!("❌ Error adding nginx config for '{}': {}", host.domain, e),
             }
         } else if let Some(redirect) = &message.redirect {
-            println!("➡️ Configuring redirect: {} -> {}", redirect.from, redirect.to);
-            // Add your redirect configuration logic here
+            println!("➡️ Configuring redirect: {} -> {} (SSL: {})", redirect.from, redirect.to, message.ssl);
+            let use_ssl = message.ssl && NGINX_MANAGER.check_ssl_certificates_exist(&redirect.from);
+            
+            if use_ssl {
+                println!("🔒 SSL certificate found for '{}'", redirect.from);
+            } else {
+                println!("🔒 SSL certificate not found for '{}'", redirect.from);
+            }
+            
+            match NGINX_MANAGER.add_redirect_rule(&redirect.from, &redirect.to, use_ssl) {
+                Ok(_) => {
+                    println!("📝 Created Nginx redirect config from '{}' to '{}'", redirect.from, redirect.to);
+                    
+                    match NGINX_MANAGER.validate_nginx_config() {
+                        Ok(_) => {
+                            println!("✅ Nginx configuration is valid");
+                            match NGINX_MANAGER.reload_nginx() {
+                                Ok(_) => println!("✅ Nginx configuration reloaded successfully"),
+                                Err(e) => eprintln!("❌ Failed to reload nginx: {}", e),
+                            }
+                        },
+                        Err(e) => {
+                            eprintln!("❌ Nginx configuration validation failed:\n{}", e);
+                            match NGINX_MANAGER.remove_rule(&redirect.from) {
+                                Ok(_) => println!("✅ Invalid configuration removed successfully"),
+                                Err(e) => eprintln!("❌ Failed to remove invalid configuration: {}", e),
+                            }
+                        }
+                    }
+                }
+                Err(e) => eprintln!("❌ Error adding nginx redirect config for '{}': {}", redirect.from, e),
+            }
         }
         tokio::time::sleep(std::time::Duration::from_millis(1000)).await;
     }
@@ -56,12 +86,29 @@ impl QueueProcessor {
     pub async fn process_die_action(message: &QueueMessage) {
         if let Some(host) = &message.host {
             println!("🏠 Removing host: {}", host.domain);
-            // Implement removal logic here
+            match NGINX_MANAGER.remove_rule(&host.domain) {
+                Ok(_) => {
+                    println!("✅ Removed Nginx config for '{}'", host.domain);
+                    match NGINX_MANAGER.reload_nginx() {
+                        Ok(_) => println!("✅ Nginx configuration reloaded successfully"),
+                        Err(e) => eprintln!("❌ Failed to reload nginx: {}", e),
+                    }
+                }
+                Err(e) => eprintln!("❌ Error removing nginx config for '{}': {}", host.domain, e),
+            }
         } else if let Some(redirect) = &message.redirect {
             println!("➡️ Removing redirect: {}", redirect.from);
-            // Remove your redirect configuration logic here
+            match NGINX_MANAGER.remove_rule(&redirect.from) {
+                Ok(_) => {
+                    println!("✅ Removed Nginx redirect config for '{}'", redirect.from);
+                    match NGINX_MANAGER.reload_nginx() {
+                        Ok(_) => println!("✅ Nginx configuration reloaded successfully"),
+                        Err(e) => eprintln!("❌ Failed to reload nginx: {}", e),
+                    }
+                }
+                Err(e) => eprintln!("❌ Error removing nginx redirect config for '{}': {}", redirect.from, e),
+            }
         }
-
         tokio::time::sleep(std::time::Duration::from_millis(1000)).await;
     }
 
