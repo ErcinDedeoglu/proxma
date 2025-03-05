@@ -46,23 +46,6 @@ impl QueueProcessor {
         }
     }
 
-    // Update existing methods to use the consolidated methods
-    pub async fn process_host(host: &Host, ssl: bool, action: &str) {
-        match action {
-            "start" => Self::process_start_action(Some(host), None, ssl).await,
-            "die" => Self::process_die_action(Some(host), None).await,
-            _ => {}
-        }
-    }
-
-    pub async fn process_redirect(redirect: &Redirect, action: &str) {
-        match action {
-            "start" => Self::process_start_action(None, Some(redirect), false).await,
-            "die" => Self::process_die_action(None, Some(redirect)).await,
-            _ => {}
-        }
-    }
-
     // You could also simplify your start method to use the consolidated methods directly
     pub async fn start() {
         loop {

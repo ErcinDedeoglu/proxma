@@ -45,6 +45,11 @@ certbot certificates --config-dir /var/proxma/letsencrypt --work-dir /var/proxma
 # BUILD & PUSH
 docker build -t dublok/proxma:dev -f src/Dockerfile . && docker push dublok/proxma:dev
 docker buildx build --platform=linux/amd64 -t dublok/proxma:dev -f src/Dockerfile . --push
+docker buildx build \
+  --platform linux/amd64 \
+  --cache-from=type=registry,ref=dublok/proxma:dev-cache \
+  --cache-to=type=registry,ref=dublok/proxma:dev-cache,mode=max \
+  -t dublok/proxma:dev -f src/Dockerfile . --push
 
 docker build -t dublok/proxma:latest -f src/Dockerfile src
 
