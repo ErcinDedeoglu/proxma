@@ -1,6 +1,9 @@
+use trust_dns_resolver::config::{ResolverConfig, ResolverOpts};
+use trust_dns_resolver::Resolver;
 use std::process::Command;
 use std::io::{self, ErrorKind};
 use reqwest::blocking::Client;
+use std::net::ToSocketAddrs;
 use std::time::Duration;
 
 #[derive(Debug)]
@@ -116,52 +119,45 @@ impl Certbot {
     
     pub fn check_acme_challenge<S: AsRef<str>>(&self, domain: S) -> io::Result<CertificateRequestResult> {
         let domain_str = domain.as_ref();
-        let check_url = format!("http://{}/.well-known/acme-challenge/proxma.proxma", domain_str);
+        println!("Starting ACME challenge for domain: {}", domain_str);
         
-        let client: Client = match Client::builder()
-            .timeout(Duration::from_secs(10))
-            .build() {
-                Ok(c) => c,
+        // Use curl with external DNS for all domains
+        let challenge_url = format!("http://{}/.well-known/acme-challenge/proxma.proxma", domain_str);
+        println!("Checking URL: {}", challenge_url);
+        
+        // Execute curl command with external DNS
+        let curl_output = match Command::new("curl")
+            .args([
+                "--silent",                             // No progress output
+                "--max-time", "10",                     // 10 second timeout
+                "--dns-servers", "1.1.1.1,8.8.8.8",     // Use external DNS servers
+                &challenge_url
+            ])
+            .output() {
+                Ok(output) => output,
                 Err(e) => return Ok(CertificateRequestResult::AcmeChallengeFailure(
-                    format!("Failed to create HTTP client: {}", e)
+                    format!("Failed to execute curl command: {}", e)
                 )),
-        };
-        
-        let response = match client.get(&check_url).send() {
-            Ok(r) => r,
-            Err(e) => return Ok(CertificateRequestResult::AcmeChallengeFailure(
-                format!("Failed to connect to {}: {}", check_url, e)
-            )),
-        };
-        
-        let status = response.status();
-        let headers: Vec<(String, String)> = response.headers()
-            .iter()
-            .map(|(name, value)| (name.to_string(), value.to_str().unwrap_or("invalid utf-8").to_string()))
-            .collect();
-        
-        if !status.is_success() {
-            let error_msg = format!(
-                "Endpoint {} returned status code: {} {}\nHeaders: {:?}", 
-                check_url, status.as_u16(), status.canonical_reason().unwrap_or("Unknown"),
-                headers
-            );
-            return Ok(CertificateRequestResult::AcmeChallengeFailure(error_msg));
-        }
-        
-        let content = match response.text() {
-            Ok(t) => t.trim().to_string(),
-            Err(e) => return Ok(CertificateRequestResult::AcmeChallengeFailure(
-                format!("Failed to read response body from {}: {}", check_url, e)
-            )),
-        };
-        
-        if content != "proxma" {
+            };
+            
+        // Check if the command was successful
+        if !curl_output.status.success() {
+            let stderr = String::from_utf8_lossy(&curl_output.stderr);
             return Ok(CertificateRequestResult::AcmeChallengeFailure(
-                format!("Incorrect content at {}: Expected 'proxma' but got '{}'", check_url, content)
+                format!("curl command failed for {}: {}", challenge_url, stderr)
             ));
         }
         
+        // Verify the content
+        let content = String::from_utf8_lossy(&curl_output.stdout).trim().to_string();
+        
+        if content != "proxma" {
+            return Ok(CertificateRequestResult::AcmeChallengeFailure(
+                format!("Incorrect content at {}: Expected 'proxma' but got '{}'", challenge_url, content)
+            ));
+        }
+        
+        // Success!
         Ok(CertificateRequestResult::Success)
     }
 }

@@ -10,4 +10,4 @@ futures = "0.3.31"
 reqwest = { version = "0.12.12", features = ["blocking", "rustls-tls"], default-features = false }
 lazy_static = "1.5.0"
 chrono = "0.4.40"
-retry = "2.0.0"
+trust-dns-resolver = "0.23.2"

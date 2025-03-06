@@ -36,14 +36,14 @@ impl CertQueueProcessor {
             },
             Ok(CertificateRequestResult::AcmeChallengeFailure(error)) => {
                 eprintln!("❌ ACME challenge failed for '{}': {}", message.domain, error);
+                CertEnqueue::message_with_delay(message.domain.clone(), std::time::Duration::from_secs(10));
+                eprintln!("🔁 Re-enqueued message for '{}'", message.domain);
             },
             Ok(CertificateRequestResult::CertbotError(error)) => {
                 eprintln!("❌ Certbot error for '{}': {}", message.domain, error);
             },
             Err(e) => {
                 eprintln!("❌ ACME challenge check failed for '{}': {}", message.domain, e);
-                CertEnqueue::message_with_delay(message.domain.clone(), std::time::Duration::from_secs(3000));
-                eprintln!("🔁 Re-enqueued message for '{}'", message.domain);
             }
         }
         
