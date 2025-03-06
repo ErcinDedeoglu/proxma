@@ -6,12 +6,18 @@ use super::shared::NGINX_QUEUE;
 pub struct NginxEnqueue;
 
 impl NginxEnqueue {
-    pub fn message(message: NginxQueueMessage) {
+    pub fn message(mut message: NginxQueueMessage) {
+        message.created_at = Utc::now();
+        message.delay_seconds = None;
+        message.delay_until = None;
         NGINX_QUEUE.enqueue(message);
     }
 
     pub fn message_with_delay(mut message: NginxQueueMessage, delay_for: std::time::Duration) {
-        let delay_until = Utc::now() + chrono::Duration::from_std(delay_for).unwrap();
+        let now = Utc::now();
+        let delay_until = now + chrono::Duration::from_std(delay_for).unwrap();
+        message.created_at = now;
+        message.delay_seconds = Some(delay_for.as_secs());
         message.delay_until = Some(delay_until);
         NGINX_QUEUE.enqueue(message);
     }
@@ -62,6 +68,8 @@ impl NginxEnqueue {
                         port,
                     }),
                     redirect: None,
+                    created_at: Utc::now(),
+                    delay_seconds: None,
                     delay_until: None,
                 });
             }
@@ -91,6 +99,8 @@ impl NginxEnqueue {
                                 to: parts[1].trim().to_string(),
                             }),
                             delay_until: None,
+                            created_at: Utc::now(),
+                            delay_seconds: None,
                         });
                     }
                 }

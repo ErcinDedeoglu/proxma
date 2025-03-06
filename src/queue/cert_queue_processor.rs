@@ -36,7 +36,8 @@ impl CertQueueProcessor {
             },
             Ok(CertificateRequestResult::AcmeChallengeFailure(error)) => {
                 eprintln!("❌ ACME challenge failed for '{}': {}", message.domain, error);
-                CertEnqueue::message_with_delay(message.domain.clone(), std::time::Duration::from_secs(10));
+                let delay = std::time::Duration::from_secs(10);
+                CertEnqueue::message_with_delay(message.domain.clone(), delay);
                 eprintln!("🔁 Re-enqueued message for '{}'", message.domain);
             },
             Ok(CertificateRequestResult::CertbotError(error)) => {
@@ -58,8 +59,7 @@ impl CertQueueProcessor {
                     let now = Utc::now();
                     if let Some(delay_until) = message.delay_until {
                         if now < delay_until {
-                            // Message is not ready yet, put it back in the queue
-                            CertEnqueue::direct_message(message);
+                            CertEnqueue::direct_message(message.clone());
                             tokio::time::sleep(std::time::Duration::from_millis(100)).await;
                             continue;
                         }

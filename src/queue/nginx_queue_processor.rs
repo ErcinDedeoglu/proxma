@@ -140,8 +140,7 @@ impl NginxQueueProcessor {
                     let now = Utc::now();
                     if let Some(delay_until) = message.delay_until {
                         if now < delay_until {
-                            // Message is not ready yet, put it back in the queue
-                            NginxEnqueue::message(message);
+                            NginxEnqueue::message_with_delay(message.clone(), std::time::Duration::from_secs(message.delay_seconds.unwrap_or(0)));
                             tokio::time::sleep(std::time::Duration::from_millis(100)).await;
                             continue;
                         }
