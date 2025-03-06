@@ -1,6 +1,7 @@
 use super::CertDequeue;
 use super::models::CertificateQueueMessage;
-use crate::certbot::{Certbot, CertificateRequestResult};
+use crate::{certbot::{Certbot, CertificateRequestResult}, queue::CertEnqueue};
+use chrono::Utc;
 use lazy_static::lazy_static;
 
 
@@ -51,6 +52,18 @@ impl CertQueueProcessor {
         loop {
             if !CertDequeue::is_empty() {
                 if let Some(message) = CertDequeue::message() {
+                    // Check if the message is ready to be processed
+                    let now = Utc::now();
+                    if let Some(delay_until) = message.delay_until {
+                        if now < delay_until {
+                            // Message is not ready yet, put it back in the queue
+                            CertEnqueue::direct_message(message);
+                            tokio::time::sleep(std::time::Duration::from_millis(100)).await;
+                            continue;
+                        }
+                    }
+                    
+                    // Process the message as normal
                     println!("📨 [CertQueueProcessor] Processing message - domain: {}", message.domain);
                     Self::process_certificate_request(&message).await;
                 }

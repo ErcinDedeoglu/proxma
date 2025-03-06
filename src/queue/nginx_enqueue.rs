@@ -1,3 +1,5 @@
+use chrono::Utc;
+
 use super::models::{NginxQueueMessage, Host, Redirect};
 use super::shared::NGINX_QUEUE;
 
@@ -5,6 +7,12 @@ pub struct NginxEnqueue;
 
 impl NginxEnqueue {
     pub fn message(message: NginxQueueMessage) {
+        NGINX_QUEUE.enqueue(message);
+    }
+
+    pub fn message_with_delay(mut message: NginxQueueMessage, delay_for: std::time::Duration) {
+        let delay_until = Utc::now() + chrono::Duration::from_std(delay_for).unwrap();
+        message.delay_until = Some(delay_until);
         NGINX_QUEUE.enqueue(message);
     }
 
@@ -54,6 +62,7 @@ impl NginxEnqueue {
                         port,
                     }),
                     redirect: None,
+                    delay_until: None,
                 });
             }
 
@@ -81,6 +90,7 @@ impl NginxEnqueue {
                                 from: parts[0].trim().to_string(),
                                 to: parts[1].trim().to_string(),
                             }),
+                            delay_until: None,
                         });
                     }
                 }

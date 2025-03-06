@@ -2,6 +2,8 @@ use super::NginxDequeue;
 use super::models::NginxQueueMessage;
 use crate::nginx::NginxManager;
 use crate::queue::cert_enqueue::CertEnqueue;
+use crate::queue::NginxEnqueue;
+use chrono::Utc;
 use lazy_static::lazy_static;
 
 lazy_static! {
@@ -126,13 +128,24 @@ impl NginxQueueProcessor {
         loop {
             if !NginxDequeue::is_empty() {
                 if let Some(message) = NginxDequeue::message() {
+                    // Check if the message is ready to be processed
+                    let now = Utc::now();
+                    if let Some(delay_until) = message.delay_until {
+                        if now < delay_until {
+                            // Message is not ready yet, put it back in the queue
+                            NginxEnqueue::message(message);
+                            tokio::time::sleep(std::time::Duration::from_millis(100)).await;
+                            continue;
+                        }
+                    }
+                    
+                    // Process the message as normal
                     println!(
                         "📨 Processing message - hosting: {}, has_host: {}, has_redirect: {}",
                         message.hosting,
                         message.host.is_some(),
                         message.redirect.is_some()
                     );
-
                     match message.action.as_str() {
                         "start" => Self::process_start_action(&message).await,
                         "die" => Self::process_die_action(&message).await,

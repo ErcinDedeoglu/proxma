@@ -11,6 +11,7 @@ pub struct NginxQueueMessage {
     pub ssl: bool,
     pub host: Option<Host>,
     pub redirect: Option<Redirect>,
+    pub delay_until: Option<DateTime<Utc>>,
 }
 
 #[derive(Debug, Clone)]
@@ -28,4 +29,5 @@ pub struct Redirect {
 #[derive(Debug, Clone)]
 pub struct CertificateQueueMessage {
     pub domain: String,
+    pub delay_until: Option<DateTime<Utc>>,
 }

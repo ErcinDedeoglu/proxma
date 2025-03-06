@@ -8,6 +8,16 @@ impl CertEnqueue {
     pub fn message(domain: String) {
         let message = CertificateQueueMessage {
             domain,
+            delay_until: None,
+        };
+        CERT_QUEUE.enqueue(message);
+    }
+
+    pub fn message_with_delay(domain: String, delay_for: std::time::Duration) {
+        let delay_until = Utc::now() + chrono::Duration::from_std(delay_for).unwrap();
+        let message = CertificateQueueMessage {
+            domain,
+            delay_until: Some(delay_until),
         };
         CERT_QUEUE.enqueue(message);
     }
