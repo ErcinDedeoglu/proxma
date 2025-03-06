@@ -36,7 +36,9 @@ impl CertQueueProcessor {
             },
             Ok(CertificateRequestResult::AcmeChallengeFailure(error)) => {
                 eprintln!("❌ ACME challenge failed for '{}': {}", message.domain, error);
-                let delay = std::time::Duration::from_secs(10);
+                let delay_in_seconds = 10 + message.delay_seconds.unwrap_or(0);
+                let delay_in_seconds = if delay_in_seconds >= 3600 { 3600 } else { delay_in_seconds };
+                let delay: std::time::Duration = std::time::Duration::from_secs(delay_in_seconds);
                 CertEnqueue::message_with_delay(message.domain.clone(), delay);
                 eprintln!("🔁 Re-enqueued message for '{}'", message.domain);
             },
