@@ -42,6 +42,8 @@ impl CertQueueProcessor {
             },
             Err(e) => {
                 eprintln!("❌ ACME challenge check failed for '{}': {}", message.domain, e);
+                CertEnqueue::message_with_delay(message.domain.clone(), std::time::Duration::from_secs(3000));
+                eprintln!("🔁 Re-enqueued message for '{}'", message.domain);
             }
         }
         
