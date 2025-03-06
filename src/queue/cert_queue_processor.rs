@@ -27,7 +27,7 @@ impl CertQueueProcessor {
         loop {
             if !CertDequeue::is_empty() {
                 if let Some(message) = CertDequeue::message() {
-                    println!("📨 Processing message - domain: {}", message.domain);
+                    println!("📨 [CertQueueProcessor] Processing message - domain: {}", message.domain);
                     Self::process_certificate_request(&message).await;
                 }
             }

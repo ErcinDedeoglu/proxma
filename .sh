@@ -36,7 +36,9 @@ ls -la /usr/local/bin/
 
 ###################
 ### DEBUG:
-docker run -it --rm --rm --name proxma2 -v /var/run/docker.sock:/var/run/docker.sock  -p 80:80 -p 443:443 dublok/proxma:latest
+docker build -t dublok/proxma:dev -f src/Dockerfile . && \
+  docker run -it --rm --name proxma2 -v /var/run/docker.sock:/var/run/docker.sock  -p 80:80 -p 443:443 dublok/proxma:dev
+docker exec -it proxma2 /bin/sh
 # Connect to the running container
 docker exec -it proxma2 /bin/sh
 # Check if the proxy rules file exists
