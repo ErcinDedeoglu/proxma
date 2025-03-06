@@ -66,14 +66,16 @@ impl Certbot {
         self
     }
 
-    pub fn request_certificate<S: AsRef<str>>(&self, domains: &[S]) -> io::Result<()> {
+    pub fn request_certificate<S: AsRef<str>>(&self, domain: S) -> io::Result<()> {
         let mut args = vec![
             "certonly",
             "--non-interactive",
             "--webroot", "-w", &self.webroot,
             "--email", &self.email,
+            "--quiet",
+            "-d", domain.as_ref()
         ];
-
+    
         if let Some(dir) = &self.config_dir {
             args.push("--config-dir");
             args.push(dir);
@@ -86,55 +88,45 @@ impl Certbot {
             args.push("--logs-dir");
             args.push(dir);
         }
-
         if self.agree_tos {
             args.push("--agree-tos");
         }
-
         if self.staging {
             args.push("--staging");
         }
-
         if self.no_eff_email {
             args.push("--no-eff-email");
         }
-
-        for domain in domains {
-            args.push("-d");
-            args.push(domain.as_ref());
-        }
-
-        let status = Command::new("certbot")
-        .args(&args)
-        .status()?;
-
-        if status.success() {
+    
+        let output = Command::new("certbot")
+            .args(&args)
+            .stdout(std::process::Stdio::null())  
+            .stderr(std::process::Stdio::null())
+            .status()?;
+    
+        if output.success() {
             Ok(())
         } else {
             Err(io::Error::new(
                 ErrorKind::Other,
-                format!("Certbot command exited with status: {:?}", status.code()),
+                format!("Certbot command exited with status: {:?}", output.code()),
             ))
         }
     }
-
-    pub fn check_and_request_certificate<S: AsRef<str>>(&self, domain: S) -> io::Result<CertificateRequestResult> {
+    
+    pub fn check_acme_challenge<S: AsRef<str>>(&self, domain: S) -> io::Result<CertificateRequestResult> {
         let domain_str = domain.as_ref();
         let check_url = format!("http://{}/.well-known/acme-challenge/proxma.proxma", domain_str);
         
-        println!("🔍 Checking ACME challenge at: {}", check_url);
-        
-        // Create an HTTP client with a timeout
-        let client = match Client::builder()
+        let client: Client = match Client::builder()
             .timeout(Duration::from_secs(10))
             .build() {
                 Ok(c) => c,
                 Err(e) => return Ok(CertificateRequestResult::AcmeChallengeFailure(
                     format!("Failed to create HTTP client: {}", e)
                 )),
-            };
+        };
         
-        // Make the HTTP request
         let response = match client.get(&check_url).send() {
             Ok(r) => r,
             Err(e) => return Ok(CertificateRequestResult::AcmeChallengeFailure(
@@ -142,7 +134,6 @@ impl Certbot {
             )),
         };
         
-        // Collect detailed response information
         let status = response.status();
         let headers: Vec<(String, String)> = response.headers()
             .iter()
@@ -150,7 +141,6 @@ impl Certbot {
             .collect();
         
         if !status.is_success() {
-            // Create detailed error message including response details
             let error_msg = format!(
                 "Endpoint {} returned status code: {} {}\nHeaders: {:?}", 
                 check_url, status.as_u16(), status.canonical_reason().unwrap_or("Unknown"),
@@ -172,12 +162,6 @@ impl Certbot {
             ));
         }
         
-        println!("✅ ACME challenge verification successful for: {}", domain_str);
-        
-        // Challenge verification succeeded, request certificate
-        match self.request_certificate(&[domain_str]) {
-            Ok(_) => Ok(CertificateRequestResult::Success),
-            Err(e) => Ok(CertificateRequestResult::CertbotError(e.to_string()))
-        }
+        Ok(CertificateRequestResult::Success)
     }
 }

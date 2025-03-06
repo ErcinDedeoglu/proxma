@@ -1,6 +1,6 @@
 use super::CertDequeue;
 use super::models::CertificateQueueMessage;
-use crate::certbot::Certbot;
+use crate::certbot::{Certbot, CertificateRequestResult};
 use lazy_static::lazy_static;
 
 
@@ -20,9 +20,33 @@ impl CertQueueProcessor {
     async fn process_certificate_request(message: &CertificateQueueMessage) {
         println!("🔒 Processing certificate request for domain: {}", message.domain);
         
+        match CERTBOT.check_acme_challenge(&message.domain) {
+            Ok(CertificateRequestResult::Success) => {
+                println!("✅ ACME challenge verification successful for: {}", message.domain);
+                
+                match CERTBOT.request_certificate(&message.domain) {
+                    Ok(_) => {
+                        println!("✅ Certificate request successful for '{}'", message.domain);
+                    },
+                    Err(e) => {
+                        eprintln!("❌ Certificate request failed for '{}': {}", message.domain, e);
+                    }
+                }
+            },
+            Ok(CertificateRequestResult::AcmeChallengeFailure(error)) => {
+                eprintln!("❌ ACME challenge failed for '{}': {}", message.domain, error);
+            },
+            Ok(CertificateRequestResult::CertbotError(error)) => {
+                eprintln!("❌ Certbot error for '{}': {}", message.domain, error);
+            },
+            Err(e) => {
+                eprintln!("❌ ACME challenge check failed for '{}': {}", message.domain, e);
+            }
+        }
+        
         tokio::time::sleep(std::time::Duration::from_millis(1000)).await;
     }
-    
+
     pub async fn start() {
         loop {
             if !CertDequeue::is_empty() {

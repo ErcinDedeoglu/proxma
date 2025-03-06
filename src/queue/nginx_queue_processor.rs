@@ -33,6 +33,7 @@ impl NginxQueueProcessor {
                             println!("✅ Nginx configuration is valid");
                             match NGINX_MANAGER.reload_nginx() {
                                 Ok(_) => {
+                                    tokio::time::sleep(std::time::Duration::from_millis(1000)).await; // Sleep for 1 second
                                     println!("✅ Nginx configuration reloaded successfully");
                                     CertEnqueue::message(host.domain.clone());
                                     print!("🔒 Certificate request queued for '{}'", host.domain);
