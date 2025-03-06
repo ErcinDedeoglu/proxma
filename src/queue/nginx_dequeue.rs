@@ -8,10 +8,6 @@ impl NginxDequeue {
         NGINX_QUEUE.dequeue()
     }
     
-    pub fn size() -> usize {
-        NGINX_QUEUE.size()
-    }
-    
     pub fn peek() -> Option<NginxQueueMessage> {
         NGINX_QUEUE.peek()
     }

@@ -1,16 +1,11 @@
-use trust_dns_resolver::config::{ResolverConfig, ResolverOpts};
-use trust_dns_resolver::Resolver;
 use std::process::Command;
 use std::io::{self, ErrorKind};
-use reqwest::blocking::Client;
-use std::net::ToSocketAddrs;
-use std::time::Duration;
 
 #[derive(Debug)]
 pub enum CertificateRequestResult {
     Success,
-    AcmeChallengeFailure(String), // Combined challenge failures with reason
-    CertbotError(String),         // The certbot command itself failed
+    AcmeChallengeFailure(String),
+    CertbotError(String),
 }
 
 #[derive(Debug)]

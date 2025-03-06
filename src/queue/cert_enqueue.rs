@@ -30,8 +30,4 @@ impl CertEnqueue {
     pub fn direct_message(message: CertificateQueueMessage) {
         CERT_QUEUE.enqueue(message);
     }
-    
-    pub fn size() -> usize {
-        CERT_QUEUE.size()
-    }
 }

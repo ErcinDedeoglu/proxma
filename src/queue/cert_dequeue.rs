@@ -15,10 +15,6 @@ impl CertDequeue {
     pub fn is_empty() -> bool {
         CERT_QUEUE.is_empty()
     }
-    
-    pub fn size() -> usize {
-        CERT_QUEUE.size()
-    }
 
     pub fn clear_pending_messages(domain: &str) {
         while let Some(cert_msg) = Self::peek() {
