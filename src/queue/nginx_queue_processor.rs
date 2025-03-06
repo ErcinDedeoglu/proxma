@@ -2,7 +2,7 @@ use super::NginxDequeue;
 use super::models::NginxQueueMessage;
 use crate::nginx::NginxManager;
 use crate::queue::cert_enqueue::CertEnqueue;
-use crate::queue::NginxEnqueue;
+use crate::queue::{CertDequeue, NginxEnqueue};
 use chrono::Utc;
 use lazy_static::lazy_static;
 
@@ -97,6 +97,10 @@ impl NginxQueueProcessor {
 
     pub async fn process_die_action(message: &NginxQueueMessage) {
         if let Some(host) = &message.host {
+            // Clear pending messages from both queues
+            NginxDequeue::clear_pending_messages(&host.domain);
+            CertDequeue::clear_pending_messages(&host.domain);
+    
             println!("🏠 Removing host: {}", host.domain);
             match NGINX_MANAGER.remove_rule(&host.domain) {
                 Ok(_) => {
@@ -109,6 +113,10 @@ impl NginxQueueProcessor {
                 Err(e) => eprintln!("❌ Error removing nginx config for '{}': {}", host.domain, e),
             }
         } else if let Some(redirect) = &message.redirect {
+            // Clear pending messages from both queues
+            NginxDequeue::clear_pending_messages(&redirect.from);
+            CertDequeue::clear_pending_messages(&redirect.from);
+    
             println!("➡️ Removing redirect: {}", redirect.from);
             match NGINX_MANAGER.remove_rule(&redirect.from) {
                 Ok(_) => {

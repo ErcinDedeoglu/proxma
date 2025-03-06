@@ -19,4 +19,21 @@ impl NginxDequeue {
     pub fn is_empty() -> bool {
         NGINX_QUEUE.is_empty()
     }
+
+    pub fn clear_pending_messages(domain: &str) {
+        while let Some(nginx_msg) = Self::peek() {
+            let should_remove = match (&nginx_msg.host, &nginx_msg.redirect) {
+                (Some(host), _) => host.domain == domain,
+                (_, Some(redirect)) => redirect.from == domain,
+                (None, None) => false,
+            };
+
+            if should_remove {
+                Self::message();
+                println!("🧹 Removed pending Nginx queue message for '{}'", domain);
+            } else {
+                break;
+            }
+        }
+    }
 }
