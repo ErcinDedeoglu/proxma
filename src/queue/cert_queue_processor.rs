@@ -49,8 +49,6 @@ impl CertQueueProcessor {
                 eprintln!("❌ ACME challenge check failed for '{}': {}", message.domain, e);
             }
         }
-        
-        tokio::time::sleep(std::time::Duration::from_millis(1000)).await;
     }
 
     pub async fn start() {
@@ -72,7 +70,9 @@ impl CertQueueProcessor {
                     Self::process_certificate_request(&message).await;
                 }
             }
-            tokio::time::sleep(std::time::Duration::from_millis(1000)).await;
+            else {
+                tokio::time::sleep(std::time::Duration::from_millis(1000)).await;
+            }
         }
     }
 }

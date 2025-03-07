@@ -35,7 +35,6 @@ impl NginxQueueProcessor {
                             println!("✅ Nginx configuration is valid");
                             match NGINX_MANAGER.reload_nginx() {
                                 Ok(_) => {
-                                    tokio::time::sleep(std::time::Duration::from_millis(1000)).await; // Sleep for 1 second
                                     println!("✅ Nginx configuration reloaded successfully");
                                     CertEnqueue::message(host.domain.clone());
                                     print!("🔒 Certificate request queued for '{}'", host.domain);
@@ -92,7 +91,6 @@ impl NginxQueueProcessor {
                 Err(e) => eprintln!("❌ Error adding nginx redirect config for '{}': {}", redirect.from, e),
             }
         }
-        tokio::time::sleep(std::time::Duration::from_millis(1000)).await;
     }
 
     pub async fn process_die_action(message: &NginxQueueMessage) {
@@ -129,7 +127,6 @@ impl NginxQueueProcessor {
                 Err(e) => eprintln!("❌ Error removing nginx redirect config for '{}': {}", redirect.from, e),
             }
         }
-        tokio::time::sleep(std::time::Duration::from_millis(1000)).await;
     }
 
     pub async fn start() {
@@ -160,7 +157,9 @@ impl NginxQueueProcessor {
                     }
                 }
             }
-            tokio::time::sleep(std::time::Duration::from_millis(1000)).await;
+            else {
+                tokio::time::sleep(std::time::Duration::from_millis(1000)).await;
+            }
         }
     }
 }
