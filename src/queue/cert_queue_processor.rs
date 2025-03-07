@@ -1,18 +1,13 @@
 use super::CertDequeue;
 use super::models::CertificateQueueMessage;
-use crate::{certbot::{Certbot, CertificateRequestResult}, queue::{CertEnqueue, NginxEnqueue}};
+use crate::{certbot::{Certbot, CertificateRequestResult, ChallengeType}, queue::{CertEnqueue, NginxEnqueue}};
 use chrono::Utc;
 use lazy_static::lazy_static;
+use crate::acme_helper::check_acme_challenge;
 
 
 lazy_static! {
-    pub static ref CERTBOT: Certbot = Certbot::new("/var/www/html", "dublokcom@gmail.com")
-        .agree_tos(true)
-        .staging(true)
-        .no_eff_email(false)
-        .config_dir("/var/proxma/configuration")
-        .work_dir("/var/proxma/work")
-        .logs_dir("/var/proxma/logs");
+    pub static ref CERTBOT: Certbot = Certbot::new();
 }
 
 pub struct CertQueueProcessor;
@@ -21,11 +16,11 @@ impl CertQueueProcessor {
     async fn process_certificate_request(message: &CertificateQueueMessage) {
         println!("🔒 Processing certificate request for domain: {}", message.domain);
         
-        match CERTBOT.check_acme_challenge(&message.domain) {
+        match check_acme_challenge(&message.domain) {
             Ok(CertificateRequestResult::Success) => {
                 println!("✅ ACME challenge verification successful for: {}", message.domain);
                 
-                match CERTBOT.request_certificate(&message.domain) {
+                match CERTBOT.request_certificate(&message.domain, "dublokcom@gmail.com", ChallengeType::Webroot, true) {
                     Ok(_) => {
                         println!("✅ Certificate request successful for '{}'", message.domain);
                         NginxEnqueue::message(message.nginx_queue_message.clone());

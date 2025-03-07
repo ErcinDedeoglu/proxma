@@ -2,6 +2,7 @@ mod docker;
 mod nginx;
 mod certbot;
 mod queue;
+pub mod acme_helper;
 
 use futures::StreamExt;
 use queue::{NginxEnqueue, NginxQueueProcessor, CertQueueProcessor};
