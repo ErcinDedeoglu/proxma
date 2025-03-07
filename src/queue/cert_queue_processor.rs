@@ -1,6 +1,6 @@
 use super::CertDequeue;
 use super::models::CertificateQueueMessage;
-use crate::{certbot::{Certbot, CertificateRequestResult}, queue::CertEnqueue};
+use crate::{certbot::{Certbot, CertificateRequestResult}, queue::{CertEnqueue, NginxEnqueue}};
 use chrono::Utc;
 use lazy_static::lazy_static;
 
@@ -28,6 +28,7 @@ impl CertQueueProcessor {
                 match CERTBOT.request_certificate(&message.domain) {
                     Ok(_) => {
                         println!("✅ Certificate request successful for '{}'", message.domain);
+                        NginxEnqueue::message(message.nginx_queue_message.clone());
                     },
                     Err(e) => {
                         eprintln!("❌ Certificate request failed for '{}': {}", message.domain, e);
@@ -39,7 +40,7 @@ impl CertQueueProcessor {
                 let delay_in_seconds = 10 + message.delay_seconds.unwrap_or(0);
                 let delay_in_seconds = if delay_in_seconds >= 3600 { 3600 } else { delay_in_seconds };
                 let delay: std::time::Duration = std::time::Duration::from_secs(delay_in_seconds);
-                CertEnqueue::message_with_delay(message.domain.clone(), delay);
+                CertEnqueue::message_with_delay(message.domain.clone(), delay, message.nginx_queue_message.clone());
                 eprintln!("🔁 Re-enqueued message for '{}'", message.domain);
             },
             Ok(CertificateRequestResult::CertbotError(error)) => {

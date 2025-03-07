@@ -30,6 +30,7 @@ pub struct Redirect {
 
 #[derive(Debug, Clone)]
 pub struct CertificateQueueMessage {
+    pub nginx_queue_message: NginxQueueMessage,
     pub domain: String,
     pub delay_until: Option<DateTime<Utc>>,
     pub created_at: DateTime<Utc>,

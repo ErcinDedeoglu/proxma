@@ -36,7 +36,7 @@ impl NginxQueueProcessor {
                             match NGINX_MANAGER.reload_nginx() {
                                 Ok(_) => {
                                     println!("✅ Nginx configuration reloaded successfully");
-                                    CertEnqueue::message(host.domain.clone());
+                                    CertEnqueue::message(host.domain.clone(), message.clone());
                                     print!("🔒 Certificate request queued for '{}'", host.domain);
                                 },
                                 Err(e) => eprintln!("❌ Failed to reload nginx: {}", e),
@@ -73,7 +73,7 @@ impl NginxQueueProcessor {
                             match NGINX_MANAGER.reload_nginx() {
                                 Ok(_) => {
                                     println!("✅ Nginx configuration reloaded successfully");
-                                    CertEnqueue::message(redirect.from.clone());
+                                    CertEnqueue::message(redirect.from.clone(), message.clone());
                                     print!("🔒 Certificate request queued for '{}'", redirect.from);
                                 },
                                 Err(e) => eprintln!("❌ Failed to reload nginx: {}", e),
