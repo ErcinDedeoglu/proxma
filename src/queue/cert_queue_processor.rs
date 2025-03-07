@@ -10,8 +10,8 @@ lazy_static! {
         .agree_tos(true)
         .staging(true)
         .no_eff_email(false)
-        .config_dir("/var/proxma/letsencrypt")
-        .work_dir("/var/proxma/letsencrypt/work")
+        .config_dir("/var/proxma/configuration")
+        .work_dir("/var/proxma/work")
         .logs_dir("/var/proxma/logs");
 }
 

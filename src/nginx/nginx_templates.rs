@@ -12,8 +12,8 @@ fn generate_server_block(is_https: bool, domain: &str, location_block: &str, ssl
     
     let ssl_config = if is_https {
         format!(
-            r#"    ssl_certificate /var/proxma/letsencrypt/live/{}/fullchain.pem;
-    ssl_certificate_key /var/proxma/letsencrypt/live/{}/privkey.pem;"#,
+            r#"    ssl_certificate /var/proxma/configuration/live/{}/fullchain.pem;
+    ssl_certificate_key /var/proxma/configuration/live/{}/privkey.pem;"#,
             domain, domain
         )
     } else if !ssl {

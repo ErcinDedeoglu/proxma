@@ -96,8 +96,8 @@ impl NginxManager {
     }
     
     pub fn check_ssl_certificates_exist(&self, domain: &str) -> bool {
-        let cert_path = format!("/var/proxma/letsencrypt/live/{}/fullchain.pem", domain);
-        let key_path = format!("/var/proxma/letsencrypt/live/{}/privkey.pem", domain);
+        let cert_path = format!("/var/proxma/configuration/live/{}/fullchain.pem", domain);
+        let key_path = format!("/var/proxma/configuration/live/{}/privkey.pem", domain);
         Path::new(&cert_path).exists() && Path::new(&key_path).exists()
     }
 }
