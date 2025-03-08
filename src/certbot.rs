@@ -45,10 +45,15 @@ impl Certbot {
         }
     }
     
-    pub fn request_certificate<S: AsRef<str>, E: AsRef<str>>(&self, domain: S, ssl_email: E, challenge: ChallengeType, staging: bool) -> io::Result<()> {
+    pub fn request_certificate<S: AsRef<str>, E: AsRef<str>>(
+        &self,
+        domain: S,
+        ssl_email: E,
+        challenge: ChallengeType,
+        staging: bool
+    ) -> io::Result<()> {
         let mut args = Vec::<String>::new();
         let mut command = Command::new("certbot");
-        
         args.push("certonly".to_string());
         args.push("--non-interactive".to_string());
         args.push("--email".to_string());
@@ -65,7 +70,6 @@ impl Certbot {
             },
             ChallengeType::Dns(plugin, credentials) => {
                 args.push(format!("--dns-{}", plugin));
-                
                 // If credentials provided, set them up
                 if let Some(creds) = credentials {
                     match creds.provider.as_str() {
@@ -96,26 +100,39 @@ impl Certbot {
         if self.agree_tos {
             args.push("--agree-tos".to_string());
         }
+        
         if staging {
             args.push("--staging".to_string());
         }
+        
         if self.no_eff_email {
             args.push("--no-eff-email".to_string());
         }
-
+        
+        // Change to capture stdout and stderr
         let output = command
             .args(&args)
-            .stdout(std::process::Stdio::null())  
-            .stderr(std::process::Stdio::null())
-            .status()?;
-
-        if output.success() {
+            .stdout(std::process::Stdio::piped())
+            .stderr(std::process::Stdio::piped())
+            .output()?;
+        
+        if output.status.success() {
             Ok(())
         } else {
-            Err(io::Error::new(
-                ErrorKind::Other,
-                format!("Certbot command exited with status: {:?}", output.code()),
-            ))
+            // Extract meaningful error information
+            let stderr = String::from_utf8_lossy(&output.stderr);
+            let stdout = String::from_utf8_lossy(&output.stdout);
+            
+            // Create a detailed error message
+            let error_message = format!(
+                "Certbot command failed with status: {:?}\nCommand: certbot {}\nOutput: {}\nError: {}", 
+                output.status.code(),
+                args.join(" "),
+                stdout,
+                stderr
+            );
+            
+            Err(io::Error::new(ErrorKind::Other, error_message))
         }
     }
 }

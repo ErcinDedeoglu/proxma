@@ -16,37 +16,49 @@ impl CertQueueProcessor {
     async fn process_certificate_request(message: &CertificateQueueMessage) {
         println!("🔒 Processing certificate request for domain: {}", message.domain);
         
-        match check_acme_challenge(&message.domain) {
-            Ok(CertificateRequestResult::Success) => {
-                println!("✅ ACME challenge verification successful for: {}", message.domain);
-                
-                match CERTBOT.request_certificate(&message.domain, &message.ssl_email, ChallengeType::Webroot, message.ssl_staging) {
-                    Ok(_) => {
-                        println!("✅ Certificate request successful for '{}'", message.domain);
-                        NginxEnqueue::message(message.nginx_queue_message.clone(), true);
-                    },
-                    Err(e) => {
-                        eprintln!("❌ Certificate request failed for '{}': {}", message.domain, e);
-                    }
+        if message.ssl_dns_provider.as_deref() == Some("cloudflare") {
+            match CERTBOT.request_certificate(&message.domain, &message.ssl_email, ChallengeType::Webroot, message.ssl_staging) {
+                Ok(_) => {
+                    println!("✅ Certificate request successful for '{}'", message.domain);
+                    NginxEnqueue::message(message.nginx_queue_message.clone(), true);
+                },
+                Err(e) => {
+                    eprintln!("❌ Certificate request failed for '{}': {}", message.domain, e);
                 }
-            },
-            Ok(CertificateRequestResult::AcmeChallengeFailure(error)) => {
-                eprintln!("❌ ACME challenge failed for '{}': {}", message.domain, error);
-                let delay_in_seconds = 10 + message.delay_seconds.unwrap_or(0);
-                let delay_in_seconds = if delay_in_seconds >= 3600 { 3600 } else { delay_in_seconds };
-                let delay: std::time::Duration = std::time::Duration::from_secs(delay_in_seconds);
-                CertEnqueue::message_with_delay(message.domain.clone(), delay, message.nginx_queue_message.clone());
-                eprintln!("🔁 Re-enqueued message for '{}'", message.domain);
-            },
-            Ok(CertificateRequestResult::CertbotError(error)) => {
-                eprintln!("❌ Certbot error for '{}': {}", message.domain, error);
-            },
-            Err(e) => {
-                eprintln!("❌ ACME challenge check failed for '{}': {}", message.domain, e);
+            }
+        } else {
+            match check_acme_challenge(&message.domain) {
+                Ok(CertificateRequestResult::Success) => {
+                    println!("✅ ACME challenge verification successful for: {}", message.domain);
+                    
+                    match CERTBOT.request_certificate(&message.domain, &message.ssl_email, ChallengeType::Webroot, message.ssl_staging) {
+                        Ok(_) => {
+                            println!("✅ Certificate request successful for '{}'", message.domain);
+                            NginxEnqueue::message(message.nginx_queue_message.clone(), true);
+                        },
+                        Err(e) => {
+                            eprintln!("❌ Certificate request failed for '{}': {}", message.domain, e);
+                        }
+                    }
+                },
+                Ok(CertificateRequestResult::AcmeChallengeFailure(error)) => {
+                    eprintln!("❌ ACME challenge failed for '{}': {}", message.domain, error);
+                    let delay_in_seconds = 10 + message.delay_seconds.unwrap_or(0);
+                    let delay_in_seconds = if delay_in_seconds >= 3600 { 3600 } else { delay_in_seconds };
+                    let delay: std::time::Duration = std::time::Duration::from_secs(delay_in_seconds);
+                    CertEnqueue::message_with_delay(message.domain.clone(), delay, message.nginx_queue_message.clone());
+                    eprintln!("🔁 Re-enqueued message for '{}'", message.domain);
+                },
+                Ok(CertificateRequestResult::CertbotError(error)) => {
+                    eprintln!("❌ Certbot error for '{}': {}", message.domain, error);
+                },
+                Err(e) => {
+                    eprintln!("❌ ACME challenge check failed for '{}': {}", message.domain, e);
+                }
             }
         }
     }
-
+    
     pub async fn start() {
         loop {
             if !CertDequeue::is_empty() {
