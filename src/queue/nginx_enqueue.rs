@@ -38,22 +38,28 @@ impl NginxEnqueue {
         networks: Vec<String>,
         labels: std::collections::HashMap<String, String>,
     ) {
+        let email = labels.get("proxma.email").map(|p| p.trim().to_string()).unwrap_or_default();
+        if email.is_empty() {
+            println!("Email missing for container {}, skipping processing", container_id);
+            return;
+        }
+    
+        let port = match labels.get("proxma.port").and_then(|p| p.trim().parse::<u16>().ok()) {
+            Some(p) if p > 0 => p,
+            _ => {
+                println!("Invalid port for container {}, skipping processing", container_id);
+                return;
+            }
+        };
+    
+        let ssl: bool = labels.get("proxma.ssl").map(|v| v.trim().to_lowercase() == "true").unwrap_or(false);
         if let Some(hosts_str) = labels.get("proxma.hosts") {
             let domains: Vec<String> = hosts_str
                 .split(',')
                 .map(|s| s.trim().to_string())
                 .filter(|s| !s.is_empty())
                 .collect();
-            
-            let port = labels.get("proxma.port")
-                .map(|p| p.trim().parse::<u16>().unwrap_or(80))
-                .unwrap_or(80);
-                
-            let ssl = labels.get("proxma.ssl")
-                .map(|v| v.trim().to_lowercase() == "true")
-                .unwrap_or(false);
-
-            // Process domains
+    
             for domain in domains {
                 Self::message(NginxQueueMessage {
                     action: action.clone(),
@@ -63,18 +69,15 @@ impl NginxEnqueue {
                     networks: networks.clone(),
                     hosting: true,
                     ssl,
-                    host: Some(Host {
-                        domain,
-                        port,
-                    }),
+                    host: Some(Host { domain, port }),
                     redirect: None,
                     created_at: Utc::now(),
                     delay_seconds: None,
                     delay_until: None,
+                    email: email.clone(),
                 });
             }
-
-            // Process redirects
+    
             if let Some(redirect_str) = labels.get("proxma.redirects") {
                 for redirect in redirect_str.split(',') {
                     let trimmed = redirect.trim();
@@ -101,6 +104,7 @@ impl NginxEnqueue {
                             delay_until: None,
                             created_at: Utc::now(),
                             delay_seconds: None,
+                            email: email.clone(),
                         });
                     }
                 }

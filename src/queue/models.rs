@@ -9,6 +9,7 @@ pub struct NginxQueueMessage {
     pub networks: Vec<String>,
     pub hosting: bool,
     pub ssl: bool,
+    pub email: String,
     pub host: Option<Host>,
     pub redirect: Option<Redirect>,
     pub delay_until: Option<DateTime<Utc>>,
