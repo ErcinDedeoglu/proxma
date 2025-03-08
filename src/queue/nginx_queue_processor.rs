@@ -78,8 +78,13 @@ impl NginxQueueProcessor {
                             match NGINX_MANAGER.reload_nginx() {
                                 Ok(_) => {
                                     println!("✅ Nginx configuration reloaded successfully");
-                                    CertEnqueue::message(redirect.from.clone(), message.clone());
-                                    print!("🔒 Certificate request queued for '{}'", redirect.from);
+                                    if !message.skip_certification {
+                                        CertEnqueue::message(redirect.from.clone(), message.clone());
+                                        print!("🔒 Certificate request queued for '{}'", redirect.from);
+                                    }
+                                    else {
+                                        println!("🔒 Skipping certificate request for '{}'", redirect.from);
+                                    }
                                 },
                                 Err(e) => eprintln!("❌ Failed to reload nginx: {}", e),
                             }
