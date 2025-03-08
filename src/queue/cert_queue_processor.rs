@@ -20,7 +20,7 @@ impl CertQueueProcessor {
             Ok(CertificateRequestResult::Success) => {
                 println!("✅ ACME challenge verification successful for: {}", message.domain);
                 
-                match CERTBOT.request_certificate(&message.domain, "dublokcom@gmail.com", ChallengeType::Webroot, true) {
+                match CERTBOT.request_certificate(&message.domain, &message.ssl_email, ChallengeType::Webroot, message.ssl_staging) {
                     Ok(_) => {
                         println!("✅ Certificate request successful for '{}'", message.domain);
                         NginxEnqueue::message(message.nginx_queue_message.clone());

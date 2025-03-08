@@ -1,3 +1,5 @@
+use std::env;
+
 use chrono::Utc;
 
 use super::models::{NginxQueueMessage, Host, Redirect};
@@ -38,22 +40,45 @@ impl NginxEnqueue {
         networks: Vec<String>,
         labels: std::collections::HashMap<String, String>,
     ) {
-        let email = labels.get("proxma.email").map(|p| p.trim().to_string()).unwrap_or_default();
-        if email.is_empty() {
-            println!("Email missing for container {}, skipping processing", container_id);
-            return;
-        }
-    
-        let port = match labels.get("proxma.port").and_then(|p| p.trim().parse::<u16>().ok()) {
-            Some(p) if p > 0 => p,
-            _ => {
-                println!("Invalid port for container {}, skipping processing", container_id);
-                return;
-            }
-        };
-    
-        let ssl: bool = labels.get("proxma.ssl").map(|v| v.trim().to_lowercase() == "true").unwrap_or(false);
         if let Some(hosts_str) = labels.get("proxma.hosts") {
+            let mut ssl_email: String = labels.get("proxma.ssl.email").map(|p| p.trim().to_string()).unwrap_or_default();
+            if ssl_email.is_empty() {
+                match env::var("PROXMA_SSL_EMAIL") {
+                    Ok(env_email) => {
+                        ssl_email = env_email.trim().to_string();
+                    },
+                    Err(_) => {
+                        println!("Email missing for container {}, skipping processing", container_id);
+                        return;
+                    }
+                }
+            }
+        
+            let port = match labels.get("proxma.port").and_then(|p| p.trim().parse::<u16>().ok()) {
+                Some(p) if p > 0 => p,
+                _ => {
+                    println!("Invalid port for container {}, skipping processing", container_id);
+                    return;
+                }
+            };
+    
+            let ssl_staging: bool = labels.get("proxma.ssl.staging")
+            .map(|v| v.trim().to_lowercase() == "true")
+            .unwrap_or_else(|| {
+                env::var("PROXMA_SSL_STAGING")
+                    .map(|v| v.trim().to_lowercase() == "true")
+                    .unwrap_or(true)
+            });
+            
+            let ssl: bool = labels.get("proxma.ssl")
+            .map(|v: &String| v.trim().to_lowercase() == "true")
+            .unwrap_or_else(|| {
+                env::var("PROXMA_SSL")
+                    .map(|v| v.trim().to_lowercase() == "true")
+                    .unwrap_or(false)
+            });
+
+
             let domains: Vec<String> = hosts_str
                 .split(',')
                 .map(|s| s.trim().to_string())
@@ -74,7 +99,8 @@ impl NginxEnqueue {
                     created_at: Utc::now(),
                     delay_seconds: None,
                     delay_until: None,
-                    email: email.clone(),
+                    ssl_email: ssl_email.clone(),
+                    ssl_staging: ssl_staging,
                 });
             }
     
@@ -104,7 +130,8 @@ impl NginxEnqueue {
                             delay_until: None,
                             created_at: Utc::now(),
                             delay_seconds: None,
-                            email: email.clone(),
+                            ssl_email: ssl_email.clone(),
+                            ssl_staging: ssl_staging,
                         });
                     }
                 }

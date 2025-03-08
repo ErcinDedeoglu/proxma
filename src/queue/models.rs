@@ -9,12 +9,13 @@ pub struct NginxQueueMessage {
     pub networks: Vec<String>,
     pub hosting: bool,
     pub ssl: bool,
-    pub email: String,
+    pub ssl_email: String,
     pub host: Option<Host>,
     pub redirect: Option<Redirect>,
     pub delay_until: Option<DateTime<Utc>>,
     pub created_at: DateTime<Utc>,
     pub delay_seconds: Option<u64>,
+    pub ssl_staging: bool,
 }
 
 #[derive(Debug, Clone)]
@@ -36,4 +37,6 @@ pub struct CertificateQueueMessage {
     pub delay_until: Option<DateTime<Utc>>,
     pub created_at: DateTime<Utc>,
     pub delay_seconds: Option<u64>,
+    pub ssl_email: String,
+    pub ssl_staging: bool,
 }

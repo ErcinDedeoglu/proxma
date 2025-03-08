@@ -36,13 +36,13 @@ impl Certbot {
         }
     }
     
-    pub fn request_certificate<S: AsRef<str>, E: AsRef<str>>(&self, domain: S, email: E, challenge: ChallengeType, staging: bool) -> io::Result<()> {
+    pub fn request_certificate<S: AsRef<str>, E: AsRef<str>>(&self, domain: S, ssl_email: E, challenge: ChallengeType, staging: bool) -> io::Result<()> {
         let mut args = Vec::<String>::new();
         
         args.push("certonly".to_string());
         args.push("--non-interactive".to_string());
         args.push("--email".to_string());
-        args.push(email.as_ref().to_string());
+        args.push(ssl_email.as_ref().to_string());
         args.push("--quiet".to_string());
         args.push("-d".to_string());
         args.push(domain.as_ref().to_string());
