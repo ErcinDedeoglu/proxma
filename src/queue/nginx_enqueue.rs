@@ -8,19 +8,21 @@ use super::shared::NGINX_QUEUE;
 pub struct NginxEnqueue;
 
 impl NginxEnqueue {
-    pub fn message(mut message: NginxQueueMessage) {
+    pub fn message(mut message: NginxQueueMessage, skip_certification: bool) {
         message.created_at = Utc::now();
         message.delay_seconds = None;
         message.delay_until = None;
+        message.skip_certification = skip_certification;
         NGINX_QUEUE.enqueue(message);
     }
 
-    pub fn message_with_delay(mut message: NginxQueueMessage, delay_for: std::time::Duration) {
+    pub fn message_with_delay(mut message: NginxQueueMessage, delay_for: std::time::Duration, skip_certification: bool) {
         let now = Utc::now();
         let delay_until = now + chrono::Duration::from_std(delay_for).unwrap();
         message.created_at = now;
         message.delay_seconds = Some(delay_for.as_secs());
         message.delay_until = Some(delay_until);
+        message.skip_certification = skip_certification;
         NGINX_QUEUE.enqueue(message);
     }
 
@@ -165,7 +167,8 @@ impl NginxEnqueue {
                     ssl_dns_email: Some(ssl_dns_email.clone()),
                     ssl_dns_api_key: Some(ssl_dns_api_key.clone()),
                     ssl_dns_api_token: Some(ssl_dns_api_token.clone()),
-                });
+                    skip_certification: false,
+                }, false);
             }
     
             if let Some(redirect_str) = labels.get("proxma.redirects") {
@@ -200,7 +203,8 @@ impl NginxEnqueue {
                             ssl_dns_email: Some(ssl_dns_email.clone()),
                             ssl_dns_api_key: Some(ssl_dns_api_key.clone()),
                             ssl_dns_api_token: Some(ssl_dns_api_token.clone()),
-                        });
+                            skip_certification: false,
+                        }, false);
                     }
                 }
             }

@@ -137,7 +137,7 @@ impl NginxQueueProcessor {
                     let now = Utc::now();
                     if let Some(delay_until) = message.delay_until {
                         if now < delay_until {
-                            NginxEnqueue::message_with_delay(message.clone(), std::time::Duration::from_secs(message.delay_seconds.unwrap_or(0)));
+                            NginxEnqueue::message_with_delay(message.clone(), std::time::Duration::from_secs(message.delay_seconds.unwrap_or(0)), message.skip_certification);
                             tokio::time::sleep(std::time::Duration::from_millis(100)).await;
                             continue;
                         }

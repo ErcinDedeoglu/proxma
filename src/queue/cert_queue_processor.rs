@@ -23,7 +23,7 @@ impl CertQueueProcessor {
                 match CERTBOT.request_certificate(&message.domain, &message.ssl_email, ChallengeType::Webroot, message.ssl_staging) {
                     Ok(_) => {
                         println!("✅ Certificate request successful for '{}'", message.domain);
-                        NginxEnqueue::message(message.nginx_queue_message.clone());
+                        NginxEnqueue::message(message.nginx_queue_message.clone(), true);
                     },
                     Err(e) => {
                         eprintln!("❌ Certificate request failed for '{}': {}", message.domain, e);

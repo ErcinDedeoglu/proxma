@@ -20,6 +20,7 @@ pub struct NginxQueueMessage {
     pub ssl_dns_email: Option<String>,
     pub ssl_dns_api_key: Option<String>,
     pub ssl_dns_api_token: Option<String>,
+    pub skip_certification: bool,
 }
 
 #[derive(Debug, Clone)]
