@@ -41,6 +41,11 @@ impl NginxEnqueue {
         labels: std::collections::HashMap<String, String>,
     ) {
         if let Some(hosts_str) = labels.get("proxma.hosts") {
+            let mut ssl_dns_provider: String = String::new();
+            let mut ssl_dns_email: String = String::new();
+            let mut ssl_dns_api_key: String = String::new();
+            let mut ssl_dns_api_token: String = String::new();
+
             let mut ssl_email: String = labels.get("proxma.ssl.email").map(|p| p.trim().to_string()).unwrap_or_default();
             if ssl_email.is_empty() {
                 match env::var("PROXMA_SSL_EMAIL") {
@@ -78,6 +83,61 @@ impl NginxEnqueue {
                     .unwrap_or(false)
             });
 
+            if ssl {
+                let ssl_dns_provider_cloudflare: bool = labels.get("proxma.ssl.dns.cloudflare")
+                    .map(|v: &String| v.trim().to_lowercase() == "true")
+                    .unwrap_or_else(|| {
+                        env::var("PROXMA_SSL_DNS_CLOUDFLARE")
+                            .map(|v| v.trim().to_lowercase() == "true")
+                            .unwrap_or(false)
+                    });
+            
+                if ssl_dns_provider_cloudflare {
+                    ssl_dns_provider = "cloudflare".to_string();
+                    ssl_dns_email = labels.get("proxma.ssl.dns.email").map(|p| p.trim().to_string()).unwrap_or_default();
+                    ssl_dns_api_key = labels.get("proxma.ssl.dns.api_key").map(|p| p.trim().to_string()).unwrap_or_default();
+                    ssl_dns_api_token = labels.get("proxma.ssl.dns.api_token").map(|p| p.trim().to_string()).unwrap_or_default();
+                
+                    // Try to get API token first (preferred method)
+                    if ssl_dns_api_token.is_empty() {
+                        if let Ok(env_api_token) = env::var("PROXMA_SSL_DNS_API_TOKEN") {
+                            ssl_dns_api_token = env_api_token.trim().to_string();
+                        }
+                    }
+                
+                    // If no API token, try Global API Key + Email
+                    if ssl_dns_api_token.is_empty() {
+                        // Check for API key
+                        if ssl_dns_api_key.is_empty() {
+                            if let Ok(env_api_key) = env::var("PROXMA_SSL_DNS_API_KEY") {
+                                ssl_dns_api_key = env_api_key.trim().to_string();
+                            }
+                        }
+                
+                        // Only check for email if using Global API Key
+                        if !ssl_dns_api_key.is_empty() {
+                            if ssl_dns_email.is_empty() {
+                                if let Ok(env_email) = env::var("PROXMA_SSL_DNS_EMAIL") {
+                                    ssl_dns_email = env_email.trim().to_string();
+                                }
+                            }
+                            
+                            // Verify both email and API key are present
+                            if ssl_dns_email.is_empty() {
+                                println!("Email required when using Global API Key for container {}, skipping processing", container_id);
+                                return;
+                            }
+                        }
+                    }
+                
+                    // Final validation
+                    if ssl_dns_api_token.is_empty() && ssl_dns_api_key.is_empty() {
+                        println!("Either API Token or Global API Key must be provided for container {}, skipping processing", container_id);
+                        return;
+                    }
+                }
+            }
+
 
             let domains: Vec<String> = hosts_str
                 .split(',')
@@ -101,6 +161,10 @@ impl NginxEnqueue {
                     delay_until: None,
                     ssl_email: ssl_email.clone(),
                     ssl_staging: ssl_staging,
+                    ssl_dns_provider: Some(ssl_dns_provider.clone()),
+                    ssl_dns_email: Some(ssl_dns_email.clone()),
+                    ssl_dns_api_key: Some(ssl_dns_api_key.clone()),
+                    ssl_dns_api_token: Some(ssl_dns_api_token.clone()),
                 });
             }
     
@@ -132,6 +196,10 @@ impl NginxEnqueue {
                             delay_seconds: None,
                             ssl_email: ssl_email.clone(),
                             ssl_staging: ssl_staging,
+                            ssl_dns_provider: Some(ssl_dns_provider.clone()),
+                            ssl_dns_email: Some(ssl_dns_email.clone()),
+                            ssl_dns_api_key: Some(ssl_dns_api_key.clone()),
+                            ssl_dns_api_token: Some(ssl_dns_api_token.clone()),
                         });
                     }
                 }

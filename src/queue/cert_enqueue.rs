@@ -8,6 +8,10 @@ impl CertEnqueue {
     pub fn message(domain: String, nginx_queue_message: NginxQueueMessage) {
         let ssl_email = nginx_queue_message.ssl_email.clone();
         let ssl_staging = nginx_queue_message.ssl_staging.clone();
+        let ssl_dns_provider = nginx_queue_message.ssl_dns_provider.clone();
+        let ssl_dns_email = nginx_queue_message.ssl_dns_email.clone();
+        let ssl_dns_api_key = nginx_queue_message.ssl_dns_api_key.clone();
+        let ssl_dns_api_token = nginx_queue_message.ssl_dns_api_token.clone();
         let message = CertificateQueueMessage {
             domain,
             created_at: Utc::now(),
@@ -15,7 +19,11 @@ impl CertEnqueue {
             delay_until: None,
             nginx_queue_message,
             ssl_email: ssl_email.clone(),
-            ssl_staging: ssl_staging.clone()
+            ssl_staging: ssl_staging.clone(),
+            ssl_dns_provider: ssl_dns_provider.clone(),
+            ssl_dns_email: ssl_dns_email.clone(),
+            ssl_dns_api_key: ssl_dns_api_key.clone(),
+            ssl_dns_api_token: ssl_dns_api_token.clone(),
         };
         CERT_QUEUE.enqueue(message);
     }
@@ -25,6 +33,10 @@ impl CertEnqueue {
         let delay_until = now + chrono::Duration::from_std(delay_for).unwrap();
         let ssl_email = nginx_queue_message.ssl_email.clone();
         let ssl_staging = nginx_queue_message.ssl_staging.clone();
+        let ssl_dns_provider = nginx_queue_message.ssl_dns_provider.clone();
+        let ssl_dns_email = nginx_queue_message.ssl_dns_email.clone();
+        let ssl_dns_api_key = nginx_queue_message.ssl_dns_api_key.clone();
+        let ssl_dns_api_token = nginx_queue_message.ssl_dns_api_token.clone();
         let message = CertificateQueueMessage {
             domain,
             created_at: now,
@@ -32,7 +44,11 @@ impl CertEnqueue {
             delay_until: Some(delay_until),
             nginx_queue_message,
             ssl_email: ssl_email.clone(),
-            ssl_staging: ssl_staging.clone()
+            ssl_staging: ssl_staging.clone(),
+            ssl_dns_provider: ssl_dns_provider.clone(),
+            ssl_dns_email: ssl_dns_email.clone(),
+            ssl_dns_api_key: ssl_dns_api_key.clone(),
+            ssl_dns_api_token: ssl_dns_api_token.clone()
         };
         CERT_QUEUE.enqueue(message);
     }

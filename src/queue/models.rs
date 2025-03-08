@@ -16,6 +16,10 @@ pub struct NginxQueueMessage {
     pub created_at: DateTime<Utc>,
     pub delay_seconds: Option<u64>,
     pub ssl_staging: bool,
+    pub ssl_dns_provider: Option<String>,
+    pub ssl_dns_email: Option<String>,
+    pub ssl_dns_api_key: Option<String>,
+    pub ssl_dns_api_token: Option<String>,
 }
 
 #[derive(Debug, Clone)]
@@ -39,4 +43,8 @@ pub struct CertificateQueueMessage {
     pub delay_seconds: Option<u64>,
     pub ssl_email: String,
     pub ssl_staging: bool,
+    pub ssl_dns_provider: Option<String>,
+    pub ssl_dns_email: Option<String>,
+    pub ssl_dns_api_key: Option<String>,
+    pub ssl_dns_api_token: Option<String>,
 }

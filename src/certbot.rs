@@ -11,7 +11,7 @@ pub enum CertificateRequestResult {
 #[derive(Debug, Clone)]
 pub enum ChallengeType {
     Webroot,
-    Dns(String),
+    Dns(String, Option<DnsCredentials>),
 }
 
 #[derive(Debug)]
@@ -23,6 +23,15 @@ pub struct Certbot {
     agree_tos: bool,
     no_eff_email: bool,
 }
+
+#[derive(Debug, Clone)]
+pub struct DnsCredentials {
+    provider: String,
+    api_token: String,
+    email: Option<String>,
+    api_key: Option<String>,
+}
+
 
 impl Certbot {
     pub fn new() -> Self {
@@ -38,6 +47,7 @@ impl Certbot {
     
     pub fn request_certificate<S: AsRef<str>, E: AsRef<str>>(&self, domain: S, ssl_email: E, challenge: ChallengeType, staging: bool) -> io::Result<()> {
         let mut args = Vec::<String>::new();
+        let mut command = Command::new("certbot");
         
         args.push("certonly".to_string());
         args.push("--non-interactive".to_string());
@@ -53,11 +63,29 @@ impl Certbot {
                 args.push("-w".to_string());
                 args.push(self.webroot.clone());
             },
-            ChallengeType::Dns(plugin) => {
+            ChallengeType::Dns(plugin, credentials) => {
                 args.push(format!("--dns-{}", plugin));
+                
+                // If credentials provided, set them up
+                if let Some(creds) = credentials {
+                    match creds.provider.as_str() {
+                        "cloudflare" => {
+                            if let Some(email) = creds.email {
+                                command.env("CLOUDFLARE_EMAIL", email);
+                                command.env("CLOUDFLARE_API_KEY", creds.api_key.unwrap());
+                            } else {
+                                command.env("CLOUDFLARE_DNS_API_TOKEN", creds.api_token);
+                            }
+                            args.push("--dns-cloudflare-credentials".to_string());
+                            args.push("env::".to_string());
+                        },
+                        // Add other providers as needed
+                        _ => {}
+                    }
+                }
             }
         }
-
+        
         args.push("--config-dir".to_string());
         args.push(self.config_dir.clone());
         args.push("--work-dir".to_string());
@@ -75,7 +103,7 @@ impl Certbot {
             args.push("--no-eff-email".to_string());
         }
 
-        let output = Command::new("certbot")
+        let output = command
             .args(&args)
             .stdout(std::process::Stdio::null())  
             .stderr(std::process::Stdio::null())
