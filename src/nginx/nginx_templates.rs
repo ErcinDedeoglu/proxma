@@ -7,14 +7,16 @@ fn generate_acme_challenge_block(webroot_path: &str) -> String {
 }
 
 /// Helper function to generate a server block with common parameters
-fn generate_server_block(is_https: bool, domain: &str, location_block: &str, ssl: bool, webroot_path: Option<&str>,) -> String {
+fn generate_server_block(is_https: bool, domain: &str, location_block: &str, ssl: bool, webroot_path: Option<&str>, ssl_staging: bool,) -> String {
     let listen_directive = if is_https { "listen 443 ssl;" } else { "listen 80;" };
+    let environment = if ssl_staging { "staging" } else { "production" };
     
     let ssl_config = if is_https {
         format!(
-            r#"    ssl_certificate /var/proxma/configuration/live/{}/fullchain.pem;
-    ssl_certificate_key /var/proxma/configuration/live/{}/privkey.pem;"#,
-            domain, domain
+            r#"    ssl_certificate /var/proxma/configuration/{environment}/live/{domain}/fullchain.pem;
+        ssl_certificate_key /var/proxma/configuration/{environment}/live/{domain}/privkey.pem;"#,
+            environment = environment,
+            domain = domain
         )
     } else if !ssl {
         // Add HSTS prevention when SSL is disabled
@@ -49,7 +51,7 @@ fn generate_server_block(is_https: bool, domain: &str, location_block: &str, ssl
 }
 
 /// Generate an Nginx server block for proxying requests
-pub fn generate_proxy_server_block(domain: &str, upstream: &str, ssl: bool, webroot_path: &str) -> String {
+pub fn generate_proxy_server_block(domain: &str, upstream: &str, ssl: bool, webroot_path: &str, ssl_staging: bool,) -> String {
     let proxy_location = format!(
         r#"    location / {{
         proxy_pass {};
@@ -66,16 +68,16 @@ pub fn generate_proxy_server_block(domain: &str, upstream: &str, ssl: bool, webr
     if ssl {
         format!(
             "# HTTP server for ACME challenges and redirection\n{}\n# HTTPS server for main content\n{}",
-            generate_server_block(false, domain, http_redirect, true, Some(webroot_path)),
-            generate_server_block(true, domain, &proxy_location, true, None)
+            generate_server_block(false, domain, http_redirect, true, Some(webroot_path), ssl_staging),
+            generate_server_block(true, domain, &proxy_location, true, None, ssl_staging)
         )
     } else {
-        generate_server_block(false, domain, &proxy_location, false, Some(webroot_path))
+        generate_server_block(false, domain, &proxy_location, false, Some(webroot_path), ssl_staging)
     }
 }
 
 /// Generate an Nginx server block for redirecting requests with SSL support
-pub fn generate_redirect_server_block(from_domain: &str, to_domain: &str, ssl: bool, webroot_path: &str) -> String {
+pub fn generate_redirect_server_block(from_domain: &str, to_domain: &str, ssl: bool, webroot_path: &str, ssl_staging: bool,) -> String {
     let http_redirect = format!(
         r#"    location / {{
         return 301 {}://{}$request_uri;
@@ -89,10 +91,10 @@ pub fn generate_redirect_server_block(from_domain: &str, to_domain: &str, ssl: b
     if ssl {
         format!(
             "# HTTP server for ACME challenges and redirection\n{}\n# HTTPS server for redirection\n{}",
-            generate_server_block(false, from_domain, &http_redirect, true, Some(webroot_path)),
-            generate_server_block(true, from_domain, &https_redirect, true, None)
+            generate_server_block(false, from_domain, &http_redirect, true, Some(webroot_path), ssl_staging),
+            generate_server_block(true, from_domain, &https_redirect, true, None, ssl_staging)
         )
     } else {
-        generate_server_block(false, from_domain, &http_redirect, false, Some(webroot_path))
+        generate_server_block(false, from_domain, &http_redirect, false, Some(webroot_path), ssl_staging)
     }
 }

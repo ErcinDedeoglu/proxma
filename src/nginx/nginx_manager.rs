@@ -28,12 +28,14 @@ impl NginxManager {
         from_domain: &str,
         to_domain: &str,
         ssl: bool,
+        ssl_staging: bool,
     ) -> io::Result<()> {
         let config_content = generate_redirect_server_block(
             from_domain,
             to_domain,
             ssl,
             self.webroot_path.to_str().unwrap_or_default(),
+            ssl_staging
         );
 
         let file_name = format!("proxma_{}.conf", from_domain.replace('.', "_"));
@@ -48,12 +50,14 @@ impl NginxManager {
         domain: &str,
         upstream_url: &str,
         ssl: bool,
+        ssl_staging: bool,
     ) -> io::Result<()> {
         let config_content = generate_proxy_server_block(
             domain,
             upstream_url,
             ssl,
             self.webroot_path.to_str().unwrap_or_default(),
+            ssl_staging
         );
     
         let file_name = format!("proxma_{}.conf", domain.replace('.', "_"));
@@ -95,9 +99,10 @@ impl NginxManager {
         Ok(())
     }
     
-    pub fn check_ssl_certificates_exist(&self, domain: &str) -> bool {
-        let cert_path = format!("/var/proxma/configuration/live/{}/fullchain.pem", domain);
-        let key_path = format!("/var/proxma/configuration/live/{}/privkey.pem", domain);
+    pub fn check_ssl_certificates_exist(&self, domain: &str, ssl_staging: bool) -> bool {
+        let environment = if ssl_staging { "staging" } else { "production" };
+        let cert_path = format!("/var/proxma/configuration/{}/live/{}/fullchain.pem", environment, domain);
+        let key_path = format!("/var/proxma/configuration/{}/live/{}/privkey.pem", environment, domain);
         Path::new(&cert_path).exists() && Path::new(&key_path).exists()
     }
 }

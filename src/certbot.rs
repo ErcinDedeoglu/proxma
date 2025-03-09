@@ -32,7 +32,6 @@ pub struct DnsCredentials {
     pub(crate) api_key: Option<String>,
 }
 
-
 impl Certbot {
     pub fn new() -> Self {
         Self {
@@ -54,6 +53,8 @@ impl Certbot {
     ) -> io::Result<()> {
         let mut args = Vec::<String>::new();
         let mut command = Command::new("certbot");
+        let mut cleanup_path = None;
+
         args.push("certonly".to_string());
         args.push("--non-interactive".to_string());
         args.push("--email".to_string());
@@ -61,6 +62,8 @@ impl Certbot {
         args.push("--quiet".to_string());
         args.push("-d".to_string());
         args.push(domain.as_ref().to_string());
+        let environment = if staging { "staging" } else { "production" };
+        let config_dir_with_env = format!("{}/{}", self.config_dir, environment);
         
         match challenge {
             ChallengeType::Webroot => {
@@ -73,8 +76,6 @@ impl Certbot {
                     args.push("--dns-cloudflare".to_string());
                     
                     if let Some(creds) = credentials {
-                        use std::fs::File;
-                        use std::io::Write;
                         use std::path::PathBuf;
                         
                         // Validate credentials
@@ -85,8 +86,11 @@ impl Certbot {
                             ));
                         }
                         
-                        let creds_dir = PathBuf::from(&self.config_dir).join("cloudflare");
+                        let creds_dir = PathBuf::from(&config_dir_with_env).join("cloudflare");
                         std::fs::create_dir_all(&creds_dir)?;
+                        
+                        // Store the directory path for cleanup
+                        cleanup_path = Some(creds_dir.clone());
                         
                         let creds_file = creds_dir.join("credentials.ini");
                         
@@ -129,7 +133,7 @@ impl Certbot {
         }
         
         args.push("--config-dir".to_string());
-        args.push(self.config_dir.clone());
+        args.push(config_dir_with_env);
         args.push("--work-dir".to_string());
         args.push(self.work_dir.clone());
         args.push("--logs-dir".to_string());
@@ -152,27 +156,38 @@ impl Certbot {
             args.push("30".to_string());
         }
         
-        let output = command
+        let result = command
             .args(&args)
             .stdout(std::process::Stdio::piped())
             .stderr(std::process::Stdio::piped())
-            .output()?;
-        
-        if output.status.success() {
-            Ok(())
-        } else {
-            let stderr = String::from_utf8_lossy(&output.stderr);
-            let stdout = String::from_utf8_lossy(&output.stdout);
-            
-            let error_message = format!(
-                "Certbot command failed with status: {:?}\nCommand: certbot {}\nOutput: {}\nError: {}", 
-                output.status.code(),
-                args.join(" "),
-                stdout,
-                stderr
-            );
-            
-            Err(io::Error::new(ErrorKind::Other, error_message))
+            .output();
+
+        // Clean up credentials directory if it was created
+        if let Some(path) = cleanup_path {
+            let _ = std::fs::remove_dir_all(path);
+        }
+
+        // Handle the command result
+        match result {
+            Ok(output) => {
+                if output.status.success() {
+                    Ok(())
+                } else {
+                    let stderr = String::from_utf8_lossy(&output.stderr);
+                    let stdout = String::from_utf8_lossy(&output.stdout);
+                    
+                    let error_message = format!(
+                        "Certbot command failed with status: {:?}\nCommand: certbot {}\nOutput: {}\nError: {}", 
+                        output.status.code(),
+                        args.join(" "),
+                        stdout,
+                        stderr
+                    );
+                    
+                    Err(io::Error::new(ErrorKind::Other, error_message))
+                }
+            }
+            Err(e) => Err(e)
         }
     }
 }
