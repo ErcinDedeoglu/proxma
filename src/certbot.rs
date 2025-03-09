@@ -92,17 +92,13 @@ impl Certbot {
                         
                         // Create the credentials file content
                         let creds_content = if !creds.api_token.is_empty() {
-                            println!("Using API token authentication");
                             format!(
-                                "# Cloudflare API token credentials for Certbot\n\
-                                dns_cloudflare_api_token = {}\n",
+                                "dns_cloudflare_api_token = {}\n",
                                 creds.api_token
                             )
                         } else if let (Some(ref email), Some(ref api_key)) = (creds.email.as_ref(), creds.api_key.as_ref()) {
-                            println!("Using email/API key authentication");
                             format!(
-                                "# Cloudflare API credentials for Certbot\n\
-                                dns_cloudflare_email = {}\n\
+                                "dns_cloudflare_email = {}\n\
                                 dns_cloudflare_api_key = {}\n",
                                 email, api_key
                             )
@@ -114,7 +110,6 @@ impl Certbot {
                         };
                         
                         // Write the credentials file
-                        println!("Writing credentials to: {}", creds_file.display());
                         std::fs::write(&creds_file, &creds_content)?;
                         
                         // Set proper permissions
@@ -124,12 +119,6 @@ impl Certbot {
                             let mut perms = std::fs::metadata(&creds_file)?.permissions();
                             perms.set_mode(0o600);
                             std::fs::set_permissions(&creds_file, perms)?;
-                        }
-                        
-                        // Verify the file was created and contains the credentials
-                        match std::fs::read_to_string(&creds_file) {
-                            Ok(contents) => println!("Credentials file contents:\n{}", contents),
-                            Err(e) => println!("Failed to read credentials file: {}", e),
                         }
                         
                         args.push("--dns-cloudflare-credentials".to_string());
@@ -162,8 +151,6 @@ impl Certbot {
             args.push("--dns-cloudflare-propagation-seconds".to_string());
             args.push("30".to_string());
         }
-        
-        println!("Executing command: certbot {}", args.join(" "));
         
         let output = command
             .args(&args)
