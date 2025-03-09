@@ -26,10 +26,10 @@ pub struct Certbot {
 
 #[derive(Debug, Clone)]
 pub struct DnsCredentials {
-    provider: String,
-    api_token: String,
-    email: Option<String>,
-    api_key: Option<String>,
+    pub(crate) provider: String,
+    pub(crate) api_token: String,
+    pub(crate) email: Option<String>,
+    pub(crate) api_key: Option<String>,
 }
 
 
@@ -68,23 +68,38 @@ impl Certbot {
                 args.push("-w".to_string());
                 args.push(self.webroot.clone());
             },
-            ChallengeType::Dns(plugin, credentials) => {
-                args.push(format!("--dns-{}", plugin));
-                // If credentials provided, set them up
-                if let Some(creds) = credentials {
-                    match creds.provider.as_str() {
-                        "cloudflare" => {
-                            if let Some(email) = creds.email {
-                                command.env("CLOUDFLARE_EMAIL", email);
-                                command.env("CLOUDFLARE_API_KEY", creds.api_key.unwrap());
-                            } else {
-                                command.env("CLOUDFLARE_DNS_API_TOKEN", creds.api_token);
-                            }
-                            args.push("--dns-cloudflare-credentials".to_string());
-                            args.push("env::".to_string());
-                        },
-                        // Add other providers as needed
-                        _ => {}
+            ChallengeType::Dns(ref plugin, ref credentials) => { // Added 'ref' here
+                if plugin == "cloudflare" {
+                    args.push("--dns-cloudflare".to_string());
+                    
+                    // If credentials provided, set them up
+                    if let Some(creds) = credentials {
+                        // Create a temporary credentials file
+                        use std::fs::File;
+                        use std::io::Write;
+                        use std::path::PathBuf;
+                        
+                        let creds_dir = PathBuf::from(&self.config_dir).join("cloudflare");
+                        std::fs::create_dir_all(&creds_dir)?;
+                        
+                        let creds_file = creds_dir.join("credentials.ini");
+                        let mut file = File::create(&creds_file)?;
+                        
+                        let creds_content = if !creds.api_token.is_empty() {
+                            format!("dns_cloudflare_api_token = {}", creds.api_token)
+                        } else if let (Some(ref email), Some(ref api_key)) = (creds.email.as_ref(), creds.api_key.as_ref()) {
+                            format!("dns_cloudflare_email = {}\ndns_cloudflare_api_key = {}", email, api_key)
+                        } else {
+                            return Err(io::Error::new(
+                                ErrorKind::InvalidInput,
+                                "Invalid Cloudflare credentials configuration"
+                            ));
+                        };
+                        
+                        file.write_all(creds_content.as_bytes())?;
+                        
+                        args.push("--dns-cloudflare-credentials".to_string());
+                        args.push(creds_file.to_string_lossy().to_string());
                     }
                 }
             }
@@ -109,7 +124,12 @@ impl Certbot {
             args.push("--no-eff-email".to_string());
         }
         
-        // Change to capture stdout and stderr
+        // Add propagation wait time for DNS challenges
+        if matches!(challenge, ChallengeType::Dns(_, _)) {
+            args.push("--dns-cloudflare-propagation-seconds".to_string());
+            args.push("30".to_string());
+        }
+        
         let output = command
             .args(&args)
             .stdout(std::process::Stdio::piped())
@@ -119,11 +139,9 @@ impl Certbot {
         if output.status.success() {
             Ok(())
         } else {
-            // Extract meaningful error information
             let stderr = String::from_utf8_lossy(&output.stderr);
             let stdout = String::from_utf8_lossy(&output.stdout);
             
-            // Create a detailed error message
             let error_message = format!(
                 "Certbot command failed with status: {:?}\nCommand: certbot {}\nOutput: {}\nError: {}", 
                 output.status.code(),

@@ -38,7 +38,7 @@ RUN case "$TARGETPLATFORM" in \
 FROM alpine:latest
 
 # Add curl and bind-tools (includes dig) to the packages
-RUN apk add --no-cache nginx tini certbot openssl curl bind-tools
+RUN apk add --no-cache nginx tini certbot openssl curl bind-tools certbot-dns-cloudflare
 
 # Create directories and set permissions
 RUN mkdir -p /run/nginx /var/www/html/.well-known/acme-challenge /etc/nginx/ssl /var/proxma/ssl /var/proxma/logs && \

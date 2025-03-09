@@ -1,6 +1,6 @@
 use super::CertDequeue;
 use super::models::CertificateQueueMessage;
-use crate::{certbot::{Certbot, CertificateRequestResult, ChallengeType}, queue::{CertEnqueue, NginxEnqueue}};
+use crate::{certbot::{Certbot, CertificateRequestResult, ChallengeType, DnsCredentials}, queue::{CertEnqueue, NginxEnqueue}};
 use chrono::Utc;
 use lazy_static::lazy_static;
 use crate::acme_helper::check_acme_challenge;
@@ -24,7 +24,18 @@ impl CertQueueProcessor {
         println!("🔒 Processing certificate request for domain: {}", message.domain);
         
         if message.ssl_dns_provider.as_deref() == Some("cloudflare") {
-            match CERTBOT.request_certificate(&message.domain, &message.ssl_email, ChallengeType::Webroot, message.ssl_staging) {
+            let credentials = DnsCredentials {
+                provider: message.ssl_dns_provider.clone().unwrap_or_default(),
+                api_token: message.ssl_dns_api_token.clone().unwrap_or_default(),
+                email: Some(message.ssl_dns_email.clone().unwrap_or_default()),
+                api_key: Some(message.ssl_dns_api_key.clone().unwrap_or_default()),
+            };
+            let challenge_type = ChallengeType::Dns(
+                "cloudflare".to_string(),
+                Some(credentials)
+            );
+            
+            match CERTBOT.request_certificate(&message.domain, &message.ssl_email, challenge_type, message.ssl_staging) {
                 Ok(_) => {
                     println!("✅ Certificate request successful for '{}'", message.domain);
                     NginxEnqueue::message(message.nginx_queue_message.clone(), true);
