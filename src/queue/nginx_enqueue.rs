@@ -102,7 +102,7 @@ impl NginxEnqueue {
                 
                     // Try to get API token first (preferred method)
                     if ssl_dns_api_token.is_empty() {
-                        if let Ok(env_api_token) = env::var("PROXMA_SSL_DNS_API_TOKEN") {
+                        if let Ok(env_api_token) = env::var("PROXMA_CLOUDFLARE_API_TOKEN") {
                             ssl_dns_api_token = env_api_token.trim().to_string();
                         }
                     }
@@ -119,7 +119,7 @@ impl NginxEnqueue {
                         // Only check for email if using Global API Key
                         if !ssl_dns_api_key.is_empty() {
                             if ssl_dns_email.is_empty() {
-                                if let Ok(env_email) = env::var("PROXMA_SSL_DNS_EMAIL") {
+                                if let Ok(env_email) = env::var("PROXMA_CLOUDFLARE_EMAIL") {
                                     ssl_dns_email = env_email.trim().to_string();
                                 }
                             }
