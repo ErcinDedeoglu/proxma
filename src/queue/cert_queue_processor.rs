@@ -13,6 +13,13 @@ lazy_static! {
 pub struct CertQueueProcessor;
 
 impl CertQueueProcessor {
+    fn requeue_certification_request(message: &CertificateQueueMessage) {
+        let delay_in_seconds = 600 + message.delay_seconds.unwrap_or(0);
+        let delay_in_seconds = if delay_in_seconds >= 3600 { 3600 } else { delay_in_seconds };
+        let delay: std::time::Duration = std::time::Duration::from_secs(delay_in_seconds);
+        CertEnqueue::message_with_delay(message.domain.clone(), delay, message.nginx_queue_message.clone());
+    }
+
     async fn process_certificate_request(message: &CertificateQueueMessage) {
         println!("🔒 Processing certificate request for domain: {}", message.domain);
         
@@ -24,6 +31,7 @@ impl CertQueueProcessor {
                 },
                 Err(e) => {
                     eprintln!("❌ Certificate request failed for '{}': {}", message.domain, e);
+                    Self::requeue_certification_request(message);
                 }
             }
         } else {
@@ -38,10 +46,7 @@ impl CertQueueProcessor {
                         },
                         Err(e) => {
                             eprintln!("❌ Certificate request failed for '{}': {}", message.domain, e);
-                            let delay_in_seconds = 600 + message.delay_seconds.unwrap_or(0);
-                            let delay_in_seconds = if delay_in_seconds >= 3600 { 3600 } else { delay_in_seconds };
-                            let delay: std::time::Duration = std::time::Duration::from_secs(delay_in_seconds);
-                            CertEnqueue::message_with_delay(message.domain.clone(), delay, message.nginx_queue_message.clone());
+                            Self::requeue_certification_request(message);
                         }
                     }
                 },
