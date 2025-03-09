@@ -68,27 +68,44 @@ impl Certbot {
                 args.push("-w".to_string());
                 args.push(self.webroot.clone());
             },
-            ChallengeType::Dns(ref plugin, ref credentials) => { // Added 'ref' here
+            ChallengeType::Dns(ref plugin, ref credentials) => {
                 if plugin == "cloudflare" {
                     args.push("--dns-cloudflare".to_string());
                     
-                    // If credentials provided, set them up
                     if let Some(creds) = credentials {
-                        // Create a temporary credentials file
                         use std::fs::File;
                         use std::io::Write;
                         use std::path::PathBuf;
+                        
+                        // Validate credentials
+                        if creds.api_token.is_empty() && (creds.email.is_none() || creds.api_key.is_none()) {
+                            return Err(io::Error::new(
+                                ErrorKind::InvalidInput,
+                                "No valid Cloudflare credentials provided"
+                            ));
+                        }
                         
                         let creds_dir = PathBuf::from(&self.config_dir).join("cloudflare");
                         std::fs::create_dir_all(&creds_dir)?;
                         
                         let creds_file = creds_dir.join("credentials.ini");
-                        let mut file = File::create(&creds_file)?;
                         
+                        // Create the credentials file content
                         let creds_content = if !creds.api_token.is_empty() {
-                            format!("dns_cloudflare_api_token = {}", creds.api_token)
+                            println!("Using API token authentication");
+                            format!(
+                                "# Cloudflare API token credentials for Certbot\n\
+                                dns_cloudflare_api_token = {}\n",
+                                creds.api_token
+                            )
                         } else if let (Some(ref email), Some(ref api_key)) = (creds.email.as_ref(), creds.api_key.as_ref()) {
-                            format!("dns_cloudflare_email = {}\ndns_cloudflare_api_key = {}", email, api_key)
+                            println!("Using email/API key authentication");
+                            format!(
+                                "# Cloudflare API credentials for Certbot\n\
+                                dns_cloudflare_email = {}\n\
+                                dns_cloudflare_api_key = {}\n",
+                                email, api_key
+                            )
                         } else {
                             return Err(io::Error::new(
                                 ErrorKind::InvalidInput,
@@ -96,7 +113,24 @@ impl Certbot {
                             ));
                         };
                         
-                        file.write_all(creds_content.as_bytes())?;
+                        // Write the credentials file
+                        println!("Writing credentials to: {}", creds_file.display());
+                        std::fs::write(&creds_file, &creds_content)?;
+                        
+                        // Set proper permissions
+                        #[cfg(unix)]
+                        {
+                            use std::os::unix::fs::PermissionsExt;
+                            let mut perms = std::fs::metadata(&creds_file)?.permissions();
+                            perms.set_mode(0o600);
+                            std::fs::set_permissions(&creds_file, perms)?;
+                        }
+                        
+                        // Verify the file was created and contains the credentials
+                        match std::fs::read_to_string(&creds_file) {
+                            Ok(contents) => println!("Credentials file contents:\n{}", contents),
+                            Err(e) => println!("Failed to read credentials file: {}", e),
+                        }
                         
                         args.push("--dns-cloudflare-credentials".to_string());
                         args.push(creds_file.to_string_lossy().to_string());
@@ -124,11 +158,12 @@ impl Certbot {
             args.push("--no-eff-email".to_string());
         }
         
-        // Add propagation wait time for DNS challenges
         if matches!(challenge, ChallengeType::Dns(_, _)) {
             args.push("--dns-cloudflare-propagation-seconds".to_string());
             args.push("30".to_string());
         }
+        
+        println!("Executing command: certbot {}", args.join(" "));
         
         let output = command
             .args(&args)
