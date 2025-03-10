@@ -26,9 +26,9 @@ impl CertQueueProcessor {
         if message.ssl_dns_provider.as_deref() == Some("cloudflare") {
             let credentials = DnsCredentials {
                 provider: message.ssl_dns_provider.clone().unwrap_or_default(),
-                api_token: message.ssl_dns_api_token.clone().unwrap_or_default(),
-                email: Some(message.ssl_dns_email.clone().unwrap_or_default()),
-                api_key: Some(message.ssl_dns_api_key.clone().unwrap_or_default()),
+                api_token: message.cloudflare_api_token.clone().unwrap_or_default(),
+                email: Some(message.cloudflare_email.clone().unwrap_or_default()),
+                api_key: Some(message.cloudflare_api_key.clone().unwrap_or_default()),
             };
             let challenge_type = ChallengeType::Dns(
                 "cloudflare".to_string(),
