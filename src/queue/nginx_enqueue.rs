@@ -47,7 +47,6 @@ impl NginxEnqueue {
             let mut cloudflare_email: String = String::new();
             let mut cloudflare_api_key: String = String::new();
             let mut cloudflare_api_token: String = String::new();
-            let mut dns_record: String = String::new();
             let mut dns_target: String = String::new();
             let mut dns_type: String = String::new();
             let mut dns_proxied: bool = false;
@@ -60,7 +59,7 @@ impl NginxEnqueue {
                         ssl_email = env_email.trim().to_string();
                     },
                     Err(_) => {
-                        println!("Email missing for container {}, skipping processing", container_id);
+                        println!("# Email missing for container {}, skipping processing", container_id);
                         return;
                     }
                 }
@@ -85,19 +84,6 @@ impl NginxEnqueue {
                                     },
                                     Err(_) => {
                                         println!("PROXMA_DNS_TARGET (proxma.dns.target) missing for container {}, skipping processing", container_id);
-                                        return;
-                                    }
-                                }
-                            }
-
-                            dns_record = labels.get("proxma.dns.record").map(|p| p.trim().to_string()).unwrap_or_default();
-                            if dns_record.is_empty() {
-                                match env::var("PROXMA_DNS_RECORD") {
-                                    Ok(env_dns_record) => {
-                                        dns_record = env_dns_record.trim().to_string();
-                                    },
-                                    Err(_) => {
-                                        println!("PROXMA_DNS_RECORD (proxma.dns.record) missing for container {}, skipping processing", container_id);
                                         return;
                                     }
                                 }
@@ -225,7 +211,6 @@ impl NginxEnqueue {
                     cloudflare_api_token: Some(cloudflare_api_token.clone()),
                     skip_certification: false,
                     skip_dns: skip_dns,
-                    dns_record: Some(dns_record.clone()),
                     dns_record_type: Some(dns_type.clone()),
                     dns_record_proxied: Some(dns_proxied),
                     dns_record_target: Some(dns_target.clone()),
@@ -268,7 +253,6 @@ impl NginxEnqueue {
                             cloudflare_api_token: Some(cloudflare_api_token.clone()),
                             skip_certification: false,
                             skip_dns: skip_dns,
-                            dns_record: Some(dns_record.clone()),
                             dns_record_type: Some(dns_type.clone()),
                             dns_record_proxied: Some(dns_proxied),
                             dns_record_target: Some(dns_target.clone()),

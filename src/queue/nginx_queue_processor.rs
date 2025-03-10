@@ -26,7 +26,11 @@ impl NginxQueueProcessor {
             if use_ssl {
                 println!("🔒 SSL certificate found for '{}'", host.domain);
             } else {
-                println!("🔒 SSL certificate not found for '{}'", host.domain);
+                if message.ssl {
+                    println!("🔒 SSL certificate not found for '{}'", host.domain);
+                } else {
+                    println!("🔒 SSL disabled for '{}'", host.domain);
+                }
             }
             
             match NGINX_MANAGER.add_container_host_rule(&host.domain, &upstream_url, use_ssl, message.ssl_staging) {
@@ -39,12 +43,13 @@ impl NginxQueueProcessor {
                             match NGINX_MANAGER.reload_nginx() {
                                 Ok(_) => {
                                     println!("✅ Nginx configuration reloaded successfully");
-                                    if !message.skip_certification {
-                                        CertEnqueue::message(host.domain.clone(), message.clone());
-                                        print!("🔒 Certificate request queued for '{}'", host.domain);
-                                    }
-                                    else {
-                                        println!("🔒 Skipping certificate request for '{}'", host.domain);
+                                    if message.ssl {
+                                        if !message.skip_certification {
+                                            CertEnqueue::message(host.domain.clone(), message.clone());
+                                            println!("🔒 Certificate request queued for '{}'", host.domain);
+                                        } else {
+                                            println!("🔒 Skipping certificate request for '{}'", host.domain);
+                                        }
                                     }
                                 },
                                 Err(e) => eprintln!("❌ Failed to reload nginx: {}", e),
@@ -68,9 +73,13 @@ impl NginxQueueProcessor {
             if use_ssl {
                 println!("🔒 SSL certificate found for '{}'", redirect.from);
             } else {
-                println!("🔒 SSL certificate not found for '{}'", redirect.from);
+                if message.ssl {
+                    println!("🔒 SSL certificate not found for '{}'", redirect.from);
+                } else {
+                    println!("🔒 SSL disabled for '{}'", redirect.from);
+                }
             }
-            
+                        
             match NGINX_MANAGER.add_redirect_rule(&redirect.from, &redirect.to, use_ssl, message.ssl_staging) {
                 Ok(_) => {
                     println!("📝 Created Nginx redirect config from '{}' to '{}'", redirect.from, redirect.to);
@@ -81,12 +90,13 @@ impl NginxQueueProcessor {
                             match NGINX_MANAGER.reload_nginx() {
                                 Ok(_) => {
                                     println!("✅ Nginx configuration reloaded successfully");
-                                    if !message.skip_certification {
-                                        CertEnqueue::message(redirect.from.clone(), message.clone());
-                                        print!("🔒 Certificate request queued for '{}'", redirect.from);
-                                    }
-                                    else {
-                                        println!("🔒 Skipping certificate request for '{}'", redirect.from);
+                                    if message.ssl {
+                                        if !message.skip_certification {
+                                            CertEnqueue::message(redirect.from.clone(), message.clone());
+                                            println!("🔒 Certificate request queued for '{}'", redirect.from);
+                                        } else {
+                                            println!("🔒 Skipping certificate request for '{}'", redirect.from);
+                                        }
                                     }
                                 },
                                 Err(e) => eprintln!("❌ Failed to reload nginx: {}", e),

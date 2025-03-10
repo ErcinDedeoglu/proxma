@@ -23,7 +23,6 @@ pub struct NginxQueueMessage {
     pub cloudflare_api_token: Option<String>,
     pub skip_certification: bool,
     pub skip_dns: bool,
-    pub dns_record: Option<String>,
     pub dns_record_type: Option<String>,
     pub dns_record_proxied: Option<bool>,
     pub dns_record_target: Option<String>,
