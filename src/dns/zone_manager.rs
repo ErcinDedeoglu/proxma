@@ -44,34 +44,57 @@ impl ZoneManager {
     }
 
     async fn refresh_zones(&self, email: Option<String>, api_key: Option<String>, api_token: Option<String>) -> Result<(), String> {
-        let credentials = match (email, api_key, api_token) {
-            (Some(email), Some(api_key), _) if !email.is_empty() && !api_key.is_empty() => {
-                Credentials::UserAuthKey {
-                    email,
-                    key: api_key,
-                }
-            }
-            (_, _, Some(token)) if !token.is_empty() => {
-                Credentials::UserAuthToken { token }
-            }
-            _ => return Err("No valid credentials provided (empty or missing)".to_string()),
-        };
+        let credentials: Credentials;
+
+        if email.is_some() && api_key.is_some() && !email.as_ref().unwrap().is_empty() && !api_key.as_ref().unwrap().is_empty() {
+            let email_str = email.as_ref().unwrap().trim().to_string();
+            println!("# Using email & api_key for authentication");
+            println!("# email: {}, api_key: {}", &email.as_ref().unwrap().trim().to_string()[..3], &api_key.as_ref().unwrap().trim().to_string()[..3]);
+            credentials = Credentials::UserAuthKey { 
+                email: email.as_ref().unwrap().trim().to_string(), 
+                key: api_key.as_ref().unwrap().trim().to_string()
+            };
+        }
+        else if api_token.is_some() && !api_token.as_ref().unwrap().is_empty() {
+            println!("# Using api_token for authentication");
+            println!("# api_token: {}", &api_token.as_ref().unwrap().trim().to_string()[..3]);
+            credentials = Credentials::UserAuthToken { 
+                token: api_token.as_ref().unwrap().trim().to_string()
+            };
+        }
+        else {
+            println!("# No valid credentials provided: must provide either email & api_key, or api_token");
+            return Err("No valid credentials provided: must provide either email & api_key, or api_token".to_string());
+        }
     
-        let client = match Client::new(credentials, HttpApiClientConfig::default(), Environment::Production) {
+        let config = HttpApiClientConfig::default();
+        
+        let client = match Client::new(
+            credentials,
+            config,
+            Environment::Production
+        ) {
             Ok(client) => client,
             Err(e) => return Err(format!("Failed to create client: {}", e)),
         };
     
+        // Add debug output
+        println!("# Attempting to list zones...");
+        
         match client.request(&ListZones { params: ListZonesParams::default() }).await {
             Ok(response) => {
                 let mut cache = ZONE_CACHE.write().map_err(|e| e.to_string())?;
                 cache.clear();
                 for zone in response.result {
+                    println!("# Found zone: {}", zone.name);
                     cache.insert(zone.name, zone.id);
                 }
                 Ok(())
             },
-            Err(e) => Err(format!("Failed to list zones: {}", e))
+            Err(e) => {
+                println!("# Debug - Error details: {:?}", e);
+                Err(format!("Failed to list zones: {}", e))
+            }
         }
     }
 }
