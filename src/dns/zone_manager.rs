@@ -44,23 +44,17 @@ impl ZoneManager {
     }
 
     async fn refresh_zones(&self, email: Option<String>, api_key: Option<String>, api_token: Option<String>) -> Result<(), String> {
-        let credentials = if let (Some(email), Some(api_key)) = (email, api_key) {
-            if !email.is_empty() && !api_key.is_empty() {
-                Credentials::UserAuthKey { 
-                    email, 
-                    key: api_key 
+        let credentials = match (email, api_key, api_token) {
+            (Some(email), Some(api_key), _) if !email.is_empty() && !api_key.is_empty() => {
+                Credentials::UserAuthKey {
+                    email,
+                    key: api_key,
                 }
-            } else {
-                return Err("Empty email or api_key".to_string());
             }
-        } else if let Some(token) = api_token {
-            if !token.is_empty() {
+            (_, _, Some(token)) if !token.is_empty() => {
                 Credentials::UserAuthToken { token }
-            } else {
-                return Err("Empty api_token".to_string());
             }
-        } else {
-            return Err("No valid credentials provided".to_string());
+            _ => return Err("No valid credentials provided (empty or missing)".to_string()),
         };
     
         let client = match Client::new(credentials, HttpApiClientConfig::default(), Environment::Production) {
