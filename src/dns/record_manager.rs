@@ -1,4 +1,5 @@
 use anyhow::Result;
+use super::auth_manager::AuthManager;
 use cloudflare::{
     endpoints::dns::{DnsRecord, ListDnsRecords, ListDnsRecordsParams, DnsContent},
     framework::{
@@ -17,22 +18,16 @@ impl RecordManager {
     }
     
     pub async fn get_dns_record(
-        zone_id: &str,
-        name: &str,
-        record_type: &str,
-        api_token: Option<&str>,
-        api_key: Option<&str>,
-        email: Option<&str>,
+        zone_id: String,
+        name: String,
+        record_type: String,
+        api_token: Option<String>,
+        api_key: Option<String>,
+        email: Option<String>,
     ) -> Result<Option<DnsRecord>> {
-        let credentials = if let Some(token) = api_token {
-            Credentials::UserAuthToken { token: token.to_string() }
-        } else if let (Some(key), Some(email)) = (api_key, email) {
-            Credentials::UserAuthKey { 
-                key: key.to_string(),
-                email: email.parse()?,
-            }
-        } else {
-            return Err(anyhow::anyhow!("No valid authentication credentials provided"));
+        let credentials = match self::AuthManager::get_credentials(email, api_key, api_token) {
+            Ok(it) => it,
+            Err(err) => return Err(anyhow::anyhow!(err)),
         };
 
         let client = Client::new(
@@ -49,7 +44,7 @@ impl RecordManager {
 
         let response = client
             .request(&ListDnsRecords {
-                zone_identifier: zone_id,
+                zone_identifier: &zone_id,
                 params,
             })
             .await?;

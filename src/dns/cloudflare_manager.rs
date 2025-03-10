@@ -63,7 +63,8 @@ impl CloudflareManager {
             },
         };
 
-        let dns_record = RecordManager::get_dns_record(&zone_id, &record, &r#type, Some(&api_token), Some(&api_key), Some(&email)).await;
+        let record_clone = record.clone();
+        let dns_record = RecordManager::get_dns_record(zone_id, record_clone, r#type, Some(api_token), Some(api_key), Some(email)).await;
 
         let dns_record = dns_record.unwrap();
         if dns_record.is_some() {
@@ -92,71 +93,5 @@ impl CloudflareManager {
         }
 
         return true;
-
-
-
-        // let credentials = if !api_token.is_empty() {
-        //     Credentials::UserAuthToken { token: api_token }
-        // } else {
-        //     Credentials::UserAuthKey { email, key: api_key }
-        // };
-
-        // let client = match Client::new(
-        //     credentials,
-        //     HttpApiClientConfig::default(),
-        //     Environment::Production,
-        // ) {
-        //     Ok(client) => client,
-        //     Err(e) => {
-        //         eprintln!("Failed to create client: {:?}", e);
-        //         return false;
-        //     }
-        // };
-
-        // // Create DNS content based on record type
-        // let dns_content = match r#type.to_uppercase().as_str() {
-        //     "A" => match target.parse() {
-        //         Ok(ip) => DnsContent::A { content: ip },
-        //         Err(_) => {
-        //             eprintln!("Invalid IP address");
-        //             return false;
-        //         }
-        //     },
-        //     "AAAA" => match target.parse() {
-        //         Ok(ip) => DnsContent::AAAA { content: ip },
-        //         Err(_) => {
-        //             eprintln!("Invalid IPv6 address");
-        //             return false;
-        //         }
-        //     },
-        //     "CNAME" => DnsContent::CNAME { content: target },
-        //     "TXT" => DnsContent::TXT { content: target },
-        //     _ => {
-        //         eprintln!("Unsupported record type: {}", r#type);
-        //         return false;
-        //     }
-        // };
-
-        // let create_request = CreateDnsRecord {
-        //     zone_identifier: &provider,
-        //     params: CreateDnsRecordParams {
-        //         name: &record,
-        //         content: dns_content,
-        //         ttl: None,
-        //         priority: None,
-        //         proxied: Some(proxied),
-        //     },
-        // };
-
-        // match client.request(&create_request).await {
-        //     Ok(_) => {
-        //         println!("Successfully created record");
-        //         true
-        //     }
-        //     Err(e) => {
-        //         eprintln!("Failed to create record: {:?}", e);
-        //         false
-        //     }
-        // }
     }
 }
