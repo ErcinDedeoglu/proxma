@@ -16,11 +16,17 @@ pub struct NginxQueueMessage {
     pub created_at: DateTime<Utc>,
     pub delay_seconds: Option<u64>,
     pub ssl_staging: bool,
+    pub dns_provider: Option<String>,
     pub ssl_dns_provider: Option<String>,
     pub cloudflare_email: Option<String>,
     pub cloudflare_api_key: Option<String>,
     pub cloudflare_api_token: Option<String>,
     pub skip_certification: bool,
+    pub skip_dns: bool,
+    pub dns_record: Option<String>,
+    pub dns_record_type: Option<String>,
+    pub dns_record_proxied: Option<bool>,
+    pub dns_record_target: Option<String>,
 }
 
 #[derive(Debug, Clone)]

@@ -1,5 +1,6 @@
 mod docker;
 mod nginx;
+mod dns;
 mod certbot;
 mod queue;
 pub mod acme_helper;

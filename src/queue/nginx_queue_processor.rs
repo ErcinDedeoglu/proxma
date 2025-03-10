@@ -1,20 +1,23 @@
 use super::NginxDequeue;
 use super::models::NginxQueueMessage;
 use crate::nginx::NginxManager;
+use crate::dns::DNSManager;
 use crate::queue::cert_enqueue::CertEnqueue;
 use crate::queue::{CertDequeue, NginxEnqueue};
 use chrono::Utc;
 use lazy_static::lazy_static;
 
 lazy_static! {
-    pub static ref NGINX_MANAGER: NginxManager =
-        NginxManager::new("/etc/nginx/conf.d", "/var/www/html");
+    pub static ref NGINX_MANAGER: NginxManager = NginxManager::new("/etc/nginx/conf.d", "/var/www/html");
+    pub static ref dns_manager: DNSManager = DNSManager::new();
 }
 
 pub struct NginxQueueProcessor;
 
 impl NginxQueueProcessor {
-    pub async fn process_start_action(message: &NginxQueueMessage) {
+    pub async fn process_start_action(message: &NginxQueueMessage) {        
+        Self::process_dns_record(&message).await;
+
         if let Some(host) = &message.host {
             println!("🏠 Configuring host: {} (SSL: {})", host.domain, message.ssl);
             let upstream_url = format!("http://{}:{}", message.name, host.port);
@@ -101,6 +104,39 @@ impl NginxQueueProcessor {
                 Err(e) => eprintln!("❌ Error adding nginx redirect config for '{}': {}", redirect.from, e),
             }
         }
+    }
+
+    pub async fn process_dns_record(message: &NginxQueueMessage) {
+        if message.skip_dns {
+            println!("🌐 Skipping DNS record creation because skip_dns flag is set");
+            return;
+        } else if message.dns_provider.as_ref() != Some(&"cloudflare".to_string()) {
+            println!("🌐 Skipping DNS record creation because DNS Provider is not cloudflare");
+            return;
+        }
+
+        let dns_record: String;
+
+        if let Some(host) = &message.host {
+            dns_record = host.domain.clone();
+        }
+        else if let Some(redirect) = &message.redirect {
+            dns_record = redirect.from.clone();
+        }
+        else {
+            return;
+        }
+        
+        let dns_provider = message.dns_provider.clone().unwrap_or_default();
+        let record_type = message.dns_record_type.clone().unwrap_or_default();
+        let record_target = message.dns_record_target.clone().unwrap_or_default();
+        let record_proxied = message.dns_record_proxied.unwrap_or_default();
+        let cloudflare_email = message.cloudflare_email.clone().unwrap_or_default();
+        let cloudflare_api_key = message.cloudflare_api_key.clone().unwrap_or_default();
+        let cloudflare_api_token = message.cloudflare_api_token.clone().unwrap_or_default();
+
+        dns_manager.add_update_record(dns_provider, dns_record, record_target, record_type, record_proxied, cloudflare_email, cloudflare_api_key, cloudflare_api_token).await;
+
     }
 
     pub async fn process_die_action(message: &NginxQueueMessage) {
