@@ -1,13 +1,10 @@
 use anyhow::Result;
 use super::auth_manager::AuthManager;
 use cloudflare::{
-    endpoints::dns::{DnsRecord, ListDnsRecords, ListDnsRecordsParams, DnsContent},
-    framework::{
-        async_api::Client,
-        auth::Credentials,
-        Environment,
-        HttpApiClientConfig,
-    },
+    endpoints::dns::dns::{DnsContent, DnsRecord, ListDnsRecords, ListDnsRecordsParams},
+    framework::{client::{
+        async_api::Client, ClientConfig,
+    }, Environment},
 };
 
 pub struct RecordManager;
@@ -32,7 +29,7 @@ impl RecordManager {
 
         let client = Client::new(
             credentials,
-            HttpApiClientConfig::default(),
+            ClientConfig::default(),
             Environment::Production,
         )?;
 

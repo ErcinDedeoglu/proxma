@@ -1,15 +1,22 @@
-use lazy_static::lazy_static;
 use crate::dns::ZoneManager;
 use super::record_manager::RecordManager;
-
+use cloudflare::framework::auth::{AuthClient, Credentials};
+use cloudflare::framework::client::async_api::Client as HttpApiClientAsync;
+use cloudflare::framework::{response::ApiFailure};
+use cloudflare::endpoints::zones::zone::{ListZones, ListZonesParams};
+use lazy_static::lazy_static;
+use std::collections::HashMap;
+use std::sync::RwLock;
+use anyhow::Result;
+use super::auth_manager::AuthManager;
 use cloudflare::{
-    endpoints::dns::{CreateDnsRecord, CreateDnsRecordParams, DnsContent},
-    framework::{auth::Credentials, Environment, HttpApiClientConfig, async_api::Client},
+    endpoints::dns::dns::{DnsContent, DnsRecord, ListDnsRecords, ListDnsRecordsParams},
+    framework::{client::{
+        async_api::Client, ClientConfig,
+    }, Environment},
 };
 
-pub struct CloudflareManager {
-    client: Client,
-}
+pub struct CloudflareManager;
 
 lazy_static! {
     pub static ref ZONE_MANAGER: ZoneManager = ZoneManager::new();
@@ -24,11 +31,11 @@ impl CloudflareManager {
         
         let client = Client::new(
             credentials,
-            HttpApiClientConfig::default(),
+            ClientConfig::default(),
             Environment::Production,
-        ).expect("Failed to create default client");
-
-        CloudflareManager { client }
+        );
+        
+        CloudflareManager
     }
 
     pub async fn add_update_record(
