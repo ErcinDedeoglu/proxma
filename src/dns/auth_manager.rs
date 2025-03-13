@@ -1,4 +1,3 @@
-// auth_manager.rs
 use cloudflare::framework::auth::Credentials;
 
 pub struct AuthManager;

@@ -1,20 +1,9 @@
 use crate::dns::ZoneManager;
 use super::record_manager::RecordManager;
-use cloudflare::framework::auth::{AuthClient, Credentials};
-use cloudflare::framework::client::async_api::Client as HttpApiClientAsync;
-use cloudflare::framework::{response::ApiFailure};
-use cloudflare::endpoints::zones::zone::{ListZones, ListZonesParams};
 use lazy_static::lazy_static;
-use std::collections::HashMap;
-use std::sync::RwLock;
-use anyhow::Result;
-use super::auth_manager::AuthManager;
-use cloudflare::{
-    endpoints::dns::dns::{DnsContent, DnsRecord, ListDnsRecords, ListDnsRecordsParams},
-    framework::{client::{
-        async_api::Client, ClientConfig,
-    }, Environment},
-};
+use cloudflare::
+    endpoints::dns::dns::DnsContent
+;
 
 pub struct CloudflareManager;
 
@@ -24,17 +13,7 @@ lazy_static! {
 }
 
 impl CloudflareManager {
-    pub fn new() -> Self {
-        let credentials: Credentials = Credentials::UserAuthToken { 
-            token: String::new()
-        };
-        
-        let client = Client::new(
-            credentials,
-            ClientConfig::default(),
-            Environment::Production,
-        );
-        
+    pub fn new() -> Self {        
         CloudflareManager
     }
 
