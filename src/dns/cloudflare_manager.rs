@@ -1,9 +1,7 @@
 use crate::dns::ZoneManager;
 use super::record_manager::RecordManager;
 use lazy_static::lazy_static;
-use cloudflare::
-    endpoints::dns::dns::DnsContent
-;
+use cloudflare::endpoints::dns::dns::DnsContent;
 
 pub struct CloudflareManager;
 
@@ -16,7 +14,7 @@ impl CloudflareManager {
     pub fn new() -> Self {        
         CloudflareManager
     }
-
+    
     pub async fn add_update_record(
         &self,
         provider: String,
@@ -24,17 +22,17 @@ impl CloudflareManager {
         target: String,
         r#type: String,
         proxied: bool,
-        email: String,
-        api_key: String,
-        api_token: String,
+        email: Option<String>,
+        api_key: Option<String>,
+        api_token: Option<String>
     ) -> bool {
         println!("# CLOUDFLARE_MANAGER.add_update_record");
         println!(
             "🔒 Adding DNS record for '{}' with target '{}', type '{}', provider '{}', proxied: {}",
             record, target, r#type, provider, proxied
         );
-
-        let zone_id = match ZONE_MANAGER.get_zone_id(&record, Some(email.clone()), Some(api_key.clone()), Some(api_token.clone())).await {
+        
+        let zone_id = match ZONE_MANAGER.get_zone_id(&record, email.clone(), api_key.clone(), api_token.clone()).await {
             Ok(Some(id)) => {
                 println!("Found zone ID: {}", id);
                 id
@@ -48,11 +46,19 @@ impl CloudflareManager {
                 return false;
             },
         };
-
+        
         let record_clone = record.clone();
-        let dns_record = RecordManager::get_dns_record(zone_id, record_clone, r#type, Some(api_token), Some(api_key), Some(email)).await;
-
+        let dns_record = RecordManager::get_dns_record(
+            zone_id, 
+            record_clone, 
+            r#type, 
+            email,
+            api_key,
+            api_token
+        ).await;
+        
         let dns_record = dns_record.unwrap();
+        
         if dns_record.is_some() {
             println!("Record exists...");
             
@@ -77,7 +83,6 @@ impl CloudflareManager {
                 }              
             }
         }
-
         return true;
     }
 }

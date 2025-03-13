@@ -18,34 +18,34 @@ impl RecordManager {
         zone_id: String,
         name: String,
         record_type: String,
-        api_token: Option<String>,
-        api_key: Option<String>,
         email: Option<String>,
+        api_key: Option<String>,
+        api_token: Option<String>,
     ) -> Result<Option<DnsRecord>> {
-        let credentials = match self::AuthManager::get_credentials(email, api_key, api_token) {
+        let credentials = match AuthManager::get_credentials(email, api_key, api_token) {
             Ok(it) => it,
             Err(err) => return Err(anyhow::anyhow!(err)),
         };
-
+        
         let client = Client::new(
             credentials,
             ClientConfig::default(),
             Environment::Production,
         )?;
-
+        
         let params: ListDnsRecordsParams = ListDnsRecordsParams {
             name: Some(name.to_string()),
             record_type: None,
             ..Default::default()
         };
-
+        
         let response = client
             .request(&ListDnsRecords {
                 zone_identifier: &zone_id,
                 params,
             })
             .await?;
-
+            
         Ok(response.result
             .into_iter()
             .find(|record| match &record.content {

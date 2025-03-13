@@ -42,20 +42,20 @@ impl ZoneManager {
         api_token: Option<String>,
     ) -> Result<(), String> {
         let credentials = AuthManager::get_credentials(email, api_key, api_token)?;
-
+        
         // Corrected client instantiation
         let client = HttpApiClientAsync::new(
             credentials,
             Default::default(),
             Environment::Production,
         ).map_err(|e| format!("Cloudflare API client creation failed: {:?}", e))?;
-
+        
         let endpoint = ListZones {
             params: ListZonesParams::default(),
         };
-
+        
         println!("# Retrieving zones from Cloudflare API...");
-
+        
         // Make the async request using the correct client & endpoints
         match client.request(&endpoint).await {
             Ok(api_success) => {

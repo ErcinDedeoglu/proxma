@@ -145,8 +145,16 @@ impl NginxQueueProcessor {
         let cloudflare_api_key = message.cloudflare_api_key.clone().unwrap_or_default();
         let cloudflare_api_token = message.cloudflare_api_token.clone().unwrap_or_default();
 
-        dns_manager.add_update_record(dns_provider, dns_record, record_target, record_type, record_proxied, cloudflare_email, cloudflare_api_key, cloudflare_api_token).await;
-
+        dns_manager.add_update_record(
+            dns_provider, 
+            dns_record, 
+            record_target, 
+            record_type, 
+            record_proxied,
+            Some(cloudflare_email),
+            Some(cloudflare_api_key),
+            Some(cloudflare_api_token)
+        ).await;
     }
 
     pub async fn process_die_action(message: &NginxQueueMessage) {
