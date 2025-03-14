@@ -1,17 +1,19 @@
 use cloudflare::endpoints::dns::dns::DnsContent;
 use lazy_static::lazy_static;
-use super::CloudflareManager;
+
+use super::{record_manager::RecordManager, CloudflareManager};
 
 pub struct DNSManager {
 }
 
 lazy_static! {
     pub static ref CLOUDFLARE_MANAGER: CloudflareManager = CloudflareManager::new();
+    pub static ref RECORD_MANAGER: RecordManager = RecordManager::new();
 }
 
 impl DNSManager {
     pub fn new() -> Self {
-        DNSManager {}
+        Self {}
     }
 
     pub fn dns_content_to_string(content: &DnsContent) -> String {
@@ -26,17 +28,17 @@ impl DNSManager {
         }
     }
 
-pub fn dns_content_type_string(content: &DnsContent) -> String {
-    match content {
-        DnsContent::A { .. } => "A".to_string(),
-        DnsContent::AAAA { .. } => "AAAA".to_string(),
-        DnsContent::CNAME { .. } => "CNAME".to_string(),
-        DnsContent::NS { .. } => "NS".to_string(),
-        DnsContent::MX { .. } => "MX".to_string(),
-        DnsContent::TXT { .. } => "TXT".to_string(),
-        DnsContent::SRV { .. } => "SRV".to_string(),
+    pub fn dns_content_type_string(content: &DnsContent) -> String {
+        match content {
+            DnsContent::A { .. } => "A".to_string(),
+            DnsContent::AAAA { .. } => "AAAA".to_string(),
+            DnsContent::CNAME { .. } => "CNAME".to_string(),
+            DnsContent::NS { .. } => "NS".to_string(),
+            DnsContent::MX { .. } => "MX".to_string(),
+            DnsContent::TXT { .. } => "TXT".to_string(),
+            DnsContent::SRV { .. } => "SRV".to_string(),
+        }
     }
-}
     
     pub async fn add_update_record(
         &self, 
@@ -49,11 +51,10 @@ pub fn dns_content_type_string(content: &DnsContent) -> String {
         api_key: Option<String>,
         api_token: Option<String>
     ) -> bool {
-        println!("🔒 Adding DNS record for '{}' with target '{}', type '{}', provider '{}', proxied: {}", 
-                 record, target, r#type, provider, proxied);
+        println!("🔒 Adding DNS record for '{}' with target '{}', type '{}', provider '{}', proxied: {}", record, target, r#type, provider, proxied);
                  
         if provider == "cloudflare" {
-            CLOUDFLARE_MANAGER.add_update_record(
+            Box::pin(CLOUDFLARE_MANAGER.add_update_record(
                 provider, 
                 record, 
                 target, 
@@ -62,7 +63,7 @@ pub fn dns_content_type_string(content: &DnsContent) -> String {
                 email,
                 api_key,
                 api_token
-            ).await
+            )).await
         } else {
             false
         }

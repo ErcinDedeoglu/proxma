@@ -1,13 +1,13 @@
 use crate::dns::ZoneManager;
+use crate::dns::DNSManager;
 use crate::dns::record_manager::RecordManager;
-use crate::dns::dns_manager::DNSManager;
 use lazy_static::lazy_static;
+
 
 pub struct CloudflareManager;
 
 lazy_static! {
     pub static ref ZONE_MANAGER: ZoneManager = ZoneManager::new();
-    pub static ref RECORD_MANAGER: RecordManager = RecordManager::new();
     pub static ref DNS_MANAGER: DNSManager = DNSManager::new();
 }
 
@@ -54,17 +54,11 @@ impl CloudflareManager {
             },
         };
 
-        // Create the proper record name relative to the zone
-        // If the record is exactly the zone or ends with the zone, we need to adjust
         let record_name = if record == zone_name {
-            // For apex record (exactly the zone), use the record as is
             record.clone()
         } else if record.ends_with(&format!(".{}", zone_name)) {
-            // For subdomains, use the record as is
             record.clone()
         } else {
-            // For other cases, we might need to append the zone
-            // This is a fallback case and might need adjustment based on your needs
             format!("{}.{}", record, zone_name)
         };
 
@@ -85,10 +79,10 @@ impl CloudflareManager {
             }
         };
 
+        let mut record_update: bool = false;
 
         if let Some(existing_record) = dns_record {
             println!("Record exists...");
-            let mut record_update: bool = false;
 
             if existing_record.proxied != proxied {
                 println!("Proxied status is out of date");
@@ -104,20 +98,25 @@ impl CloudflareManager {
                 println!("Record name is out of date");
                 record_update = true;
             }
-
-            // Here you would add code to update the existing record
-            // This part seems to be missing from your original code
-            if record_update {
-                println!("Updating existing record...");
-                // RECORD_MANAGER.update_record(...) implementation would go here
-            } else {
-                println!("Record is already up to date, no update needed");
-            }
         } else {
-            // Here you would add code to create a new record
-            // This part seems to be missing from your original code
             println!("Creating new record...");
-            // RECORD_MANAGER.create_record(...) implementation would go here
+            record_update = true;
+        }
+
+        if record_update {
+            println!("Adding/Updating record...");
+            DNS_MANAGER.add_update_record(
+                provider.clone(),  // provider
+                record_name,       // record
+                target,            // target
+                r#type,            // r#type
+                proxied,           // proxied (boolean, not Option<bool>)
+                email.clone(),     // email
+                api_key.clone(),   // api_key
+                api_token.clone()  // api_token
+            ).await;
+        } else {
+            println!("Record is already up to date, no update needed");
         }
 
         return true;

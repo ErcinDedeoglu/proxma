@@ -17,6 +17,11 @@ repomix --no-file-summary --no-security-check \
   --include "src/main.rs,src/queue/**" \
   --output "repopack.yml"
 
+# dns
+repomix --no-file-summary --no-security-check \
+  --include "src/main.rs,src/queue/nginx_queue_processor.rs,src/dns/**" \
+  --output "repopack.yml"
+
 
 docker build -t dublok/proxma:latest -f src/Dockerfile .
 docker buildx build --platform linux/amd64,linux/arm64 -t dublok/proxma:latest -f src/Dockerfile .
