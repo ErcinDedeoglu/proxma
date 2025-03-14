@@ -46,16 +46,24 @@ RUN mkdir -p /run/nginx /var/www/html/.well-known/acme-challenge /etc/nginx/ssl 
     && chmod 644 /var/proxma/ssl/default.fullchain.crt.pem \
     && chmod 600 /var/proxma/ssl/default.privkey.key.pem
 
+# Copy the Cloudflare IP fetching script
+COPY src/fetch_cloudflare_ips.sh /usr/local/bin/
+# Make sure the script has the correct line endings and is executable
+RUN dos2unix /usr/local/bin/fetch_cloudflare_ips.sh || true && \
+    chmod +x /usr/local/bin/fetch_cloudflare_ips.sh && \
+    /usr/local/bin/fetch_cloudflare_ips.sh
+
 COPY src/webserver/nginx/nginx.conf /etc/nginx/nginx.conf
 COPY src/webserver/nginx/conf.d/default.conf /etc/nginx/conf.d/default.conf
+
+# Modify the default.conf to include the Cloudflare IPs configuration
+RUN sed -i '/server {/i include /etc/nginx/conf.d/includes/cloudflare_ips.conf;' /etc/nginx/conf.d/default.conf
+
 COPY src/webserver/website /var/www/html
 RUN chmod -R 755 /var/www/html
 RUN echo "proxma" > /var/www/html/.well-known/acme-challenge/proxma.proxma \
     && chmod 644 /var/www/html/.well-known/acme-challenge/proxma.proxma
-
 COPY --from=builder /proxma /usr/local/bin/proxma
-
 HEALTHCHECK --interval=30s --timeout=3s CMD nginx -t
-
 ENTRYPOINT ["/sbin/tini", "--"]
 CMD ["sh", "-c", "nginx -g \"daemon off;\" & exec /usr/local/bin/proxma"]
