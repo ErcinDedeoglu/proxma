@@ -1,3 +1,4 @@
+use crate::dns::dns_manager::RECORD_MANAGER;
 use crate::dns::ZoneManager;
 use crate::dns::DNSManager;
 use crate::dns::record_manager::RecordManager;
@@ -18,7 +19,6 @@ impl CloudflareManager {
 
     pub async fn add_update_record(
         &self,
-        provider: String,
         record: String,
         target: String,
         r#type: String,
@@ -28,20 +28,10 @@ impl CloudflareManager {
         api_token: Option<String>
     ) -> bool {
         println!("# CLOUDFLARE_MANAGER.add_update_record");
-        println!(
-            "🔒 Adding DNS record for '{}' with target '{}', type '{}', provider '{}', proxied: {}",
-            record, target, r#type, provider, proxied
-        );
+        println!("🔒 Adding DNS record for '{}' with target '{}', type '{}', proxied: {}", record, target, r#type, proxied);
 
-        // Use find_best_matching_zone instead of get_zone_id
-        let (zone_name, zone_id) = match ZONE_MANAGER.find_best_matching_zone(
-            &record,
-            email.clone(),
-            api_key.clone(),
-            api_token.clone()
-        ).await {
-            Ok((Some(name), Some(id))) => {
-                println!("Found best matching zone: {} (ID: {})", name, id);
+        let (zone_name, zone_id) = match ZONE_MANAGER.find_best_matching_zone(&record, email.clone(), api_key.clone(), api_token.clone()).await {
+            Ok((Some(name), Some(id))) => { println!("Found best matching zone: {} (ID: {})", name, id);
                 (name, id)
             },
             Ok(_) => {
@@ -63,7 +53,7 @@ impl CloudflareManager {
         };
 
         let dns_record = RecordManager::get_dns_record(
-            zone_id,
+            zone_id.clone(),
             record_name.clone(),
             r#type.clone(),
             email.clone(),
@@ -81,9 +71,8 @@ impl CloudflareManager {
 
         let mut record_update: bool = false;
 
-        if let Some(existing_record) = dns_record {
+        if let Some(ref existing_record) = dns_record {
             println!("Record exists...");
-
             if existing_record.proxied != proxied {
                 println!("Proxied status is out of date");
                 record_update = true;
@@ -105,16 +94,21 @@ impl CloudflareManager {
 
         if record_update {
             println!("Adding/Updating record...");
-            DNS_MANAGER.add_update_record(
-                provider.clone(),  // provider
-                record_name,       // record
-                target,            // target
-                r#type,            // r#type
-                proxied,           // proxied (boolean, not Option<bool>)
-                email.clone(),     // email
-                api_key.clone(),   // api_key
-                api_token.clone()  // api_token
-            ).await;
+            match RecordManager::add_update_record(
+                zone_id,
+                record_name,
+                r#type,
+                target,
+                None,
+                Some(proxied),
+                dns_record,
+                email.clone(),
+                api_key.clone(),
+                api_token.clone()
+            ).await {
+                Ok(_) => println!("Record successfully updated"),
+                Err(e) => eprintln!("Failed to update record: {}", e),
+            };
         } else {
             println!("Record is already up to date, no update needed");
         }

@@ -54,16 +54,7 @@ impl DNSManager {
         println!("🔒 Adding DNS record for '{}' with target '{}', type '{}', provider '{}', proxied: {}", record, target, r#type, provider, proxied);
                  
         if provider == "cloudflare" {
-            Box::pin(CLOUDFLARE_MANAGER.add_update_record(
-                provider, 
-                record, 
-                target, 
-                r#type, 
-                proxied,
-                email,
-                api_key,
-                api_token
-            )).await
+            CLOUDFLARE_MANAGER.add_update_record(record, target, r#type, proxied, email, api_key, api_token).await
         } else {
             false
         }
