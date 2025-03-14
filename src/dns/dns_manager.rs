@@ -1,3 +1,4 @@
+use cloudflare::endpoints::dns::dns::DnsContent;
 use lazy_static::lazy_static;
 use super::CloudflareManager;
 
@@ -12,6 +13,30 @@ impl DNSManager {
     pub fn new() -> Self {
         DNSManager {}
     }
+
+    pub fn dns_content_to_string(content: &DnsContent) -> String {
+        match content {
+            DnsContent::A { content: ip } => ip.to_string(),
+            DnsContent::AAAA { content: ip } => ip.to_string(),
+            DnsContent::CNAME { content: cname } => cname.clone(),
+            DnsContent::NS { content: ns } => ns.clone(),
+            DnsContent::MX { content: mx, priority } => format!("{} {}", priority, mx),
+            DnsContent::TXT { content: txt } => txt.clone(),
+            DnsContent::SRV { content: srv } => srv.clone(),
+        }
+    }
+
+pub fn dns_content_type_string(content: &DnsContent) -> String {
+    match content {
+        DnsContent::A { .. } => "A".to_string(),
+        DnsContent::AAAA { .. } => "AAAA".to_string(),
+        DnsContent::CNAME { .. } => "CNAME".to_string(),
+        DnsContent::NS { .. } => "NS".to_string(),
+        DnsContent::MX { .. } => "MX".to_string(),
+        DnsContent::TXT { .. } => "TXT".to_string(),
+        DnsContent::SRV { .. } => "SRV".to_string(),
+    }
+}
     
     pub async fn add_update_record(
         &self, 

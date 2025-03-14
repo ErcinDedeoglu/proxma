@@ -1,13 +1,14 @@
 use crate::dns::ZoneManager;
-use super::record_manager::RecordManager;
+use crate::dns::record_manager::RecordManager;
+use crate::dns::dns_manager::DNSManager;
 use lazy_static::lazy_static;
-use cloudflare::endpoints::dns::dns::DnsContent;
 
 pub struct CloudflareManager;
 
 lazy_static! {
     pub static ref ZONE_MANAGER: ZoneManager = ZoneManager::new();
     pub static ref RECORD_MANAGER: RecordManager = RecordManager::new();
+    pub static ref DNS_MANAGER: DNSManager = DNSManager::new();
 }
 
 impl CloudflareManager {
@@ -70,7 +71,7 @@ impl CloudflareManager {
         let dns_record = RecordManager::get_dns_record(
             zone_id,
             record_name.clone(),
-            r#type,
+            r#type.clone(),
             email.clone(),
             api_key.clone(),
             api_token.clone()
@@ -84,30 +85,34 @@ impl CloudflareManager {
             }
         };
 
+
         if let Some(existing_record) = dns_record {
             println!("Record exists...");
-            if existing_record.proxied == proxied {
-                println!("Proxied status is up to date");
-                let content_str: String = match &existing_record.content {
-                    DnsContent::A { content } => content.to_string(),
-                    DnsContent::AAAA { content } => content.to_string(),
-                    DnsContent::CNAME { content } => content.clone(),
-                    DnsContent::TXT { content } => content.clone(),
-                    _ => String::new(),
-                };
-                if content_str == target {
-                    println!("Content is up to date");
-                    if existing_record.name == record_name {
-                        println!("Name is up to date");
-                        return true;
-                    }
-                }
+            let mut record_update: bool = false;
+
+            if existing_record.proxied != proxied {
+                println!("Proxied status is out of date");
+                record_update = true;
+            }
+            
+            if r#type != DNSManager::dns_content_type_string(&existing_record.content) {
+                println!("Record type is out of date");
+                record_update = true;
+            }
+            
+            if record != DNSManager::dns_content_to_string(&existing_record.content) {
+                println!("Record name is out of date");
+                record_update = true;
             }
 
             // Here you would add code to update the existing record
             // This part seems to be missing from your original code
-            println!("Updating existing record...");
-            // RECORD_MANAGER.update_record(...) implementation would go here
+            if record_update {
+                println!("Updating existing record...");
+                // RECORD_MANAGER.update_record(...) implementation would go here
+            } else {
+                println!("Record is already up to date, no update needed");
+            }
         } else {
             // Here you would add code to create a new record
             // This part seems to be missing from your original code
