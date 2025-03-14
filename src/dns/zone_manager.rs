@@ -17,24 +17,6 @@ impl ZoneManager {
         Self {}
     }
 
-    pub async fn get_zone_id(
-        &self,
-        domain: &str,
-        email: Option<String>,
-        api_key: Option<String>,
-        api_token: Option<String>,
-    ) -> Result<Option<String>, String> {
-        if let Some(zone_id) = Self::get_from_cache(domain) {
-            return Ok(Some(zone_id));
-        }
-        self.refresh_zones(email, api_key, api_token).await?;
-        Ok(Self::get_from_cache(domain))
-    }
-
-    fn get_from_cache(domain: &str) -> Option<String> {
-        ZONE_CACHE.read().ok()?.get(domain).cloned()
-    }
-
     async fn refresh_zones(
         &self,
         email: Option<String>,

@@ -26,6 +26,7 @@ pub struct Certbot {
 
 #[derive(Debug, Clone)]
 pub struct DnsCredentials {
+    #[allow(dead_code)]
     pub(crate) provider: String,
     pub(crate) api_token: String,
     pub(crate) email: Option<String>,

@@ -56,7 +56,6 @@ impl RecordManager {
                 DnsContent::NS { .. } => record_type == "NS",
                 DnsContent::TXT { .. } => record_type == "TXT",
                 DnsContent::SRV { .. } => record_type == "SRV",
-                _ => false,
             }))
     }
 }
