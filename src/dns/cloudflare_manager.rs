@@ -1,4 +1,3 @@
-use crate::dns::dns_manager::RECORD_MANAGER;
 use crate::dns::ZoneManager;
 use crate::dns::DNSManager;
 use crate::dns::record_manager::RecordManager;
