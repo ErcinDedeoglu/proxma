@@ -3,6 +3,7 @@ mod nginx;
 mod dns;
 mod certbot;
 mod queue;
+mod models;
 pub mod acme_helper;
 
 use futures::StreamExt;

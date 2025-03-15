@@ -1,3 +1,5 @@
+use crate::models::Cache;
+
 /// Helper function to generate ACME challenge location block
 fn generate_acme_challenge_block(webroot_path: &str) -> String {
     format!(
@@ -51,15 +53,31 @@ fn generate_server_block(is_https: bool, domain: &str, location_block: &str, ssl
 }
 
 /// Generate an Nginx server block for proxying requests
-pub fn generate_proxy_server_block(domain: &str, upstream: &str, ssl: bool, webroot_path: &str, ssl_staging: bool,) -> String {
-    let proxy_location = format!(
-        r#"    location / {{
+pub fn generate_proxy_server_block(
+    domain: &str, 
+    upstream: &str, 
+    ssl: bool, 
+    webroot_path: &str, 
+    ssl_staging: bool,
+    cache: Cache,
+) -> String {
+    // Generate location block based on whether caching is enabled
+    let proxy_location = if cache.enabled {
+        generate_proxy_location_with_cache(
+            upstream, 
+            domain, 
+            cache
+        )
+    } else {
+        format!(
+            r#"    location / {{
         proxy_pass {};
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
-    }}"#, upstream);
+    }}"#, upstream)
+    };
     
     let http_redirect = r#"    location / {
         return 301 https://$host$request_uri;
@@ -97,4 +115,48 @@ pub fn generate_redirect_server_block(from_domain: &str, to_domain: &str, ssl: b
     } else {
         generate_server_block(false, from_domain, &http_redirect, false, Some(webroot_path), ssl_staging)
     }
+}
+
+/// Helper function to sanitize domain for cache names
+pub fn sanitize_domain(domain: &str) -> String {
+    domain.replace(".", "_").replace("-", "_")
+}
+
+/// Generate a proxy location block with caching
+fn generate_proxy_location_with_cache(upstream: &str, domain: &str, cache: Cache) -> String {
+    // Sanitize domain for use in cache name
+    let cache_name = format!("{}_cache", sanitize_domain(domain));
+    
+    format!(
+        r#"    location / {{
+        proxy_pass {};
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        
+        # Cache configuration
+        proxy_cache {};
+        proxy_cache_valid 200 302 {};
+        proxy_cache_valid 404 5m;
+        proxy_cache_key "$scheme$host$request_uri";
+        proxy_cache_revalidate on;
+        add_header X-Cache-Status $upstream_cache_status;
+    }}"#, 
+        upstream, cache_name, cache.ttl
+    )
+}
+
+/// Generate cache zone configuration file content
+/// max_size: k or K: Kilobytes, m or M: Megabytes, g or G: Gigabytes
+/// memory_size: megabytes
+pub fn generate_cache_zone_file(domain: &str, max_size: &str, memory_size: &str) -> String {
+    let sanitized_domain = sanitize_domain(domain);
+    let cache_name = format!("{}_cache", sanitized_domain);
+    
+    format!(
+        r#"# Cache zone for {}
+proxy_cache_path /var/cache/nginx/{} levels=1:2 keys_zone={}:{}m max_size={} inactive=60m use_temp_path=off;"#,
+        domain, cache_name, cache_name, memory_size, max_size
+    )
 }

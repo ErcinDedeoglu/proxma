@@ -33,7 +33,7 @@ impl NginxQueueProcessor {
                 }
             }
             
-            match NGINX_MANAGER.add_container_host_rule(&host.domain, &upstream_url, use_ssl, message.ssl_staging) {
+            match NGINX_MANAGER.add_container_host_rule(&host.domain, &upstream_url, use_ssl, message.ssl_staging, message.cache.clone()) {
                 Ok(_) => {
                     println!("📝 Created Nginx config for '{}', proxy to '{}'", host.domain, upstream_url);
                     

@@ -1,5 +1,7 @@
 use chrono::{DateTime, Utc};
 
+use crate::models::Cache;
+
 #[derive(Debug, Clone)]
 #[allow(dead_code)]
 pub struct NginxQueueMessage {
@@ -27,6 +29,7 @@ pub struct NginxQueueMessage {
     pub dns_record_type: Option<String>,
     pub dns_record_proxied: Option<bool>,
     pub dns_record_target: Option<String>,
+    pub cache: Cache,
 }
 
 #[derive(Debug, Clone)]
