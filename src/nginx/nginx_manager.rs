@@ -60,7 +60,7 @@ impl NginxManager {
 
         if cache.enabled {
             // Generate cache zone configuration        
-            let cache_zone_content: String = generate_cache_zone_file(domain, &cache.size, &cache.memory);
+            let cache_zone_content: String = generate_cache_zone_file(domain, cache.clone());
         
             // Create cache zone directory
             let cache_zones_dir = Path::new("/etc/nginx/cache-zones.d");

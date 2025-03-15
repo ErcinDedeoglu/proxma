@@ -150,13 +150,13 @@ fn generate_proxy_location_with_cache(upstream: &str, domain: &str, cache: Cache
 /// Generate cache zone configuration file content
 /// max_size: k or K: Kilobytes, m or M: Megabytes, g or G: Gigabytes
 /// memory_size: megabytes
-pub fn generate_cache_zone_file(domain: &str, max_size: &str, memory_size: &str) -> String {
+pub fn generate_cache_zone_file(domain: &str, cache: Cache) -> String {
     let sanitized_domain = sanitize_domain(domain);
     let cache_name = format!("{}_cache", sanitized_domain);
     
     format!(
         r#"# Cache zone for {}
-proxy_cache_path /var/cache/nginx/{} levels=1:2 keys_zone={}:{}m max_size={} inactive=60m use_temp_path=off;"#,
-        domain, cache_name, cache_name, memory_size, max_size
+proxy_cache_path /var/cache/nginx/{} levels=1:2 keys_zone={}:{} max_size={} inactive=60m use_temp_path=off;"#,
+        domain, cache_name, cache_name, cache.memory, cache.size
     )
 }
