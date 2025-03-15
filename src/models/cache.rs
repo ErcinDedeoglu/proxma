@@ -12,7 +12,7 @@ pub struct Cache {
     #[serde(default = "default_size")]
     pub size: String,
     
-    /// Size of the shared memory zone in MB (e.g., "10", "512")
+    /// Size of the shared memory zone (e.g., "10m", "512k")
     #[serde(default = "default_memory")]
     pub memory: String,
     
