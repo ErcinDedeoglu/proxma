@@ -289,6 +289,7 @@ impl NginxEnqueue {
                     dns_record_proxied: Some(dns_proxied),
                     dns_record_target: Some(dns_target.clone()),
                     auth: auth.clone(),
+                    webserver: webserver.clone(),
                 }, false);
             }
     
@@ -332,6 +333,7 @@ impl NginxEnqueue {
                             dns_record_proxied: Some(dns_proxied),
                             dns_record_target: Some(dns_target.clone()),
                             auth: Default::default(),
+                            webserver: Default::default(),
                         }, false);
                     }
                 }

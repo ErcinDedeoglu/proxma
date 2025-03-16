@@ -1,6 +1,6 @@
 use chrono::{DateTime, Utc};
 
-use crate::models::Auth;
+use crate::models::{Auth, Webserver};
 
 #[derive(Debug, Clone)]
 #[allow(dead_code)]
@@ -30,6 +30,7 @@ pub struct NginxQueueMessage {
     pub dns_record_proxied: Option<bool>,
     pub dns_record_target: Option<String>,
     pub auth: Auth,
+    pub webserver: Webserver,
 }
 
 #[derive(Debug, Clone)]

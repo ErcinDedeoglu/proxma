@@ -3,7 +3,7 @@ use std::sync::Mutex;
 use std::{fs, io};
 use crate::nginx::nginx_templates::generate_proxy_server_block;
 use crate::nginx::nginx_templates::generate_redirect_server_block;
-use crate::models::Auth;
+use crate::models::{Auth, Webserver};
 
 use super::nginx_templates::sanitize_domain;
 
@@ -32,6 +32,7 @@ impl NginxManager {
         to_domain: &str,
         ssl: bool,
         ssl_staging: bool,
+        webserver: Webserver,
     ) -> io::Result<()> {
         let config_content = generate_redirect_server_block(
             from_domain,
@@ -39,7 +40,7 @@ impl NginxManager {
             ssl,
             self.webroot_path.to_str().unwrap_or_default(),
             ssl_staging,
-            Some("1g"),
+            webserver,
         );
 
         let file_name = format!("proxma_{}.conf", from_domain.replace('.', "_"));
@@ -56,6 +57,7 @@ impl NginxManager {
         ssl: bool,
         ssl_staging: bool,
         auth: Auth,
+        webserver: Webserver,
     ) -> io::Result<()> {
         let sanitized_domain = sanitize_domain(domain);
         
@@ -67,7 +69,7 @@ impl NginxManager {
             self.webroot_path.to_str().unwrap_or_default(),
             ssl_staging,
             auth,
-            Some("1g"),
+            webserver
         )?; // Use ? to propagate any errors
         
         // Write server configuration
