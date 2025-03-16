@@ -17,8 +17,8 @@ pub struct Auth {
 }
 
 fn default_realm() -> String { "Restricted Area".to_string() }
-fn default_username() -> String { "x".to_string() }
-fn default_password() -> String { "x".to_string() }
+fn default_username() -> String { "root".to_string() }
+fn default_password() -> String { "root".to_string() }
 
 impl Default for Auth {
     fn default() -> Self {
