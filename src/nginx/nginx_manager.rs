@@ -3,9 +3,9 @@ use std::sync::Mutex;
 use std::{fs, io};
 use crate::nginx::nginx_templates::generate_proxy_server_block;
 use crate::nginx::nginx_templates::generate_redirect_server_block;
-use crate::models::Cache;
+use crate::models::Auth;
 
-use super::nginx_templates::{generate_cache_zone_file, sanitize_domain};
+use super::nginx_templates::sanitize_domain;
 
 pub struct NginxManager {
     state: Mutex<NginxState>,
@@ -54,30 +54,9 @@ impl NginxManager {
         upstream_url: &str,
         ssl: bool,
         ssl_staging: bool,
-        cache: Cache,
+        auth: Auth,
     ) -> io::Result<()> {
         let sanitized_domain = sanitize_domain(domain);
-
-        if cache.enabled {
-            // Generate cache zone configuration        
-            let cache_zone_content: String = generate_cache_zone_file(domain, cache.clone());
-        
-            // Create cache zone directory
-            let cache_zones_dir = Path::new("/etc/nginx/cache-zones.d");
-            if !cache_zones_dir.exists() {
-                fs::create_dir_all(cache_zones_dir)?;
-            }
-            
-            // Write cache zone configuration
-            fs::write(cache_zones_dir.join(format!("{}.conf", sanitized_domain)), cache_zone_content)?;
-        
-            // Create cache directory
-            let cache_name = format!("{}_cache", sanitized_domain);
-            let cache_dir: PathBuf = Path::new("/var/cache/nginx").join(&cache_name);
-            if !cache_dir.exists() {
-                fs::create_dir_all(&cache_dir)?;
-            }
-        }
         
         // Generate server configuration
         let config_content = generate_proxy_server_block(
@@ -86,7 +65,6 @@ impl NginxManager {
             ssl,
             self.webroot_path.to_str().unwrap_or_default(),
             ssl_staging,
-            cache,
         );
     
         // Write server configuration

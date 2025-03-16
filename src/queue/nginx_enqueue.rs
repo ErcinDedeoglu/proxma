@@ -2,8 +2,6 @@ use std::env;
 
 use chrono::Utc;
 
-use crate::models::Cache;
-
 use super::models::{NginxQueueMessage, Host, Redirect};
 use super::shared::NGINX_QUEUE;
 
@@ -53,56 +51,56 @@ impl NginxEnqueue {
             let mut dns_type: String = String::new();
             let mut dns_proxied: bool = false;
             let mut skip_dns: bool = true;
-            let mut cache: Cache = Default::default();
+            // let mut cache: Cache = Default::default();
 
-            // CACHE
-            cache.enabled = labels.get("proxma.cache")
-                            .map(|p| p.trim().to_lowercase() == "true")
-                            .unwrap_or_else(|| {
-                                env::var("PROXMA_CACHE")
-                                    .map(|v| v.trim().to_lowercase() == "true")
-                                    .unwrap_or(false)
-                            });
+            // // CACHE
+            // cache.enabled = labels.get("proxma.cache")
+            //                 .map(|p| p.trim().to_lowercase() == "true")
+            //                 .unwrap_or_else(|| {
+            //                     env::var("PROXMA_CACHE")
+            //                         .map(|v| v.trim().to_lowercase() == "true")
+            //                         .unwrap_or(false)
+            //                 });
 
-            if cache.enabled {
-                cache.enabled = true;
+            // if cache.enabled {
+            //     cache.enabled = true;
 
-                cache.size = labels.get("proxma.cache.size").map(|p| p.trim().to_string()).unwrap_or_default();
-                if cache.size.is_empty() {
-                    match env::var("PROXMA_CACHE_SIZE") {
-                        Ok(env_max_size) => {
-                            cache.size = env_max_size.trim().to_string();
-                        },
-                        Err(_) => {
-                            println!("# proxma.cache.size (PROXMA_CACHE_SIZE) missing for container {}, continue with default value: {}", container_id, cache.size);
-                        }
-                    }
-                }
+            //     cache.size = labels.get("proxma.cache.size").map(|p| p.trim().to_string()).unwrap_or_default();
+            //     if cache.size.is_empty() {
+            //         match env::var("PROXMA_CACHE_SIZE") {
+            //             Ok(env_max_size) => {
+            //                 cache.size = env_max_size.trim().to_string();
+            //             },
+            //             Err(_) => {
+            //                 println!("# proxma.cache.size (PROXMA_CACHE_SIZE) missing for container {}, continue with default value: {}", container_id, cache.size);
+            //             }
+            //         }
+            //     }
 
-                cache.memory = labels.get("proxma.cache.memory").map(|p| p.trim().to_string()).unwrap_or_default();
-                if cache.memory.is_empty() {
-                    match env::var("PROXMA_CACHE_MEMORY") {
-                        Ok(env_memory_size) => {
-                            cache.memory = env_memory_size.trim().to_string();
-                        },
-                        Err(_) => {
-                            println!("# proxma.cache.memory (PROXMA_CACHE_MEMORY) missing for container {}, continue with default value: {}", container_id, cache.memory);
-                        }
-                    }
-                }
+            //     cache.memory = labels.get("proxma.cache.memory").map(|p| p.trim().to_string()).unwrap_or_default();
+            //     if cache.memory.is_empty() {
+            //         match env::var("PROXMA_CACHE_MEMORY") {
+            //             Ok(env_memory_size) => {
+            //                 cache.memory = env_memory_size.trim().to_string();
+            //             },
+            //             Err(_) => {
+            //                 println!("# proxma.cache.memory (PROXMA_CACHE_MEMORY) missing for container {}, continue with default value: {}", container_id, cache.memory);
+            //             }
+            //         }
+            //     }
 
-                cache.ttl = labels.get("proxma.cache.ttl").map(|p| p.trim().to_string()).unwrap_or_default();
-                if cache.ttl.is_empty() {
-                    match env::var("PROXMA_CACHE_TTL") {
-                        Ok(env_valid_duration) => {
-                            cache.ttl = env_valid_duration.trim().to_string();
-                        },
-                        Err(_) => {
-                            println!("# proxma.cache.ttl (PROXMA_CACHE_TTL) missing for container {}, continue with default value: {}", container_id, cache.ttl);
-                        }
-                    }
-                }
-            }
+            //     cache.ttl = labels.get("proxma.cache.ttl").map(|p| p.trim().to_string()).unwrap_or_default();
+            //     if cache.ttl.is_empty() {
+            //         match env::var("PROXMA_CACHE_TTL") {
+            //             Ok(env_valid_duration) => {
+            //                 cache.ttl = env_valid_duration.trim().to_string();
+            //             },
+            //             Err(_) => {
+            //                 println!("# proxma.cache.ttl (PROXMA_CACHE_TTL) missing for container {}, continue with default value: {}", container_id, cache.ttl);
+            //             }
+            //         }
+            //     }
+            // }
 
             let mut ssl_email: String = labels.get("proxma.ssl.email").map(|p| p.trim().to_string()).unwrap_or_default();
             if ssl_email.is_empty() {
@@ -266,7 +264,8 @@ impl NginxEnqueue {
                     dns_record_type: Some(dns_type.clone()),
                     dns_record_proxied: Some(dns_proxied),
                     dns_record_target: Some(dns_target.clone()),
-                    cache: cache.clone(),
+                    auth: Default::default(),
+                    // auth: auth.clone(),
                 }, false);
             }
     
@@ -309,7 +308,7 @@ impl NginxEnqueue {
                             dns_record_type: Some(dns_type.clone()),
                             dns_record_proxied: Some(dns_proxied),
                             dns_record_target: Some(dns_target.clone()),
-                            cache: Default::default(),
+                            auth: Default::default(),
                         }, false);
                     }
                 }

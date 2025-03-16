@@ -1,6 +1,6 @@
 //! Data models for the application
 
-mod cache;
+mod auth;
 
 // Re-export models
-pub use cache::Cache;
+pub use auth::Auth;
