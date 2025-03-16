@@ -1,3 +1,10 @@
+use crate::models::Auth;
+use std::fs::{self, File};
+use std::io::{self, Write};
+use std::path::Path;
+use bcrypt::{hash, DEFAULT_COST};
+use idna::domain_to_ascii;
+
 /// Helper function to generate ACME challenge location block
 fn generate_acme_challenge_block(webroot_path: &str) -> String {
     format!(
@@ -50,6 +57,67 @@ fn generate_server_block(is_https: bool, domain: &str, location_block: &str, ssl
     )
 }
 
+/// Generate an htpasswd file for basic authentication
+pub fn generate_htpasswd_file(auth: &Auth, domain: &str) -> io::Result<()> {
+    // Only generate file if authentication is enabled
+    if !auth.enabled {
+        return Ok(());
+    }
+
+    // Create the htpasswd directory if it doesn't exist
+    let htpasswd_dir = Path::new("/var/proxma/htpasswd");
+    if !htpasswd_dir.exists() {
+        fs::create_dir_all(htpasswd_dir)?;
+    }
+
+    // Path to the htpasswd file
+    let htpasswd_path = htpasswd_dir.join(sanitize_domain(domain));
+    
+    // Generate bcrypt hash
+    let hashed_password = match hash(&auth.password, DEFAULT_COST) {
+        Ok(h) => h,
+        Err(e) => return Err(io::Error::new(io::ErrorKind::Other, e.to_string())),
+    };
+    
+    // Format: username:hashed_password
+    let htpasswd_content = format!("{}:{}\n", auth.username, hashed_password);
+    
+    // Write to the file
+    let mut file = File::create(&htpasswd_path)?;
+    file.write_all(htpasswd_content.as_bytes())?;
+    
+    Ok(())
+}
+
+/// Generate Nginx basic auth configuration
+fn generate_auth_config(auth: &Auth, domain: &str) -> String {
+    if auth.enabled {
+        let htpasswd_file = format!("/var/proxma/htpasswd/{}", sanitize_domain(domain));
+        
+        format!(
+            r#"
+        # Basic auth configuration
+        auth_basic "{}";
+        auth_basic_user_file {};
+        
+        # Ensure browsers re-prompt for credentials
+        error_page 401 403 =401 /401_error;
+        location = /401_error {{
+            internal;
+            add_header WWW-Authenticate 'Basic realm="{}";' always;
+            add_header Cache-Control "no-store, no-cache, must-revalidate" always;
+            add_header Pragma "no-cache" always;
+            return 401;
+        }}"#,
+            auth.realm,
+            htpasswd_file,
+            auth.realm
+        )
+    } else {
+        String::new()
+    }
+}
+
 /// Generate an Nginx server block for proxying requests
 pub fn generate_proxy_server_block(
     domain: &str, 
@@ -57,21 +125,32 @@ pub fn generate_proxy_server_block(
     ssl: bool, 
     webroot_path: &str, 
     ssl_staging: bool,
-) -> String {
+    auth: Auth,
+) -> io::Result<String> {
+    // Generate htpasswd file if authentication is enabled
+    generate_htpasswd_file(&auth, domain)?;
+    
+    // Get auth configuration
+    let auth_config = generate_auth_config(&auth, domain);
+    
+    // Add auth_config to the proxy_location
     let proxy_location = format!(
-        r#"    location / {{
+        r#"    location / {{{}
         proxy_pass {};
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
-    }}"#, upstream);
+    }}"#, 
+        auth_config,
+        upstream
+    );
     
     let http_redirect = r#"    location / {
         return 301 https://$host$request_uri;
     }"#;
     
-    if ssl {
+    let result = if ssl {
         format!(
             "# HTTP server for ACME challenges and redirection\n{}\n# HTTPS server for main content\n{}",
             generate_server_block(false, domain, http_redirect, true, Some(webroot_path), ssl_staging),
@@ -79,7 +158,9 @@ pub fn generate_proxy_server_block(
         )
     } else {
         generate_server_block(false, domain, &proxy_location, false, Some(webroot_path), ssl_staging)
-    }
+    };
+    
+    Ok(result)
 }
 
 /// Generate an Nginx server block for redirecting requests with SSL support
@@ -106,5 +187,25 @@ pub fn generate_redirect_server_block(from_domain: &str, to_domain: &str, ssl: b
 }
 
 pub fn sanitize_domain(domain: &str) -> String {
-    domain.replace(".", "_").replace("-", "_")
+    // Convert to lowercase
+    let domain = domain.to_lowercase();
+    
+    // Strip protocol prefixes if present
+    let domain = domain.trim_start_matches("http://")
+                      .trim_start_matches("https://")
+                      .trim_start_matches("ftp://");
+    
+    // Remove path, query parameters, and fragments
+    let domain = domain.split('/').next().unwrap_or(domain);
+    let domain = domain.split('?').next().unwrap_or(domain);
+    let domain = domain.split('#').next().unwrap_or(domain);
+    
+    // Handle IDNs by converting to Punycode (ASCII representation)
+    let ascii_domain = match domain_to_ascii(domain) {
+        Ok(ascii) => ascii,
+        Err(_) => domain.to_string(), // Fallback if conversion fails
+    };
+    
+    // Replace problematic characters with underscores
+    ascii_domain.replace(".", "_").replace("-", "_")
 }

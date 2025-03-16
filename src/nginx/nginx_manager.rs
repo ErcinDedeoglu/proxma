@@ -58,15 +58,16 @@ impl NginxManager {
     ) -> io::Result<()> {
         let sanitized_domain = sanitize_domain(domain);
         
-        // Generate server configuration
+        // Generate server configuration and handle the Result
         let config_content = generate_proxy_server_block(
             domain,
             upstream_url,
             ssl,
             self.webroot_path.to_str().unwrap_or_default(),
             ssl_staging,
-        );
-    
+            auth,
+        )?; // Use ? to propagate any errors
+        
         // Write server configuration
         let file_name = format!("proxma_{}.conf", sanitized_domain);
         let file_path: PathBuf = self.state.lock().unwrap().config_path.join(&file_name);
@@ -88,7 +89,8 @@ impl NginxManager {
     }
 
     pub fn remove_rule(&self, domain: &str) -> io::Result<()> {
-        let file_name = format!("proxma_{}.conf", domain.replace('.', "_"));
+        let sanitized_domain = sanitize_domain(domain);
+        let file_name = format!("proxma_{}.conf", sanitized_domain);
         let file_path = self.state.lock().unwrap().config_path.join(&file_name);
         fs::remove_file(&file_path)?;
         Ok(())
