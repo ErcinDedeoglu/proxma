@@ -2,7 +2,7 @@ use std::env;
 
 use chrono::Utc;
 
-use crate::models::Auth;
+use crate::models::{Auth, Webserver};
 
 use super::models::{NginxQueueMessage, Host, Redirect};
 use super::shared::NGINX_QUEUE;
@@ -54,7 +54,26 @@ impl NginxEnqueue {
             let mut dns_proxied: bool = false;
             let mut skip_dns: bool = true;
             let mut auth: Auth = Default::default();
-            
+            let mut webserver: Webserver = Default::default();
+
+            let mut webserver_body_size: String = labels.get("proxma.webserver.body_size").map(|p| p.trim().to_string()).unwrap_or_default();
+            if webserver_body_size.is_empty() {
+                match env::var("PROXMA_WEBSERVER_BODY_SIZE") {
+                    Ok(env_webserver_body_size) => {
+                        webserver_body_size = env_webserver_body_size.trim().to_string();
+
+                        if !webserver_body_size.is_empty() && (webserver_body_size.starts_with(|c: char| c.is_numeric()) && (webserver_body_size.ends_with("m") || webserver_body_size.ends_with("k") || webserver_body_size.ends_with("g")) || webserver_body_size == "0") {
+                            webserver.body_size = webserver_body_size;
+                        } else {
+                            println!("# Invalid body size for container {}, skipping processing and continue with default value: {}", container_id, webserver.body_size);
+                        }
+                    },
+                    Err(_) => {
+                        println!("# proxma.webserver.body_size (PROXMA_WEBSERVER_BODY_SIZE) missing for container {}, continue with default value: {}", container_id, webserver.body_size);
+                    }
+                }
+            }
+
             // AUTH
             auth.enabled = labels.get("proxma.auth")
                             .map(|p| p.trim().to_lowercase() == "true")

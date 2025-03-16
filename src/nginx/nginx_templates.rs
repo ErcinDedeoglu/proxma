@@ -14,9 +14,15 @@ fn generate_acme_challenge_block(webroot_path: &str) -> String {
 }
 
 /// Helper function to generate a server block with common parameters
-fn generate_server_block(is_https: bool, domain: &str, location_block: &str, ssl: bool, webroot_path: Option<&str>, ssl_staging: bool,) -> String {
+fn generate_server_block(is_https: bool, domain: &str, location_block: &str, ssl: bool, webroot_path: Option<&str>, ssl_staging: bool, max_body_size: Option<&str>) -> String {
     let listen_directive = if is_https { "listen 443 ssl;" } else { "listen 80;" };
     let environment = if ssl_staging { "staging" } else { "production" };
+    
+    // Add client_max_body_size directive with default if not provided
+    let body_size_directive = match max_body_size {
+        Some(size) => format!("    client_max_body_size {};", size),
+        None => "    client_max_body_size 1m;".to_string() // Default 1MB
+    };
     
     let ssl_config = if is_https {
         format!(
@@ -26,7 +32,6 @@ fn generate_server_block(is_https: bool, domain: &str, location_block: &str, ssl
             domain = domain
         )
     } else if !ssl {
-        // Add HSTS prevention when SSL is disabled
         r#"    # Prevent browsers from automatically redirecting to HTTPS
     add_header Strict-Transport-Security "max-age=0" always;
     add_header Referrer-Policy "no-referrer-when-downgrade" always;"#.into()
@@ -45,11 +50,13 @@ fn generate_server_block(is_https: bool, domain: &str, location_block: &str, ssl
     {}
 {}
 {}
+{}
     server_name {};
 {}
 }}
 "#,
         listen_directive,
+        body_size_directive,  // Add the client_max_body_size directive
         ssl_config,
         acme_block,
         domain,
@@ -126,6 +133,7 @@ pub fn generate_proxy_server_block(
     webroot_path: &str, 
     ssl_staging: bool,
     auth: Auth,
+    max_body_size: Option<&str>, // Add this parameter
 ) -> io::Result<String> {
     // Generate htpasswd file if authentication is enabled
     generate_htpasswd_file(&auth, domain)?;
@@ -153,18 +161,26 @@ pub fn generate_proxy_server_block(
     let result = if ssl {
         format!(
             "# HTTP server for ACME challenges and redirection\n{}\n# HTTPS server for main content\n{}",
-            generate_server_block(false, domain, http_redirect, true, Some(webroot_path), ssl_staging),
-            generate_server_block(true, domain, &proxy_location, true, None, ssl_staging)
+            generate_server_block(false, domain, http_redirect, true, Some(webroot_path), ssl_staging, max_body_size),
+            generate_server_block(true, domain, &proxy_location, true, None, ssl_staging, max_body_size)
         )
     } else {
-        generate_server_block(false, domain, &proxy_location, false, Some(webroot_path), ssl_staging)
+        generate_server_block(false, domain, &proxy_location, false, Some(webroot_path), ssl_staging, max_body_size)
     };
     
     Ok(result)
 }
 
 /// Generate an Nginx server block for redirecting requests with SSL support
-pub fn generate_redirect_server_block(from_domain: &str, to_domain: &str, ssl: bool, webroot_path: &str, ssl_staging: bool,) -> String {
+pub fn generate_redirect_server_block(
+    from_domain: &str, 
+    to_domain: &str, 
+    ssl: bool, 
+    webroot_path: &str, 
+    ssl_staging: bool,
+    max_body_size: Option<&str>, // Add this parameter
+) -> String {
+    // Rest of the function remains the same, just update the calls to generate_server_block
     let http_redirect = format!(
         r#"    location / {{
         return 301 {}://{}$request_uri;
@@ -178,11 +194,11 @@ pub fn generate_redirect_server_block(from_domain: &str, to_domain: &str, ssl: b
     if ssl {
         format!(
             "# HTTP server for ACME challenges and redirection\n{}\n# HTTPS server for redirection\n{}",
-            generate_server_block(false, from_domain, &http_redirect, true, Some(webroot_path), ssl_staging),
-            generate_server_block(true, from_domain, &https_redirect, true, None, ssl_staging)
+            generate_server_block(false, from_domain, &http_redirect, true, Some(webroot_path), ssl_staging, max_body_size),
+            generate_server_block(true, from_domain, &https_redirect, true, None, ssl_staging, max_body_size)
         )
     } else {
-        generate_server_block(false, from_domain, &http_redirect, false, Some(webroot_path), ssl_staging)
+        generate_server_block(false, from_domain, &http_redirect, false, Some(webroot_path), ssl_staging, max_body_size)
     }
 }
 

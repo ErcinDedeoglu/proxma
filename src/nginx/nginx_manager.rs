@@ -38,7 +38,8 @@ impl NginxManager {
             to_domain,
             ssl,
             self.webroot_path.to_str().unwrap_or_default(),
-            ssl_staging
+            ssl_staging,
+            Some("1g"),
         );
 
         let file_name = format!("proxma_{}.conf", from_domain.replace('.', "_"));
@@ -66,6 +67,7 @@ impl NginxManager {
             self.webroot_path.to_str().unwrap_or_default(),
             ssl_staging,
             auth,
+            Some("1g"),
         )?; // Use ? to propagate any errors
         
         // Write server configuration
