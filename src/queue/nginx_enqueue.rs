@@ -56,21 +56,195 @@ impl NginxEnqueue {
             let mut auth: Auth = Default::default();
             let mut webserver: Webserver = Default::default();
 
-            let mut webserver_body_size: String = labels.get("proxma.webserver.body_size").map(|p| p.trim().to_string()).unwrap_or_default();
-            if webserver_body_size.is_empty() {
-                match env::var("PROXMA_WEBSERVER_BODY_SIZE") {
+            let mut webserver_client_max_body_size: String = labels.get("proxma.webserver.client_max_body_size").map(|p| p.trim().to_string()).unwrap_or_default();
+            if webserver_client_max_body_size.is_empty() {
+                match env::var("PROXMA_WEBSERVER_CLIENT_MAX_BODY_SIZE") {
                     Ok(env_webserver_body_size) => {
-                        webserver_body_size = env_webserver_body_size.trim().to_string();
+                        webserver_client_max_body_size = env_webserver_body_size.trim().to_string();
 
-                        if !webserver_body_size.is_empty() && (webserver_body_size.starts_with(|c: char| c.is_numeric()) && (webserver_body_size.ends_with("m") || webserver_body_size.ends_with("k") || webserver_body_size.ends_with("g")) || webserver_body_size == "0") {
-                            webserver.body_size = webserver_body_size;
+                        if !webserver_client_max_body_size.is_empty() && (webserver_client_max_body_size.starts_with(|c: char| c.is_numeric()) && (webserver_client_max_body_size.ends_with("m") || webserver_client_max_body_size.ends_with("k") || webserver_client_max_body_size.ends_with("g")) || webserver_client_max_body_size == "0") {
+                            webserver.client_max_body_size = webserver_client_max_body_size;
                         } else {
-                            println!("# Invalid body size for container {}, skipping processing and continue with default value: {}", container_id, webserver.body_size);
+                            println!("# proxma.webserver.client_max_body_size (PROXMA_WEBSERVER_CLIENT_MAX_BODY_SIZE) Invalid body size for container {}, skipping processing and continue with default value: {}", container_id, webserver.client_max_body_size);
                         }
                     },
                     Err(_) => {
-                        println!("# proxma.webserver.body_size (PROXMA_WEBSERVER_BODY_SIZE) missing for container {}, continue with default value: {}", container_id, webserver.body_size);
+                        println!("# proxma.webserver.client_max_body_size (PROXMA_WEBSERVER_CLIENT_MAX_BODY_SIZE) missing for container {}, continue with default value: {}", container_id, webserver.client_max_body_size);
                     }
+                }
+            } else {
+                if !webserver_client_max_body_size.is_empty() && (webserver_client_max_body_size.starts_with(|c: char| c.is_numeric()) && (webserver_client_max_body_size.ends_with("m") || webserver_client_max_body_size.ends_with("k") || webserver_client_max_body_size.ends_with("g")) || webserver_client_max_body_size == "0") {
+                    webserver.client_max_body_size = webserver_client_max_body_size;
+                } else {
+                    println!("# proxma.webserver.client_max_body_size (PROXMA_WEBSERVER_CLIENT_MAX_BODY_SIZE) Invalid body size for container {}, skipping processing and continue with default value: {}", container_id, webserver.client_max_body_size);
+                }
+            }
+
+            let mut webserver_client_body_timeout: String = labels.get("proxma.webserver.client_body_timeout").map(|p| p.trim().to_string()).unwrap_or_default();
+            if webserver_client_body_timeout.is_empty() {
+                match env::var("PROXMA_WEBSERVER_CLIENT_BODY_TIMEOUT") {
+                    Ok(env_webserver_body_timeout) => {
+                        webserver_client_body_timeout = env_webserver_body_timeout.trim().to_string();
+
+                        if !webserver_client_body_timeout.is_empty() && (webserver_client_body_timeout.starts_with(|c: char| c.is_numeric()) && webserver_client_body_timeout.ends_with("s") || webserver_client_body_timeout == "0") {
+                            webserver.client_body_timeout = webserver_client_body_timeout;
+                        } else {
+                            println!("# proxma.webserver.client_body_timeout (PROXMA_WEBSERVER_CLIENT_BODY_TIMEOUT) Invalid body timeout for container {}, skipping processing and continue with default value: {}", container_id, webserver.client_body_timeout);
+                        }
+                    },
+                    Err(_) => {
+                        println!("# proxma.webserver.client_body_timeout (PROXMA_WEBSERVER_CLIENT_BODY_TIMEOUT) missing for container {}, continue with default value: {}", container_id, webserver.client_body_timeout);
+                    }
+                }
+            } else {
+                if !webserver_client_body_timeout.is_empty() && (webserver_client_body_timeout.starts_with(|c: char| c.is_numeric()) && webserver_client_body_timeout.ends_with("s") || webserver_client_body_timeout == "0") {
+                    webserver.client_body_timeout = webserver_client_body_timeout;
+                } else {
+                    println!("# proxma.webserver.client_body_timeout (PROXMA_WEBSERVER_CLIENT_BODY_TIMEOUT) Invalid body timeout for container {}, skipping processing and continue with default value: {}", container_id, webserver.client_body_timeout);
+                }
+            }
+
+            let mut webserver_client_header_timeout: String = labels.get("proxma.webserver.client_header_timeout").map(|p| p.trim().to_string()).unwrap_or_default();
+            if webserver_client_header_timeout.is_empty() {
+                match env::var("PROXMA_WEBSERVER_CLIENT_HEADER_TIMEOUT") {
+                    Ok(env_webserver_header_timeout) => {
+                        webserver_client_header_timeout = env_webserver_header_timeout.trim().to_string();
+
+                        if !webserver_client_header_timeout.is_empty() && (webserver_client_header_timeout.starts_with(|c: char| c.is_numeric()) && webserver_client_header_timeout.ends_with("s") || webserver_client_header_timeout == "0") {
+                            webserver.client_header_timeout = webserver_client_header_timeout;
+                        } else {
+                            println!("# proxma.webserver.client_header_timeout (PROXMA_WEBSERVER_CLIENT_HEADER_TIMEOUT) Invalid header timeout for container {}, skipping processing and continue with default value: {}", container_id, webserver.client_header_timeout);
+                        }
+                    },
+                    Err(_) => {
+                        println!("# proxma.webserver.client_header_timeout (PROXMA_WEBSERVER_CLIENT_HEADER_TIMEOUT) missing for container {}, continue with default value: {}", container_id, webserver.client_header_timeout);
+                    }
+                }
+            } else {
+                if !webserver_client_header_timeout.is_empty() && (webserver_client_header_timeout.starts_with(|c: char| c.is_numeric()) && webserver_client_header_timeout.ends_with("s") || webserver_client_header_timeout == "0") {
+                    webserver.client_header_timeout = webserver_client_header_timeout;
+                } else {
+                    println!("# proxma.webserver.client_header_timeout (PROXMA_WEBSERVER_CLIENT_HEADER_TIMEOUT) Invalid header timeout for container {}, skipping processing and continue with default value: {}", container_id, webserver.client_header_timeout);
+                }
+            }
+
+            let mut webserver_send_timeout: String = labels.get("proxma.webserver.send_timeout").map(|p| p.trim().to_string()).unwrap_or_default();
+            if webserver_send_timeout.is_empty() {
+                match env::var("PROXMA_WEBSERVER_SEND_TIMEOUT") {
+                    Ok(env_webserver_send_timeout) => {
+                        webserver_send_timeout = env_webserver_send_timeout.trim().to_string();
+
+                        if !webserver_send_timeout.is_empty() && (webserver_send_timeout.starts_with(|c: char| c.is_numeric()) && webserver_send_timeout.ends_with("s") || webserver_send_timeout == "0") {
+                            webserver.send_timeout = webserver_send_timeout;
+                        } else {
+                            println!("# proxma.webserver.send_timeout (PROXMA_WEBSERVER_SEND_TIMEOUT) Invalid send timeout for container {}, skipping processing and continue with default value: {}", container_id, webserver.send_timeout);
+                        }
+                    },
+                    Err(_) => {
+                        println!("# proxma.webserver.send_timeout (PROXMA_WEBSERVER_SEND_TIMEOUT) missing for container {}, continue with default value: {}", container_id, webserver.send_timeout);
+                    }
+                }
+            } else {
+                if !webserver_send_timeout.is_empty() && (webserver_send_timeout.starts_with(|c: char| c.is_numeric()) && webserver_send_timeout.ends_with("s") || webserver_send_timeout == "0") {
+                    webserver.send_timeout = webserver_send_timeout;
+                } else {
+                    println!("# proxma.webserver.send_timeout (PROXMA_WEBSERVER_SEND_TIMEOUT) Invalid send timeout for container {}, skipping processing and continue with default value: {}", container_id, webserver.send_timeout);
+                }
+            }
+
+            let mut webserver_keepalive_timeout: String = labels.get("proxma.webserver.keepalive_timeout").map(|p| p.trim().to_string()).unwrap_or_default();
+            if webserver_keepalive_timeout.is_empty() {
+                match env::var("PROXMA_WEBSERVER_KEEPALIVE_TIMEOUT") {
+                    Ok(env_webserver_keepalive_timeout) => {
+                        webserver_keepalive_timeout = env_webserver_keepalive_timeout.trim().to_string();
+
+                        if !webserver_keepalive_timeout.is_empty() && (webserver_keepalive_timeout.starts_with(|c: char| c.is_numeric()) && webserver_keepalive_timeout.ends_with("s") || webserver_keepalive_timeout == "0") {
+                            webserver.keepalive_timeout = webserver_keepalive_timeout;
+                        } else {
+                            println!("# proxma.webserver.keepalive_timeout (PROXMA_WEBSERVER_KEEPALIVE_TIMEOUT) Invalid keepalive timeout for container {}, skipping processing and continue with default value: {}", container_id, webserver.keepalive_timeout);
+                        }
+                    },
+                    Err(_) => {
+                        println!("# proxma.webserver.keepalive_timeout (PROXMA_WEBSERVER_KEEPALIVE_TIMEOUT) missing for container {}, continue with default value: {}", container_id, webserver.keepalive_timeout);
+                    }
+                }
+            } else {
+                if !webserver_keepalive_timeout.is_empty() && (webserver_keepalive_timeout.starts_with(|c: char| c.is_numeric()) && webserver_keepalive_timeout.ends_with("s") || webserver_keepalive_timeout == "0") {
+                    webserver.keepalive_timeout = webserver_keepalive_timeout;
+                } else {
+                    println!("# proxma.webserver.keepalive_timeout (PROXMA_WEBSERVER_KEEPALIVE_TIMEOUT) Invalid keepalive timeout for container {}, skipping processing and continue with default value: {}", container_id, webserver.keepalive_timeout);
+                }
+            }
+
+            let mut webserver_proxy_connect_timeout: String = labels.get("proxma.webserver.proxy_connect_timeout").map(|p| p.trim().to_string()).unwrap_or_default();
+            if webserver_proxy_connect_timeout.is_empty() {
+                match env::var("PROXMA_WEBSERVER_PROXY_CONNECT_TIMEOUT") {
+                    Ok(env_webserver_proxy_connect_timeout) => {
+                        webserver_proxy_connect_timeout = env_webserver_proxy_connect_timeout.trim().to_string();
+
+                        if !webserver_proxy_connect_timeout.is_empty() && (webserver_proxy_connect_timeout.starts_with(|c: char| c.is_numeric()) && webserver_proxy_connect_timeout.ends_with("s") || webserver_proxy_connect_timeout == "0") {
+                            webserver.proxy_connect_timeout = webserver_proxy_connect_timeout;
+                        } else {
+                            println!("# proxma.webserver.proxy_connect_timeout (PROXMA_WEBSERVER_PROXY_CONNECT_TIMEOUT) Invalid proxy connect timeout for container {}, skipping processing and continue with default value: {}", container_id, webserver.proxy_connect_timeout);
+                        }
+                    },
+                    Err(_) => {
+                        println!("# proxma.webserver.proxy_connect_timeout (PROXMA_WEBSERVER_PROXY_CONNECT_TIMEOUT) missing for container {}, continue with default value: {}", container_id, webserver.proxy_connect_timeout);
+                    }
+                }
+            } else {
+                if !webserver_proxy_connect_timeout.is_empty() && (webserver_proxy_connect_timeout.starts_with(|c: char| c.is_numeric()) && webserver_proxy_connect_timeout.ends_with("s") || webserver_proxy_connect_timeout == "0") {
+                    webserver.proxy_connect_timeout = webserver_proxy_connect_timeout;
+                } else {
+                    println!("# proxma.webserver.proxy_connect_timeout (PROXMA_WEBSERVER_PROXY_CONNECT_TIMEOUT) Invalid proxy connect timeout for container {}, skipping processing and continue with default value: {}", container_id, webserver.proxy_connect_timeout);
+                }
+            }
+
+            let mut webserver_proxy_send_timeout: String = labels.get("proxma.webserver.proxy_send_timeout").map(|p| p.trim().to_string()).unwrap_or_default();
+            if webserver_proxy_send_timeout.is_empty() {
+                match env::var("PROXMA_WEBSERVER_PROXY_SEND_TIMEOUT") {
+                    Ok(env_webserver_proxy_send_timeout) => {
+                        webserver_proxy_send_timeout = env_webserver_proxy_send_timeout.trim().to_string();
+
+                        if !webserver_proxy_send_timeout.is_empty() && (webserver_proxy_send_timeout.starts_with(|c: char| c.is_numeric()) && webserver_proxy_send_timeout.ends_with("s") || webserver_proxy_send_timeout == "0") {
+                            webserver.proxy_send_timeout = webserver_proxy_send_timeout;
+                        } else {
+                            println!("# proxma.webserver.proxy_send_timeout (PROXMA_WEBSERVER_PROXY_SEND_TIMEOUT) Invalid proxy send timeout for container {}, skipping processing and continue with default value: {}", container_id, webserver.proxy_send_timeout);
+                        }
+                    },
+                    Err(_) => {
+                        println!("# proxma.webserver.proxy_send_timeout (PROXMA_WEBSERVER_PROXY_SEND_TIMEOUT) missing for container {}, continue with default value: {}", container_id, webserver.proxy_send_timeout);
+                    }
+                }
+            } else {
+                if !webserver_proxy_send_timeout.is_empty() && (webserver_proxy_send_timeout.starts_with(|c: char| c.is_numeric()) && webserver_proxy_send_timeout.ends_with("s") || webserver_proxy_send_timeout == "0") {
+                    webserver.proxy_send_timeout = webserver_proxy_send_timeout;
+                } else {
+                    println!("# proxma.webserver.proxy_send_timeout (PROXMA_WEBSERVER_PROXY_SEND_TIMEOUT) Invalid proxy send timeout for container {}, skipping processing and continue with default value: {}", container_id, webserver.proxy_send_timeout);
+                }
+            }
+
+            let mut webserver_proxy_read_timeout: String = labels.get("proxma.webserver.proxy_read_timeout").map(|p| p.trim().to_string()).unwrap_or_default();
+            if webserver_proxy_read_timeout.is_empty() {
+                match env::var("PROXMA_WEBSERVER_PROXY_READ_TIMEOUT") {
+                    Ok(env_webserver_proxy_read_timeout) => {
+                        webserver_proxy_read_timeout = env_webserver_proxy_read_timeout.trim().to_string();
+
+                        if !webserver_proxy_read_timeout.is_empty() && (webserver_proxy_read_timeout.starts_with(|c: char| c.is_numeric()) && webserver_proxy_read_timeout.ends_with("s") || webserver_proxy_read_timeout == "0") {
+                            webserver.proxy_read_timeout = webserver_proxy_read_timeout;
+                        } else {
+                            println!("# proxma.webserver.proxy_read_timeout (PROXMA_WEBSERVER_PROXY_READ_TIMEOUT) Invalid proxy read timeout for container {}, skipping processing and continue with default value: {}", container_id, webserver.proxy_read_timeout);
+                        }
+                    },
+                    Err(_) => {
+                        println!("# proxma.webserver.proxy_read_timeout (PROXMA_WEBSERVER_PROXY_READ_TIMEOUT) missing for container {}, continue with default value: {}", container_id, webserver.proxy_read_timeout);
+                    }
+                }
+            } else {
+                if !webserver_proxy_read_timeout.is_empty() && (webserver_proxy_read_timeout.starts_with(|c: char| c.is_numeric()) && webserver_proxy_read_timeout.ends_with("s") || webserver_proxy_read_timeout == "0") {
+                    webserver.proxy_read_timeout = webserver_proxy_read_timeout;
+                } else {
+                    println!("# proxma.webserver.proxy_read_timeout (PROXMA_WEBSERVER_PROXY_READ_TIMEOUT) Invalid proxy read timeout for container {}, skipping processing and continue with default value: {}", container_id, webserver.proxy_read_timeout);
                 }
             }
 

@@ -17,13 +17,31 @@ fn generate_acme_challenge_block(webroot_path: &str) -> String {
 fn generate_server_block(is_https: bool, domain: &str, location_block: &str, ssl: bool, webroot_path: Option<&str>, ssl_staging: bool, webserver: &Webserver) -> String {
     let listen_directive = if is_https { "listen 443 ssl;" } else { "listen 80;" };
     let environment = if ssl_staging { "staging" } else { "production" };
-
-    let body_size_directive = format!("    client_max_body_size {};", webserver.body_size);
+    
+    // Add all webserver configuration directives
+    let timeout_directives = format!(
+        "    client_max_body_size {};\n\
+        client_body_timeout {};\n\
+        client_header_timeout {};\n\
+        send_timeout {};\n\
+        keepalive_timeout {};\n\
+        proxy_connect_timeout {};\n\
+        proxy_send_timeout {};\n\
+        proxy_read_timeout {};",
+        webserver.client_max_body_size,
+        webserver.client_body_timeout,
+        webserver.client_header_timeout,
+        webserver.send_timeout,
+        webserver.keepalive_timeout,
+        webserver.proxy_connect_timeout,
+        webserver.proxy_send_timeout,
+        webserver.proxy_read_timeout
+    );
     
     let ssl_config = if is_https {
         format!(
             r#"    ssl_certificate /var/proxma/configuration/{environment}/live/{domain}/fullchain.pem;
-        ssl_certificate_key /var/proxma/configuration/{environment}/live/{domain}/privkey.pem;"#,
+    ssl_certificate_key /var/proxma/configuration/{environment}/live/{domain}/privkey.pem;"#,
             environment = environment,
             domain = domain
         )
@@ -44,15 +62,16 @@ fn generate_server_block(is_https: bool, domain: &str, location_block: &str, ssl
     format!(
         r#"server {{
     {}
+    {}
 {}
-{}
+
 {}
     server_name {};
 {}
 }}
 "#,
         listen_directive,
-        body_size_directive,
+        timeout_directives,
         ssl_config,
         acme_block,
         domain,
