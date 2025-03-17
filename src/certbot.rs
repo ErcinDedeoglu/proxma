@@ -61,6 +61,7 @@ impl Certbot {
         args.push("--email".to_string());
         args.push(ssl_email.as_ref().to_string());
         args.push("--quiet".to_string());
+        args.extend_from_slice(&["--max-log-backups".to_string(), "0".to_string()]);
         args.push("-d".to_string());
         args.push(domain.as_ref().to_string());
         let environment = if staging { "staging" } else { "production" };
