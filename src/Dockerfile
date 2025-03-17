@@ -36,7 +36,7 @@ RUN case "$TARGETPLATFORM" in \
 
 # Final stage
 FROM alpine:latest
-RUN apk add --no-cache nginx tini certbot openssl curl bind-tools certbot-dns-cloudflare dos2unix dcron
+RUN apk add --no-cache nginx tini certbot openssl curl bind-tools certbot-dns-cloudflare dos2unix dcron logrotate
 
 RUN mkdir -p /run/nginx /var/www/html/.well-known/acme-challenge /etc/nginx/ssl /var/proxma/ssl /var/proxma/logs /etc/nginx/cache-zones.d /var/proxma/htpasswd && \
     chown -R nginx:nginx /var/www/html /run/nginx /etc/nginx/cache-zones.d /var/proxma/htpasswd \
@@ -52,6 +52,14 @@ COPY src/docker_scripts/fetch_cloudflare_ips.sh /usr/local/bin/
 COPY src/docker_scripts/update_cloudflare_ips.sh /usr/local/bin/
 COPY src/docker_scripts/startup.sh /usr/local/bin/
 
+# Copy logrotate configuration
+COPY src/docker_scripts/proxma-logrotate.conf /etc/logrotate.d/
+COPY src/docker_scripts/run_logrotate.sh /usr/local/bin/
+
+# Make the script executable and convert line endings if needed
+RUN dos2unix /usr/local/bin/run_logrotate.sh && \
+    chmod +x /usr/local/bin/run_logrotate.sh
+
 # Make scripts executable and convert line endings if needed
 RUN dos2unix /usr/local/bin/fetch_cloudflare_ips.sh /usr/local/bin/update_cloudflare_ips.sh /usr/local/bin/startup.sh && \
     chmod +x /usr/local/bin/fetch_cloudflare_ips.sh /usr/local/bin/update_cloudflare_ips.sh /usr/local/bin/startup.sh && \
@@ -59,6 +67,7 @@ RUN dos2unix /usr/local/bin/fetch_cloudflare_ips.sh /usr/local/bin/update_cloudf
 
 # Set up cron job to run every night at 2:00 AM
 RUN echo '0 2 * * * /usr/local/bin/update_cloudflare_ips.sh' > /etc/crontabs/root && \
+    echo '0 0 * * * /usr/local/bin/run_logrotate.sh' >> /etc/crontabs/root && \
     chmod 0600 /etc/crontabs/root
 
 COPY src/webserver/nginx/nginx.conf /etc/nginx/nginx.conf

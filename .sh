@@ -24,7 +24,7 @@ repomix --no-file-summary --no-security-check \
 
 # dockerfile
 repomix --no-file-summary --no-security-check \
-  --include "src/Dockerfile,src/fetch_cloudflare_ips.sh" \
+  --include "src/Dockerfile,src/docker_scripts/**" \
   --output "repopack.yml"
 
 docker build -t dublok/proxma:latest -f src/Dockerfile .
