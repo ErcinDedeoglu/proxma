@@ -52,19 +52,22 @@ COPY src/docker_scripts/fetch_cloudflare_ips.sh /usr/local/bin/
 COPY src/docker_scripts/update_cloudflare_ips.sh /usr/local/bin/
 COPY src/docker_scripts/startup.sh /usr/local/bin/
 
-# Fail2ban configuration
+# Fail2ban configuration with comprehensive filter setup
 RUN mkdir -p /etc/fail2ban/action.d \
     && mkdir -p /etc/fail2ban/filter.d \
     && mkdir -p /etc/nginx/conf.d/banned \
     && mkdir -p /var/run/fail2ban
 
-COPY src/fail2ban/jail.local /etc/fail2ban/jail.local
-COPY src/fail2ban/filter.d/nginx-http-auth-proxma.conf /etc/fail2ban/filter.d/
+# Copy all filter configurations using wildcard pattern
+COPY src/fail2ban/filter.d/*.conf /etc/fail2ban/filter.d/
 COPY src/fail2ban/action.d/nginx-deny.conf /etc/fail2ban/action.d/
+COPY src/fail2ban/jail.local /etc/fail2ban/
 
+# Set permissions and create required files
 RUN chmod 644 /etc/fail2ban/jail.local \
-    && chmod 644 /etc/fail2ban/filter.d/nginx-http-auth-proxma.conf \
-    && chmod 644 /etc/fail2ban/action.d/nginx-deny.conf \
+    && chmod -R 644 /etc/fail2ban/filter.d/* \
+    && chmod 644 /etc/fail2ban/action.d/* \
+    && mkdir -p /etc/nginx/conf.d/banned \
     && touch /etc/nginx/conf.d/banned/banned_ips.conf \
     && chmod 644 /etc/nginx/conf.d/banned/banned_ips.conf
 

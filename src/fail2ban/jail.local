@@ -44,3 +44,20 @@ enabled = true
 filter = nginx-botsearch
 logpath = /var/proxma/logs/nginx_access.log
 port = http,https
+
+[nginx-probing]
+enabled = true
+filter = nginx-probing
+logpath = /var/proxma/logs/nginx_access.log
+findtime = 2m
+maxretry = 5
+port = http,https
+
+[nginx-request-flood]
+enabled = true
+filter = nginx-request-flood
+logpath = /var/proxma/logs/nginx_access.log
+findtime = 60
+maxretry = 100
+bantime = 3600
+port = http,https
