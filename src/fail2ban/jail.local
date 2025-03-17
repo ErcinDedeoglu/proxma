@@ -1,0 +1,46 @@
+[DEFAULT]
+bantime = 1h
+findtime = 10m
+maxretry = 5
+banaction = nginx-deny
+protocol = tcp
+port = http,https
+ignoreip = 127.0.0.1/8
+loglevel = DEBUG
+
+# Explicitly disable SSH jails
+[sshd]
+enabled = false
+
+[sshd-ddos]
+enabled = false
+
+[ssh-iptables]
+enabled = false
+
+[nginx-http-auth]
+enabled = true
+filter = nginx-http-auth
+logpath = /var/proxma/logs/nginx_access.log
+port = http,https
+
+[nginx-http-auth-proxma]
+enabled = true
+filter = nginx-http-auth-proxma
+logpath = /var/proxma/logs/nginx_access.log
+findtime = 1m
+maxretry = 3
+port = http,https
+banaction = nginx-deny
+
+[nginx-bad-request]
+enabled = true
+filter = nginx-bad-request
+logpath = /var/proxma/logs/nginx_access.log
+port = http,https
+
+[nginx-botsearch]
+enabled = true
+filter = nginx-botsearch
+logpath = /var/proxma/logs/nginx_access.log
+port = http,https

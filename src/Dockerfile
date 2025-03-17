@@ -36,7 +36,7 @@ RUN case "$TARGETPLATFORM" in \
 
 # Final stage
 FROM alpine:latest
-RUN apk add --no-cache nginx tini certbot openssl curl bind-tools certbot-dns-cloudflare dos2unix dcron logrotate
+RUN apk add --no-cache nginx tini certbot openssl curl bind-tools certbot-dns-cloudflare dos2unix dcron logrotate fail2ban
 
 RUN mkdir -p /run/nginx /var/www/html/.well-known/acme-challenge /etc/nginx/ssl /var/proxma/ssl /var/proxma/logs /etc/nginx/cache-zones.d /var/proxma/htpasswd && \
     chown -R nginx:nginx /var/www/html /run/nginx /etc/nginx/cache-zones.d /var/proxma/htpasswd \
@@ -51,6 +51,22 @@ RUN mkdir -p /run/nginx /var/www/html/.well-known/acme-challenge /etc/nginx/ssl 
 COPY src/docker_scripts/fetch_cloudflare_ips.sh /usr/local/bin/
 COPY src/docker_scripts/update_cloudflare_ips.sh /usr/local/bin/
 COPY src/docker_scripts/startup.sh /usr/local/bin/
+
+# Fail2ban configuration
+RUN mkdir -p /etc/fail2ban/action.d \
+    && mkdir -p /etc/fail2ban/filter.d \
+    && mkdir -p /etc/nginx/conf.d/banned \
+    && mkdir -p /var/run/fail2ban
+
+COPY src/fail2ban/jail.local /etc/fail2ban/jail.local
+COPY src/fail2ban/filter.d/nginx-http-auth-proxma.conf /etc/fail2ban/filter.d/
+COPY src/fail2ban/action.d/nginx-deny.conf /etc/fail2ban/action.d/
+
+RUN chmod 644 /etc/fail2ban/jail.local \
+    && chmod 644 /etc/fail2ban/filter.d/nginx-http-auth-proxma.conf \
+    && chmod 644 /etc/fail2ban/action.d/nginx-deny.conf \
+    && touch /etc/nginx/conf.d/banned/banned_ips.conf \
+    && chmod 644 /etc/nginx/conf.d/banned/banned_ips.conf
 
 # Copy logrotate configuration
 COPY src/docker_scripts/proxma-logrotate.conf /etc/logrotate.d/

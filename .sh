@@ -27,6 +27,11 @@ repomix --no-file-summary --no-security-check \
   --include "src/Dockerfile,src/docker_scripts/**" \
   --output "repopack.yml"
 
+# dockerfile + nginx configuration + fail2ban
+repomix --no-file-summary --no-security-check \
+  --include "src/Dockerfile,src/docker_scripts/**,src/webserver/nginx/nginx.conf,src/fail2ban/**" \
+  --output "repopack.yml"
+
 docker build -t dublok/proxma:latest -f src/Dockerfile .
 docker buildx build --platform linux/amd64,linux/arm64 -t dublok/proxma:latest -f src/Dockerfile .
 docker run -it --rm --name proxma -v /var/run/docker.sock:/var/run/docker.sock dublok/proxma:latest
