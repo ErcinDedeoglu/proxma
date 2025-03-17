@@ -48,9 +48,9 @@ RUN mkdir -p /run/nginx /var/www/html/.well-known/acme-challenge /etc/nginx/ssl 
     && chmod 600 /var/proxma/ssl/default.privkey.key.pem
 
 # Copy all scripts
-COPY src/fetch_cloudflare_ips.sh /usr/local/bin/
-COPY src/update_cloudflare_ips.sh /usr/local/bin/
-COPY src/startup.sh /usr/local/bin/
+COPY src/docker_scripts/fetch_cloudflare_ips.sh /usr/local/bin/
+COPY src/docker_scripts/update_cloudflare_ips.sh /usr/local/bin/
+COPY src/docker_scripts/startup.sh /usr/local/bin/
 
 # Make scripts executable and convert line endings if needed
 RUN dos2unix /usr/local/bin/fetch_cloudflare_ips.sh /usr/local/bin/update_cloudflare_ips.sh /usr/local/bin/startup.sh && \
