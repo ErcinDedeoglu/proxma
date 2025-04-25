@@ -23,14 +23,15 @@ enabled = true
 filter = nginx-http-auth
 logpath = /var/proxma/logs/nginx_access.log
 bantime = 1h
+findtime = 30m
 port = http,https
 
 [nginx-http-auth-proxma]
 enabled = true
 filter = nginx-http-auth-proxma
 logpath = /var/proxma/logs/nginx_access.log
-findtime = 1m
-maxretry = 3
+findtime = 15m
+maxretry = 5
 bantime = 1h
 port = http,https
 banaction = nginx-deny
@@ -40,6 +41,7 @@ enabled = true
 filter = nginx-bad-request
 logpath = /var/proxma/logs/nginx_access.log
 bantime = 1h
+findtime = 30m
 port = http,https
 
 [nginx-botsearch]
@@ -47,13 +49,14 @@ enabled = true
 filter = nginx-botsearch
 logpath = /var/proxma/logs/nginx_access.log
 bantime = 1h
+findtime = 30m
 port = http,https
 
 [nginx-probing]
 enabled = true
 filter = nginx-probing
 logpath = /var/proxma/logs/nginx_access.log
-findtime = 2m
+findtime = 10m
 maxretry = 5
 bantime = 1h
 port = http,https
@@ -62,7 +65,7 @@ port = http,https
 enabled = true
 filter = nginx-request-flood
 logpath = /var/proxma/logs/nginx_access.log
-findtime = 60s
-maxretry = 500
+findtime = 120s
+maxretry = 100
 bantime = 1h
 port = http,https
