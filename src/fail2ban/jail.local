@@ -1,11 +1,11 @@
 [DEFAULT]
-bantime = 1h
-findtime = 10m
-maxretry = 5
+bantime = 30m
+findtime = 30m
+maxretry = 12
 banaction = nginx-deny
 protocol = tcp
 port = http,https
-ignoreip = 127.0.0.1/8
+ignoreip = 127.0.0.1/8 ::1/128
 loglevel = DEBUG
 
 # Explicitly disable SSH jails
@@ -22,17 +22,18 @@ enabled = false
 enabled = true
 filter = nginx-http-auth
 logpath = /var/proxma/logs/nginx_access.log
-bantime = 1h
-findtime = 30m
+bantime = 30m
+findtime = 60m
+maxretry = 15
 port = http,https
 
 [nginx-http-auth-proxma]
 enabled = true
 filter = nginx-http-auth-proxma
 logpath = /var/proxma/logs/nginx_access.log
-findtime = 15m
-maxretry = 5
-bantime = 1h
+findtime = 45m
+maxretry = 15
+bantime = 30m
 port = http,https
 banaction = nginx-deny
 
@@ -40,32 +41,34 @@ banaction = nginx-deny
 enabled = true
 filter = nginx-bad-request
 logpath = /var/proxma/logs/nginx_access.log
-bantime = 1h
-findtime = 30m
+bantime = 30m
+findtime = 60m
+maxretry = 15
 port = http,https
 
 [nginx-botsearch]
 enabled = true
 filter = nginx-botsearch
 logpath = /var/proxma/logs/nginx_access.log
-bantime = 1h
-findtime = 30m
+bantime = 30m
+findtime = 60m
+maxretry = 12
 port = http,https
 
 [nginx-probing]
 enabled = true
 filter = nginx-probing
 logpath = /var/proxma/logs/nginx_access.log
-findtime = 10m
-maxretry = 5
-bantime = 1h
+findtime = 30m
+maxretry = 12
+bantime = 30m
 port = http,https
 
 [nginx-request-flood]
 enabled = true
 filter = nginx-http-errors
 logpath = /var/proxma/logs/nginx_access.log
-findtime = 120s
-maxretry = 15
-bantime = 1h
+findtime = 5m
+maxretry = 40
+bantime = 30m
 port = http,https
