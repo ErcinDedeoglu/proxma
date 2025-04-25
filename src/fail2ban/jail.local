@@ -63,9 +63,9 @@ port = http,https
 
 [nginx-request-flood]
 enabled = true
-filter = nginx-request-flood
+filter = nginx-http-errors
 logpath = /var/proxma/logs/nginx_access.log
 findtime = 120s
-maxretry = 100
+maxretry = 15
 bantime = 1h
 port = http,https
