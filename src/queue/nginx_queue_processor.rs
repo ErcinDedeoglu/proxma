@@ -160,7 +160,7 @@ impl NginxQueueProcessor {
     pub async fn process_die_action(message: &NginxQueueMessage) {
         if let Some(host) = &message.host {
             // Clear pending messages from both queues
-            NginxDequeue::clear_pending_messages(&host.domain);
+            NginxDequeue::clear_pending_messages(&host.domain, &message.container_id);
             CertDequeue::clear_pending_messages(&host.domain);
     
             println!("🏠 Removing host: {}", host.domain);
@@ -176,7 +176,7 @@ impl NginxQueueProcessor {
             }
         } else if let Some(redirect) = &message.redirect {
             // Clear pending messages from both queues
-            NginxDequeue::clear_pending_messages(&redirect.from);
+            NginxDequeue::clear_pending_messages(&redirect.from, &message.container_id);
             CertDequeue::clear_pending_messages(&redirect.from);
     
             println!("➡️ Removing redirect: {}", redirect.from);

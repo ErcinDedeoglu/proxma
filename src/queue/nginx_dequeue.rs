@@ -16,20 +16,28 @@ impl NginxDequeue {
         NGINX_QUEUE.is_empty()
     }
 
-    pub fn clear_pending_messages(domain: &str) {
-        while let Some(nginx_msg) = Self::peek() {
-            let should_remove = match (&nginx_msg.host, &nginx_msg.redirect) {
-                (Some(host), _) => host.domain == domain,
-                (_, Some(redirect)) => redirect.from == domain,
-                (None, None) => false,
-            };
+    /// Only clear pending messages for the *same* container_id and domain.
+    pub fn clear_pending_messages(domain: &str, container_id: &str) {
+        let mut removed = false;
+        loop {
+            if let Some(nginx_msg) = Self::peek() {
+                let is_host_match = nginx_msg.host.as_ref().map(|h| h.domain == domain).unwrap_or(false);
+                let is_redirect_match = nginx_msg.redirect.as_ref().map(|r| r.from == domain).unwrap_or(false);
 
-            if should_remove {
-                Self::message();
-                println!("🧹 Removed pending Nginx queue message for '{}'", domain);
+                // Only remove if both domain and container_id match
+                if (is_host_match || is_redirect_match) && nginx_msg.container_id == container_id {
+                    Self::message();
+                    println!("🧹 Removed pending Nginx queue message for '{}' (container_id: {})", domain, container_id);
+                    removed = true;
+                } else {
+                    break;
+                }
             } else {
                 break;
             }
+        }
+        if !removed {
+            println!("🧹 No pending Nginx queue messages found for '{}' with container_id '{}'", domain, container_id);
         }
     }
 }
