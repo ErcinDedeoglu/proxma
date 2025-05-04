@@ -15,7 +15,15 @@ fn generate_acme_challenge_block(webroot_path: &str) -> String {
 
 /// Helper function to generate a server block with common parameters
 fn generate_server_block(is_https: bool, domain: &str, location_block: &str, ssl: bool, webroot_path: Option<&str>, ssl_staging: bool, webserver: &Webserver) -> String {
-    let listen_directive = if is_https { "listen 443 ssl;" } else { "listen 80;" };
+    let listen_directive = if is_https {
+        r#"listen 443 ssl;
+    listen [::]:443 ssl;
+    # Enable HTTP/2
+    http2 on;"#
+    } else {
+        r#"listen 80;
+    listen [::]:80;"#
+    };
     let environment = if ssl_staging { "staging" } else { "production" };
     
     // Add all webserver configuration directives
@@ -41,7 +49,11 @@ fn generate_server_block(is_https: bool, domain: &str, location_block: &str, ssl
     let ssl_config = if is_https {
         format!(
             r#"    ssl_certificate /var/proxma/configuration/{environment}/live/{domain}/fullchain.pem;
-    ssl_certificate_key /var/proxma/configuration/{environment}/live/{domain}/privkey.pem;"#,
+    ssl_certificate_key /var/proxma/configuration/{environment}/live/{domain}/privkey.pem;
+
+    # SSL settings
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_prefer_server_ciphers off;"#,
             environment = environment,
             domain = domain
         )
