@@ -169,22 +169,37 @@ pub fn generate_proxy_server_block(
     let auth_config = generate_auth_config(&auth, domain);
     
     // Add auth_config to the proxy_location
+    let (xfwd_port, xfwd_proto) = if ssl {
+        ("443", "https")
+    } else {
+        ("80", "http")
+    };
     let proxy_location = format!(
         r#"    location / {{{}
         proxy_pass {};
         proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-Host $host;
+        proxy_set_header X-Forwarded-Port {};
+        proxy_set_header X-Forwarded-Proto {};
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Forwarded-Scheme $scheme;
+        proxy_set_header X-Original-URI $request_uri;
+        proxy_set_header X-Forwarded-Server $host;
+        proxy_set_header X-Request-Start $msec;
+        proxy_set_header X-Original-Host $host;
+        proxy_set_header X-Forwarded-SSL on;
         
         # WebSocket support
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection "upgrade";
         proxy_read_timeout 86400;  # Longer timeout for WebSockets
-    }}"#, 
+    }}"#,
         auth_config,
-        upstream
+        upstream,
+        xfwd_port,
+        xfwd_proto
     );
     
     let http_redirect = r#"    location / {
