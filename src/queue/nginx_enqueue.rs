@@ -367,13 +367,8 @@ impl NginxEnqueue {
                 }
             }
         
-            let port = match labels.get("proxma.port").and_then(|p| p.trim().parse::<u16>().ok()) {
-                Some(p) if p > 0 => p,
-                _ => {
-                    println!("Invalid port for container {}, skipping processing", container_id);
-                    return;
-                }
-            };
+            // Only parse global port if needed
+            let global_port = labels.get("proxma.port").and_then(|p| p.trim().parse::<u16>().ok());
     
             let ssl_staging: bool = labels.get("proxma.ssl.staging")
             .map(|v| v.trim().to_lowercase() == "true")
@@ -430,7 +425,7 @@ impl NginxEnqueue {
                 }
             }
     
-            // New logic: support host:port in proxma.hosts, fallback to global proxma.port
+            // Improved logic: support host:port in proxma.hosts, fallback to global proxma.port only if needed
             let entries: Vec<String> = hosts_str
                 .split(',')
                 .map(|s| s.trim().to_string())
@@ -449,7 +444,13 @@ impl NginxEnqueue {
                         }
                     }
                 } else {
-                    (entry.clone(), port)
+                    match global_port {
+                        Some(port_val) if port_val > 0 => (entry.clone(), port_val),
+                        _ => {
+                            println!("No port specified for host '{}' and no valid global proxma.port for container {}, skipping this entry", entry, container_id);
+                            continue;
+                        }
+                    }
                 };
 
                 Self::message(NginxQueueMessage {
