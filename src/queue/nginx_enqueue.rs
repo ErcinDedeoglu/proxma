@@ -430,13 +430,28 @@ impl NginxEnqueue {
                 }
             }
     
-            let domains: Vec<String> = hosts_str
+            // New logic: support host:port in proxma.hosts, fallback to global proxma.port
+            let entries: Vec<String> = hosts_str
                 .split(',')
                 .map(|s| s.trim().to_string())
                 .filter(|s| !s.is_empty())
                 .collect();
-    
-            for domain in domains {
+
+            for entry in entries {
+                let (domain, entry_port) = if let Some(idx) = entry.rfind(':') {
+                    let (d, p) = entry.split_at(idx);
+                    let port_str = &p[1..];
+                    match port_str.parse::<u16>() {
+                        Ok(port_val) if port_val > 0 => (d.to_string(), port_val),
+                        _ => {
+                            println!("Invalid port '{}' in proxma.hosts entry '{}', skipping this entry", port_str, entry);
+                            continue;
+                        }
+                    }
+                } else {
+                    (entry.clone(), port)
+                };
+
                 Self::message(NginxQueueMessage {
                     action: action.clone(),
                     container_id: container_id.clone(),
@@ -445,7 +460,7 @@ impl NginxEnqueue {
                     networks: networks.clone(),
                     hosting: true,
                     ssl,
-                    host: Some(Host { domain, port }),
+                    host: Some(Host { domain, port: entry_port }),
                     redirect: None,
                     created_at: Utc::now(),
                     delay_seconds: None,
