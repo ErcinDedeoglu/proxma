@@ -20,7 +20,20 @@ impl NginxQueueProcessor {
 
         if let Some(host) = &message.host {
             println!("🏠 Configuring host: {} (SSL: {})", host.domain, message.ssl);
-            let upstream_url = format!("http://{}:{}", message.name, host.port);
+            
+            // Construct upstream URL based on protocol
+            let upstream_url = match host.protocol.as_str() {
+                "grpc" => format!("{}:{}", message.name, host.port),
+                _ => format!("http://{}:{}", message.name, host.port),
+            };
+            
+            // Construct display URL with protocol prefix for logging
+            let display_url = match host.protocol.as_str() {
+                "grpc" => format!("grpc://{}:{}", message.name, host.port),
+                "https" => format!("https://{}:{}", message.name, host.port),
+                _ => format!("http://{}:{}", message.name, host.port),
+            };
+            
             let use_ssl = message.ssl && NGINX_MANAGER.check_ssl_certificates_exist(&host.domain, message.ssl_staging);
             
             if use_ssl {
@@ -35,7 +48,7 @@ impl NginxQueueProcessor {
             
             match NGINX_MANAGER.add_container_host_rule(&host.domain, &upstream_url, use_ssl, message.ssl_staging, message.auth.clone(), message.webserver.clone(), &host.protocol) {
                 Ok(_) => {
-                    println!("📝 Created Nginx config for '{}', proxy to '{}'", host.domain, upstream_url);
+                    println!("📝 Created Nginx config for '{}', proxy to '{}'", host.domain, display_url);
                     
                     match NGINX_MANAGER.validate_nginx_config() {
                         Ok(_) => {

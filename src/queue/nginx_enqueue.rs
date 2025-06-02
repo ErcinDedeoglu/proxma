@@ -433,29 +433,36 @@ impl NginxEnqueue {
                 .collect();
 
             for entry in entries {
-                let (domain, entry_port, protocol) = if let Some(idx) = entry.rfind(':') {
-                    let (d, p) = entry.split_at(idx);
-                    let port_and_protocol = &p[1..];
+                let (domain, entry_port, protocol) = if entry.contains(':') {
+                    let parts: Vec<&str> = entry.split(':').collect();
                     
-                    // Check if there's another colon for protocol specification (domain:port:protocol)
-                    if let Some(protocol_idx) = port_and_protocol.rfind(':') {
-                        let (port_str, protocol_str) = port_and_protocol.split_at(protocol_idx);
-                        let protocol = protocol_str[1..].to_lowercase();
-                        match port_str.parse::<u16>() {
-                            Ok(port_val) if port_val > 0 => (d.to_string(), port_val, protocol),
-                            _ => {
-                                println!("Invalid port '{}' in proxma.hosts entry '{}', skipping this entry", port_str, entry);
-                                continue;
+                    match parts.len() {
+                        2 => {
+                            // Format: domain:port
+                            let domain = parts[0].to_string();
+                            match parts[1].parse::<u16>() {
+                                Ok(port_val) if port_val > 0 => (domain, port_val, "http".to_string()),
+                                _ => {
+                                    println!("Invalid port '{}' in proxma.hosts entry '{}', skipping this entry", parts[1], entry);
+                                    continue;
+                                }
                             }
-                        }
-                    } else {
-                        // No protocol specified, just domain:port
-                        match port_and_protocol.parse::<u16>() {
-                            Ok(port_val) if port_val > 0 => (d.to_string(), port_val, "http".to_string()),
-                            _ => {
-                                println!("Invalid port '{}' in proxma.hosts entry '{}', skipping this entry", port_and_protocol, entry);
-                                continue;
+                        },
+                        3 => {
+                            // Format: domain:port:protocol
+                            let domain = parts[0].to_string();
+                            let protocol = parts[2].to_lowercase();
+                            match parts[1].parse::<u16>() {
+                                Ok(port_val) if port_val > 0 => (domain, port_val, protocol),
+                                _ => {
+                                    println!("Invalid port '{}' in proxma.hosts entry '{}', skipping this entry", parts[1], entry);
+                                    continue;
+                                }
                             }
+                        },
+                        _ => {
+                            println!("Invalid format in proxma.hosts entry '{}', expected 'domain:port' or 'domain:port:protocol', skipping this entry", entry);
+                            continue;
                         }
                     }
                 } else {
