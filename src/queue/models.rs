@@ -37,6 +37,7 @@ pub struct NginxQueueMessage {
 pub struct Host {
     pub domain: String,
     pub port: u16,
+    pub protocol: String,
 }
 
 #[derive(Debug, Clone)]

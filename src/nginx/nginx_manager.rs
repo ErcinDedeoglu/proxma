@@ -1,7 +1,7 @@
 use std::path::{Path, PathBuf};
 use std::sync::Mutex;
 use std::{fs, io};
-use crate::nginx::nginx_templates::generate_proxy_server_block;
+use crate::nginx::nginx_templates::{generate_proxy_server_block, generate_grpc_server_block};
 use crate::nginx::nginx_templates::generate_redirect_server_block;
 use crate::models::{Auth, Webserver};
 
@@ -58,19 +58,33 @@ impl NginxManager {
         ssl_staging: bool,
         auth: Auth,
         webserver: Webserver,
+        protocol: &str,
     ) -> io::Result<()> {
         let sanitized_domain = sanitize_domain(domain);
         
-        // Generate server configuration and handle the Result
-        let config_content = generate_proxy_server_block(
-            domain,
-            upstream_url,
-            ssl,
-            self.webroot_path.to_str().unwrap_or_default(),
-            ssl_staging,
-            auth,
-            webserver
-        )?; // Use ? to propagate any errors
+        // Generate server configuration based on protocol
+        let config_content = if protocol == "grpc" {
+            generate_grpc_server_block(
+                domain,
+                upstream_url,
+                ssl,
+                self.webroot_path.to_str().unwrap_or_default(),
+                ssl_staging,
+                auth,
+                webserver
+            )?
+        } else {
+            // Default to HTTP proxy for http, https, or any other protocol
+            generate_proxy_server_block(
+                domain,
+                upstream_url,
+                ssl,
+                self.webroot_path.to_str().unwrap_or_default(),
+                ssl_staging,
+                auth,
+                webserver
+            )?
+        };
         
         // Write server configuration
         let file_name = format!("proxma_{}.conf", sanitized_domain);

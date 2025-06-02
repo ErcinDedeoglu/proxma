@@ -219,6 +219,75 @@ pub fn generate_proxy_server_block(
     Ok(result)
 }
 
+/// Generate an Nginx server block for gRPC proxying requests
+pub fn generate_grpc_server_block(
+    domain: &str,
+    upstream: &str,
+    ssl: bool,
+    webroot_path: &str,
+    ssl_staging: bool,
+    auth: Auth,
+    webserver: Webserver,
+) -> io::Result<String> {
+    // Generate htpasswd file if authentication is enabled
+    generate_htpasswd_file(&auth, domain)?;
+    
+    // Get auth configuration
+    let auth_config = generate_auth_config(&auth, domain);
+    
+    // Add auth_config to the grpc_location
+    let (xfwd_port, xfwd_proto) = if ssl {
+        ("443", "https")
+    } else {
+        ("80", "http")
+    };
+    let grpc_location = format!(
+        r#"    location / {{{}
+        grpc_pass grpc://{};
+        grpc_read_timeout {};
+        grpc_send_timeout {};
+        grpc_connect_timeout {};
+        
+        # gRPC headers
+        grpc_set_header Host $host;
+        grpc_set_header X-Forwarded-Host $host;
+        grpc_set_header X-Forwarded-Port {};
+        grpc_set_header X-Forwarded-Proto {};
+        grpc_set_header X-Real-IP $remote_addr;
+        grpc_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        grpc_set_header X-Forwarded-Scheme $scheme;
+        grpc_set_header X-Original-URI $request_uri;
+        grpc_set_header X-Forwarded-Server $host;
+        grpc_set_header X-Request-Start $msec;
+        grpc_set_header X-Original-Host $host;
+        grpc_set_header X-Forwarded-SSL on;
+    }}"#,
+        auth_config,
+        upstream,
+        webserver.proxy_read_timeout,
+        webserver.proxy_send_timeout,
+        webserver.proxy_connect_timeout,
+        xfwd_port,
+        xfwd_proto
+    );
+    
+    let http_redirect = r#"    location / {
+        return 301 https://$host$request_uri;
+    }"#;
+    
+    let result = if ssl {
+        format!(
+            "# HTTP server for ACME challenges and redirection\n{}\n# HTTPS server for gRPC content\n{}",
+            generate_server_block(false, domain, http_redirect, true, Some(webroot_path), ssl_staging, &webserver),
+            generate_server_block(true, domain, &grpc_location, true, None, ssl_staging, &webserver)
+        )
+    } else {
+        generate_server_block(false, domain, &grpc_location, false, Some(webroot_path), ssl_staging, &webserver)
+    };
+    
+    Ok(result)
+}
+
 /// Generate an Nginx server block for redirecting requests with SSL support
 pub fn generate_redirect_server_block(
     from_domain: &str, 

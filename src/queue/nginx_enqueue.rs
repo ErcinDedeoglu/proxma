@@ -433,19 +433,35 @@ impl NginxEnqueue {
                 .collect();
 
             for entry in entries {
-                let (domain, entry_port) = if let Some(idx) = entry.rfind(':') {
+                let (domain, entry_port, protocol) = if let Some(idx) = entry.rfind(':') {
                     let (d, p) = entry.split_at(idx);
-                    let port_str = &p[1..];
-                    match port_str.parse::<u16>() {
-                        Ok(port_val) if port_val > 0 => (d.to_string(), port_val),
-                        _ => {
-                            println!("Invalid port '{}' in proxma.hosts entry '{}', skipping this entry", port_str, entry);
-                            continue;
+                    let port_and_protocol = &p[1..];
+                    
+                    // Check if there's another colon for protocol specification (domain:port:protocol)
+                    if let Some(protocol_idx) = port_and_protocol.rfind(':') {
+                        let (port_str, protocol_str) = port_and_protocol.split_at(protocol_idx);
+                        let protocol = protocol_str[1..].to_lowercase();
+                        match port_str.parse::<u16>() {
+                            Ok(port_val) if port_val > 0 => (d.to_string(), port_val, protocol),
+                            _ => {
+                                println!("Invalid port '{}' in proxma.hosts entry '{}', skipping this entry", port_str, entry);
+                                continue;
+                            }
+                        }
+                    } else {
+                        // No protocol specified, just domain:port
+                        match port_and_protocol.parse::<u16>() {
+                            Ok(port_val) if port_val > 0 => (d.to_string(), port_val, "http".to_string()),
+                            _ => {
+                                println!("Invalid port '{}' in proxma.hosts entry '{}', skipping this entry", port_and_protocol, entry);
+                                continue;
+                            }
                         }
                     }
                 } else {
+                    // No port specified, use global port
                     match global_port {
-                        Some(port_val) if port_val > 0 => (entry.clone(), port_val),
+                        Some(port_val) if port_val > 0 => (entry.clone(), port_val, "http".to_string()),
                         _ => {
                             println!("No port specified for host '{}' and no valid global proxma.port for container {}, skipping this entry", entry, container_id);
                             continue;
@@ -461,7 +477,7 @@ impl NginxEnqueue {
                     networks: networks.clone(),
                     hosting: true,
                     ssl,
-                    host: Some(Host { domain, port: entry_port }),
+                    host: Some(Host { domain, port: entry_port, protocol }),
                     redirect: None,
                     created_at: Utc::now(),
                     delay_seconds: None,
