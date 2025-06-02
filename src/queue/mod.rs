@@ -3,7 +3,7 @@ mod shared;
 mod generic_queue;
 mod nginx_enqueue;
 mod nginx_dequeue;
-mod nginx_queue_processor;
+pub mod nginx_queue_processor;
 mod cert_enqueue;
 mod cert_dequeue;
 mod cert_queue_processor;

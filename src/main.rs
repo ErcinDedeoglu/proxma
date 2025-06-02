@@ -4,10 +4,12 @@ mod dns;
 mod certbot;
 mod queue;
 mod models;
+mod domain_tracker;
 pub mod acme_helper;
 
 use futures::StreamExt;
 use queue::{NginxEnqueue, NginxQueueProcessor, CertQueueProcessor};
+use domain_tracker::DomainTracker;
 
 #[tokio::main]
 async fn main() {
@@ -19,6 +21,41 @@ async fn main() {
         CertQueueProcessor::start().await;
     });
     
+    // Spawn orphan cleanup task that waits for initial processing to complete
+    tokio::spawn(async {
+        // Wait for initial container discovery and processing
+        let mut initial_processing_done = false;
+        let mut stable_count = 0;
+        
+        loop {
+            tokio::time::sleep(std::time::Duration::from_secs(2)).await;
+            let queue_size = NginxEnqueue::size();
+            
+            if queue_size == 0 {
+                stable_count += 1;
+                // Wait for queue to be stable (empty) for 3 consecutive checks
+                if stable_count >= 3 && !initial_processing_done {
+                    println!("🔍 Initial processing complete, performing orphan cleanup...");
+                    match DomainTracker::cleanup_orphaned_configs() {
+                        Ok(removed_domains) => {
+                            if removed_domains.is_empty() {
+                                println!("✅ No orphaned configurations found");
+                            } else {
+                                println!("🧹 Cleaned up {} orphaned configurations", removed_domains.len());
+                            }
+                        },
+                        Err(e) => {
+                            eprintln!("❌ Failed to cleanup orphaned configs: {}", e);
+                        }
+                    }
+                    initial_processing_done = true;
+                    break;
+                }
+            } else {
+                stable_count = 0; // Reset if queue is not empty
+            }
+        }
+    });
 
     let mut stream = docker::stream_container_events()
         .await

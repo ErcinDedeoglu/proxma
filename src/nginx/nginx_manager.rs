@@ -17,10 +17,26 @@ struct NginxState {
 }
 
 impl NginxManager {
+    /// Convert domain to config filename
+    pub fn domain_to_filename(domain: &str) -> String {
+        let sanitized_domain = sanitize_domain(domain);
+        format!("proxma_{}.conf", sanitized_domain)
+    }
+
+
     pub fn new<P: AsRef<Path>, W: AsRef<Path>>(config_path: P, webroot_path: W) -> Self {
+        let config_path_buf = config_path.as_ref().to_path_buf();
+        
+        // Ensure the nginx config directory exists
+        if let Err(e) = fs::create_dir_all(&config_path_buf) {
+            eprintln!("⚠️ Failed to create nginx config directory {:?}: {}", config_path_buf, e);
+        } else {
+            println!("📁 Nginx config directory ready: {:?}", config_path_buf);
+        }
+        
         Self {
             state: Mutex::new(NginxState {
-                config_path: config_path.as_ref().to_path_buf(),
+                config_path: config_path_buf,
             }),
             webroot_path: webroot_path.as_ref().to_path_buf(),
         }
@@ -43,7 +59,7 @@ impl NginxManager {
             webserver,
         );
 
-        let file_name = format!("proxma_{}.conf", from_domain.replace('.', "_"));
+        let file_name = Self::domain_to_filename(from_domain);
         let file_path: PathBuf = self.state.lock().unwrap().config_path.join(&file_name);
 
         fs::write(&file_path, config_content)?;
@@ -60,7 +76,7 @@ impl NginxManager {
         webserver: Webserver,
         protocol: &str,
     ) -> io::Result<()> {
-        let sanitized_domain = sanitize_domain(domain);
+        let _sanitized_domain = sanitize_domain(domain);
         
         // Generate server configuration based on protocol
         let config_content = if protocol == "grpc" {
@@ -87,7 +103,7 @@ impl NginxManager {
         };
         
         // Write server configuration
-        let file_name = format!("proxma_{}.conf", sanitized_domain);
+        let file_name = Self::domain_to_filename(domain);
         let file_path: PathBuf = self.state.lock().unwrap().config_path.join(&file_name);
         fs::write(&file_path, config_content)?;
         
@@ -107,8 +123,7 @@ impl NginxManager {
     }
 
     pub fn remove_rule(&self, domain: &str) -> io::Result<()> {
-        let sanitized_domain = sanitize_domain(domain);
-        let file_name = format!("proxma_{}.conf", sanitized_domain);
+        let file_name = Self::domain_to_filename(domain);
         let file_path = self.state.lock().unwrap().config_path.join(&file_name);
         fs::remove_file(&file_path)?;
         Ok(())
@@ -132,5 +147,42 @@ impl NginxManager {
         let cert_path = format!("/var/proxma/configuration/{}/live/{}/fullchain.pem", environment, domain);
         let key_path = format!("/var/proxma/configuration/{}/live/{}/privkey.pem", environment, domain);
         Path::new(&cert_path).exists() && Path::new(&key_path).exists()
+    }
+
+
+    /// Remove orphaned config files for domains that no longer have running containers
+    pub fn cleanup_orphaned_configs(&self, active_filenames: &[String]) -> io::Result<Vec<String>> {
+        let config_path = &self.state.lock().unwrap().config_path;
+        let mut removed_domains = Vec::new();
+        
+        if !config_path.exists() {
+            return Ok(removed_domains);
+        }
+        
+        // Read all existing config files
+        for entry in fs::read_dir(config_path)? {
+            let entry = entry?;
+            let filename = entry.file_name().to_string_lossy().to_string();
+            
+            // Check if it's a proxma config file and not in active list
+            if filename.starts_with("proxma_") && filename.ends_with(".conf") {
+                if !active_filenames.contains(&filename) {
+                    // Remove orphaned config file
+                    println!("🧹 Removing orphaned config: {}", filename);
+                    match fs::remove_file(entry.path()) {
+                        Ok(_) => {
+                            // Use filename as identifier since we can't reliably reverse sanitize_domain()
+                            removed_domains.push(filename.clone());
+                            println!("✅ Removed orphaned config: {}", filename);
+                        },
+                        Err(e) => {
+                            eprintln!("❌ Failed to remove {}: {}", filename, e);
+                        }
+                    }
+                }
+            }
+        }
+        
+        Ok(removed_domains)
     }
 }

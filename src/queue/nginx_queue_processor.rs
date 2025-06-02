@@ -4,11 +4,12 @@ use crate::nginx::NginxManager;
 use crate::dns::DNSManager;
 use crate::queue::cert_enqueue::CertEnqueue;
 use crate::queue::{CertDequeue, NginxEnqueue};
+use crate::domain_tracker::DomainTracker;
 use chrono::Utc;
 use lazy_static::lazy_static;
 
 lazy_static! {
-    pub static ref NGINX_MANAGER: NginxManager = NginxManager::new("/etc/nginx/conf.d", "/var/www/html");
+    pub static ref NGINX_MANAGER: NginxManager = NginxManager::new("/var/proxma/nginx/conf.d", "/var/www/html");
     pub static ref dns_manager: DNSManager = DNSManager::new();
 }
 
@@ -56,6 +57,10 @@ impl NginxQueueProcessor {
                             match NGINX_MANAGER.reload_nginx() {
                                 Ok(_) => {
                                     println!("✅ Nginx configuration reloaded successfully");
+                                    
+                                    // Add domain to active list
+                                    DomainTracker::add_domain(host.domain.clone());
+                                    
                                     if message.ssl {
                                         if !message.skip_certification {
                                             CertEnqueue::message(host.domain.clone(), message.clone());
@@ -103,6 +108,10 @@ impl NginxQueueProcessor {
                             match NGINX_MANAGER.reload_nginx() {
                                 Ok(_) => {
                                     println!("✅ Nginx configuration reloaded successfully");
+                                    
+                                    // Add domain to active list
+                                    DomainTracker::add_domain(redirect.from.clone());
+                                    
                                     if message.ssl {
                                         if !message.skip_certification {
                                             CertEnqueue::message(redirect.from.clone(), message.clone());
@@ -177,6 +186,10 @@ impl NginxQueueProcessor {
             CertDequeue::clear_pending_messages(&host.domain);
     
             println!("🏠 Removing host: {}", host.domain);
+            
+            // Remove domain from active list
+            DomainTracker::remove_domain(&host.domain);
+            
             match NGINX_MANAGER.remove_rule(&host.domain) {
                 Ok(_) => {
                     println!("✅ Removed Nginx config for '{}'", host.domain);
@@ -193,6 +206,10 @@ impl NginxQueueProcessor {
             CertDequeue::clear_pending_messages(&redirect.from);
     
             println!("➡️ Removing redirect: {}", redirect.from);
+            
+            // Remove domain from active list
+            DomainTracker::remove_domain(&redirect.from);
+            
             match NGINX_MANAGER.remove_rule(&redirect.from) {
                 Ok(_) => {
                     println!("✅ Removed Nginx redirect config for '{}'", redirect.from);

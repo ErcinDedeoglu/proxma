@@ -38,8 +38,8 @@ RUN case "$TARGETPLATFORM" in \
 FROM alpine:latest
 RUN apk add --no-cache nginx tini certbot openssl curl bind-tools certbot-dns-cloudflare dos2unix dcron logrotate fail2ban
 
-RUN mkdir -p /run/nginx /var/www/html/.well-known/acme-challenge /etc/nginx/ssl /var/proxma/ssl /var/proxma/logs /etc/nginx/cache-zones.d /var/proxma/htpasswd && \
-    chown -R nginx:nginx /var/www/html /run/nginx /etc/nginx/cache-zones.d /var/proxma/htpasswd \
+RUN mkdir -p /run/nginx /var/www/html/.well-known/acme-challenge /etc/nginx/ssl /var/proxma/ssl /var/proxma/logs /etc/nginx/cache-zones.d /var/proxma/htpasswd /var/proxma/nginx/conf.d /var/proxma/nginx/includes /var/proxma/nginx/logs && \
+    chown -R nginx:nginx /var/www/html /run/nginx /etc/nginx/cache-zones.d /var/proxma/htpasswd /var/proxma/nginx \
     && openssl req -x509 -nodes -days 3650 -newkey rsa:2048 \
     -keyout /var/proxma/ssl/default.privkey.key.pem \
     -out /var/proxma/ssl/default.fullchain.crt.pem \
