@@ -7,10 +7,12 @@ services:
       - "443:443"
     environment:
       - PROXMA_DEBUG=true
+      - PROXMA_DISABLE_FAIL2BAN=false
   #   PROXMA_SSL: "true" #(default: false)
   #   PROXMA_SSL_PROVIDER: "zerossl" #(default: letsencrypt; case insensitive)
   #   PROXMA_SSL_EMAIL: "info@domain.com"
   #   PROXMA_SSL_ZEROSSL_API_KEY: "your-zerossl-api-key-here" # Optional for ACME providers requiring extra auth
+  #   PROXMA_DISABLE_FAIL2BAN: "true" # Set to true to disable fail2ban globally (default: false)
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - proxma_conf:/etc/nginx/conf.d
