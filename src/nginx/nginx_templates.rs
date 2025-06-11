@@ -177,6 +177,11 @@ pub fn generate_proxy_server_block(
     let proxy_location = format!(
         r#"    location / {{{}
         proxy_pass {};
+        
+        # Forward ALL headers by default
+        proxy_pass_request_headers on;
+        
+        # Standard proxy headers
         proxy_set_header Host $host;
         proxy_set_header X-Forwarded-Host $host;
         proxy_set_header X-Forwarded-Port {};
@@ -248,7 +253,10 @@ pub fn generate_grpc_server_block(
         grpc_send_timeout {};
         grpc_connect_timeout {};
         
-        # gRPC headers
+        # Forward ALL headers by default
+        grpc_pass_request_headers on;
+        
+        # Standard gRPC headers
         grpc_set_header Host $host;
         grpc_set_header X-Forwarded-Host $host;
         grpc_set_header X-Forwarded-Port {};
