@@ -41,16 +41,16 @@ async fn event_message_to_event(docker: Arc<Docker>, event: &EventMessage) -> Op
     let attributes = actor.attributes.clone().unwrap_or_default();
     
     // Get the actual container name by inspecting the container
-    // This ensures consistency between initial discovery and live events
-    let container_name = match docker.inspect_container(container_id, None::<InspectContainerOptions>).await {
+    // Docker events don't always include the full container name in attributes
+    let name = match docker.inspect_container(container_id, None::<InspectContainerOptions>).await {
         Ok(container_info) => {
+            // Use the actual container name from inspection
             container_info.name
+                .map(|n| n.trim_start_matches('/').to_string())
                 .unwrap_or_else(|| attributes.get("name").cloned().unwrap_or_default())
-                .trim_start_matches('/')
-                .to_string()
         },
         Err(_) => {
-            // Fallback to attributes if inspection fails
+            // Fallback to service name if inspection fails
             attributes.get("name").cloned().unwrap_or_default()
         }
     };
@@ -58,7 +58,7 @@ async fn event_message_to_event(docker: Arc<Docker>, event: &EventMessage) -> Op
     Some(ContainerEvent {
         container_id: container_id.clone(),
         image: attributes.get("image").cloned().unwrap_or_default(),
-        name: container_name,
+        name,
         action: event.action.as_ref()?.into(),
         labels: attributes,
         networks: inspect_networks(&docker, container_id).await,
