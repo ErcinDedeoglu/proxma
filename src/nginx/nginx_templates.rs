@@ -253,9 +253,7 @@ pub fn generate_grpc_server_block(
         grpc_send_timeout {};
         grpc_connect_timeout {};
         
-        # Forward ALL headers by default
-        grpc_pass_request_headers on;
-        
+        # gRPC automatically forwards all headers by default
         # Standard gRPC headers
         grpc_set_header Host $host;
         grpc_set_header X-Forwarded-Host $host;
