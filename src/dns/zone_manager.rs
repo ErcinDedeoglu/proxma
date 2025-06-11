@@ -1,5 +1,5 @@
 use cloudflare::framework::client::async_api::Client as HttpApiClientAsync;
-use cloudflare::framework::{Environment, response::ApiFailure};
+use cloudflare::framework::{Environment, response::ApiFailure, client::ClientConfig};
 use cloudflare::endpoints::zones::zone::{ListZones, ListZonesParams};
 use lazy_static::lazy_static;
 use tokio::sync::RwLockWriteGuard;
@@ -27,9 +27,12 @@ impl ZoneManager {
     ) -> Result<(), String> {
         let credentials = AuthManager::get_credentials(email, api_key, api_token)?;
     
+        let mut config = ClientConfig::default();
+        config.http_timeout = std::time::Duration::from_secs(30);
+        
         let client = HttpApiClientAsync::new(
             credentials,
-            Default::default(),
+            config,
             Environment::Production,
         )
         .map_err(|e| format!("Cloudflare API client creation failed: {:?}", e))?;

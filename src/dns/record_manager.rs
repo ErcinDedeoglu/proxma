@@ -27,9 +27,12 @@ impl RecordManager {
             Err(err) => return Err(anyhow::anyhow!(err)),
         };
         
+        let mut config = ClientConfig::default();
+        config.http_timeout = std::time::Duration::from_secs(30);
+        
         let client = Client::new(
             credentials,
-            ClientConfig::default(),
+            config,
             Environment::Production,
         )?;
         
@@ -79,9 +82,12 @@ impl RecordManager {
             Err(err) => return Err(anyhow::anyhow!(err)),
         };
         
+        let mut config = ClientConfig::default();
+        config.http_timeout = std::time::Duration::from_secs(30);
+        
         let client = Client::new(
             credentials,
-            ClientConfig::default(),
+            config,
             Environment::Production,
         )?;
         

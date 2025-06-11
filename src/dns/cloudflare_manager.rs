@@ -82,8 +82,8 @@ impl CloudflareManager {
                 record_update = true;
             }
             
-            if record != DNSManager::dns_content_to_string(&existing_record.content) {
-                println!("Record name is out of date");
+            if target != DNSManager::dns_content_to_string(&existing_record.content) {
+                println!("Record content is out of date");
                 record_update = true;
             }
         } else {
@@ -93,6 +93,11 @@ impl CloudflareManager {
 
         if record_update {
             println!("Adding/Updating record...");
+            let zone_id_clone = zone_id.clone();
+            let record_name_clone = record_name.clone();
+            let type_clone = r#type.clone();
+            let target_clone = target.clone();
+            
             match RecordManager::add_update_record(
                 zone_id,
                 record_name,
@@ -105,8 +110,12 @@ impl CloudflareManager {
                 api_key.clone(),
                 api_token.clone()
             ).await {
-                Ok(_) => println!("Record successfully updated"),
-                Err(e) => eprintln!("Failed to update record: {}", e),
+                Ok(_) => println!("✅ Record successfully updated"),
+                Err(e) => {
+                    eprintln!("❌ Failed to update record: {}", e);
+                    eprintln!("❌ Zone ID: {}, Record Name: {}, Type: {}, Target: {}", zone_id_clone, record_name_clone, type_clone, target_clone);
+                    return false;
+                }
             };
         } else {
             println!("Record is already up to date, no update needed");
