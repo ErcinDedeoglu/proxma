@@ -130,15 +130,41 @@ impl NginxManager {
     }
 
     pub fn reload_nginx(&self) -> io::Result<()> {
-        let output = std::process::Command::new("nginx")
-            .arg("-s")
-            .arg("reload")
+        const PID_PATH: &str = "/var/run/nginx.pid";
+        
+        // Read the PID from the file
+        let pid_str = match fs::read_to_string(PID_PATH) {
+            Ok(s) => s.trim().to_string(),
+            Err(e) => {
+                let err_msg = format!("Failed to read Nginx PID file at {}: {}", PID_PATH, e);
+                eprintln!("❌ {}", err_msg);
+                return Err(io::Error::new(io::ErrorKind::NotFound, err_msg));
+            }
+        };
+        
+        let pid = match pid_str.parse::<i32>() {
+            Ok(p) => p,
+            Err(e) => {
+                let err_msg = format!("Failed to parse Nginx PID '{}': {}", pid_str, e);
+                eprintln!("❌ {}", err_msg);
+                return Err(io::Error::new(io::ErrorKind::InvalidData, err_msg));
+            }
+        };
+        
+        // Send the SIGHUP signal to reload Nginx
+        let output = std::process::Command::new("kill")
+            .arg("-HUP")
+            .arg(pid.to_string())
             .output()?;
             
         if !output.status.success() {
             let stderr = String::from_utf8_lossy(&output.stderr);
-            return Err(io::Error::new(io::ErrorKind::Other, stderr.to_string()));
+            let err_msg = format!("Failed to reload nginx with PID {}: {}", pid, stderr);
+            eprintln!("❌ {}", err_msg);
+            return Err(io::Error::new(io::ErrorKind::Other, err_msg));
         }
+        
+        println!("✅ Nginx reloaded successfully (PID: {})", pid);
         Ok(())
     }
     

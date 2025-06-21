@@ -176,7 +176,9 @@ pub fn generate_proxy_server_block(
     };
     let proxy_location = format!(
         r#"    location / {{{}
-        proxy_pass {};
+        resolver 127.0.0.11 valid=10s;
+        set $proxma_upstream {};
+        proxy_pass $proxma_upstream;
         
         # Forward ALL headers by default
         proxy_pass_request_headers on;
@@ -248,7 +250,9 @@ pub fn generate_grpc_server_block(
     };
     let grpc_location = format!(
         r#"    location / {{{}
-        grpc_pass grpc://{};
+        resolver 127.0.0.11 valid=10s;
+        set $proxma_upstream {};
+        grpc_pass grpc://$proxma_upstream;
         grpc_read_timeout {};
         grpc_send_timeout {};
         grpc_connect_timeout {};
