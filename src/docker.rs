@@ -1,6 +1,6 @@
 use bollard::{
-    Docker, errors::Error, container::{ListContainersOptions, InspectContainerOptions},
-    models::{EventMessage, ContainerSummary}, system::EventsOptions,
+    Docker, errors::Error, models::{EventMessage, ContainerSummary},
+    query_parameters::{ListContainersOptions as BollardListContainersOptions, InspectContainerOptions as BollardInspectContainerOptions, EventsOptions as BollardEventsOptions},
 };
 use futures::{Stream, StreamExt};
 use std::{sync::Arc, collections::HashMap, pin::Pin};
@@ -18,7 +18,7 @@ pub struct ContainerEvent {
 }
 
 async fn inspect_networks(docker: &Arc<Docker>, id: &str) -> Vec<String> {
-    docker.inspect_container(id, None::<InspectContainerOptions>).await.ok()
+    docker.inspect_container(id, None::<BollardInspectContainerOptions>).await.ok()
         .and_then(|d| d.network_settings?.networks)
         .map(|n| n.into_keys().collect()).unwrap_or_default()
 }
@@ -42,7 +42,7 @@ async fn event_message_to_event(docker: Arc<Docker>, event: &EventMessage) -> Op
     
     // Get the actual container name by inspecting the container
     // Docker events don't always include the full container name in attributes
-    let name = match docker.inspect_container(container_id, None::<InspectContainerOptions>).await {
+    let name = match docker.inspect_container(container_id, None::<BollardInspectContainerOptions>).await {
         Ok(container_info) => {
             // Use the actual container name from inspection
             container_info.name
@@ -68,7 +68,7 @@ async fn event_message_to_event(docker: Arc<Docker>, event: &EventMessage) -> Op
 pub async fn stream_container_events() -> Result<Pin<Box<dyn Stream<Item=ContainerEvent> + Send>>> {
     let docker = Arc::new(Docker::connect_with_local_defaults()?);
 
-    let initial = docker.list_containers(Some(ListContainersOptions::<String> {
+    let initial = docker.list_containers(Some(BollardListContainersOptions {
         all: false, ..Default::default()
     })).await?;
     
@@ -97,8 +97,8 @@ pub async fn stream_container_events() -> Result<Pin<Box<dyn Stream<Item=Contain
     );
 
     let docker_live = docker.clone();
-    let live_stream = docker.events(Some(EventsOptions {
-        filters,
+    let live_stream = docker.events(Some(BollardEventsOptions {
+        filters: Some(filters),
         ..Default::default()
     })).filter_map(move |e| {
         let docker = docker_live.clone();

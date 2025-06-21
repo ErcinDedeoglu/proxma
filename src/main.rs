@@ -24,7 +24,6 @@ async fn main() {
     // Spawn orphan cleanup task that waits for initial processing to complete
     tokio::spawn(async {
         // Wait for initial container discovery and processing
-        let mut initial_processing_done = false;
         let mut stable_count = 0;
         
         loop {
@@ -34,7 +33,7 @@ async fn main() {
             if queue_size == 0 {
                 stable_count += 1;
                 // Wait for queue to be stable (empty) for 3 consecutive checks
-                if stable_count >= 3 && !initial_processing_done {
+                if stable_count >= 3 {
                     println!("🔍 Initial processing complete, performing orphan cleanup...");
                     match DomainTracker::cleanup_orphaned_configs() {
                         Ok(removed_domains) => {
@@ -48,7 +47,6 @@ async fn main() {
                             eprintln!("❌ Failed to cleanup orphaned configs: {}", e);
                         }
                     }
-                    initial_processing_done = true;
                     break;
                 }
             } else {
