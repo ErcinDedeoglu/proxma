@@ -143,9 +143,15 @@ impl NginxQueueProcessor {
             println!("🌐 Skipping DNS record creation because skip_dns flag is set");
             return;
         } else if message.dns_provider.as_ref() != Some(&"cloudflare".to_string()) {
-            println!("🌐 Skipping DNS record creation because DNS Provider is not cloudflare");
+            println!("🌐 Skipping DNS record creation because DNS Provider is not cloudflare (provider: {:?})", message.dns_provider);
             return;
         }
+
+        // Debug: Print what credentials we received
+        println!("🔍 DNS Credentials Debug:");
+        println!("   - cloudflare_email: {:?}", message.cloudflare_email.as_ref().map(|e| if e.is_empty() { "EMPTY" } else { "PROVIDED" }));
+        println!("   - cloudflare_api_key: {:?}", message.cloudflare_api_key.as_ref().map(|k| if k.is_empty() { "EMPTY" } else { "PROVIDED" }));
+        println!("   - cloudflare_api_token: {:?}", message.cloudflare_api_token.as_ref().map(|t| if t.is_empty() { "EMPTY" } else { "PROVIDED" }));
 
         let dns_record: String;
 
@@ -163,20 +169,55 @@ impl NginxQueueProcessor {
         let record_type = message.dns_record_type.clone().unwrap_or_default();
         let record_target = message.dns_record_target.clone().unwrap_or_default();
         let record_proxied = message.dns_record_proxied.unwrap_or_default();
-        let cloudflare_email = message.cloudflare_email.clone().unwrap_or_default();
-        let cloudflare_api_key = message.cloudflare_api_key.clone().unwrap_or_default();
-        let cloudflare_api_token = message.cloudflare_api_token.clone().unwrap_or_default();
+        
+        // Only pass credentials if they exist and are not empty
+        let cloudflare_email = message.cloudflare_email.clone().filter(|s| !s.is_empty());
+        let cloudflare_api_key = message.cloudflare_api_key.clone().filter(|s| !s.is_empty());
+        let cloudflare_api_token = message.cloudflare_api_token.clone().filter(|s| !s.is_empty());
 
-        dns_manager.add_update_record(
-            dns_provider, 
-            dns_record, 
-            record_target, 
-            record_type, 
+        // Check if we have valid credentials before proceeding
+        let has_email_key = cloudflare_email.is_some() && cloudflare_api_key.is_some();
+        let has_token = cloudflare_api_token.is_some();
+        
+        if !has_email_key && !has_token {
+            eprintln!("❌ DNS record creation failed: No valid Cloudflare credentials provided");
+            eprintln!("   Please provide either:");
+            eprintln!("   - cloudflare_email AND cloudflare_api_key, OR");
+            eprintln!("   - cloudflare_api_token");
+            return;
+        }
+
+        // Test connectivity before proceeding with DNS operations
+        use crate::dns::RecordManager;
+        if let Err(e) = RecordManager::test_connectivity(
+            cloudflare_email.clone(),
+            cloudflare_api_key.clone(),
+            cloudflare_api_token.clone()
+        ).await {
+            eprintln!("❌ Cloudflare API connectivity test failed: {}", e);
+            eprintln!("   This may indicate network connectivity issues or invalid credentials");
+            // Continue with the operation anyway, but user will see the connectivity issue
+        }
+
+        println!("🌐 Creating DNS record for '{}' -> '{}' (type: {}, proxied: {})",
+                 dns_record, record_target, record_type, record_proxied);
+
+        let success = dns_manager.add_update_record(
+            dns_provider,
+            dns_record,
+            record_target,
+            record_type,
             record_proxied,
-            Some(cloudflare_email),
-            Some(cloudflare_api_key),
-            Some(cloudflare_api_token)
+            cloudflare_email,
+            cloudflare_api_key,
+            cloudflare_api_token
         ).await;
+        
+        if success {
+            println!("✅ DNS record created/updated successfully");
+        } else {
+            eprintln!("❌ DNS record creation/update failed");
+        }
     }
 
     pub async fn process_die_action(message: &NginxQueueMessage) {

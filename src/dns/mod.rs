@@ -9,3 +9,4 @@ mod auth_manager;
 pub use dns_manager::DNSManager;
 pub use cloudflare_manager::CloudflareManager;
 pub use zone_manager::ZoneManager;
+pub use record_manager::RecordManager;

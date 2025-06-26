@@ -555,42 +555,73 @@ impl NginxEnqueue {
     }
     
     fn validate_cloudflare_credentials(
-        container_id: &str, 
+        container_id: &str,
         labels: &std::collections::HashMap<String, String>
     ) -> Result<(String, String, String), String> {
+        println!("🔍 Validating Cloudflare credentials for container: {}", container_id);
+        
         let mut cloudflare_email = labels.get("proxma.cloudflare.email").map(|p| p.trim().to_string()).unwrap_or_default();
         let mut cloudflare_api_key = labels.get("proxma.cloudflare.api_key").map(|p| p.trim().to_string()).unwrap_or_default();
         let mut cloudflare_api_token = labels.get("proxma.cloudflare.api_token").map(|p| p.trim().to_string()).unwrap_or_default();
+        
+        println!("   - From labels: email={}, api_key={}, api_token={}",
+                 !cloudflare_email.is_empty(),
+                 !cloudflare_api_key.is_empty(),
+                 !cloudflare_api_token.is_empty());
     
         if cloudflare_api_token.is_empty() {
+            println!("   - API token empty, checking PROXMA_CLOUDFLARE_API_TOKEN environment variable");
             if let Ok(env_api_token) = env::var("PROXMA_CLOUDFLARE_API_TOKEN") {
                 cloudflare_api_token = env_api_token.trim().to_string();
+                println!("   - Found API token from environment variable");
+            } else {
+                println!("   - PROXMA_CLOUDFLARE_API_TOKEN not found in environment");
             }
         }
     
         if cloudflare_api_token.is_empty() {
+            println!("   - API token still empty, checking API key approach");
             if cloudflare_api_key.is_empty() {
+                println!("   - API key empty, checking PROXMA_CLOUDFLARE_API_KEY environment variable");
                 if let Ok(env_api_key) = env::var("PROXMA_CLOUDFLARE_API_KEY") {
                     cloudflare_api_key = env_api_key.trim().to_string();
+                    println!("   - Found API key from environment variable");
+                } else {
+                    println!("   - PROXMA_CLOUDFLARE_API_KEY not found in environment");
                 }
             }
     
             if !cloudflare_api_key.is_empty() {
+                println!("   - API key available, checking email");
                 if cloudflare_email.is_empty() {
+                    println!("   - Email empty, checking PROXMA_CLOUDFLARE_EMAIL environment variable");
                     if let Ok(env_email) = env::var("PROXMA_CLOUDFLARE_EMAIL") {
                         cloudflare_email = env_email.trim().to_string();
+                        println!("   - Found email from environment variable");
+                    } else {
+                        println!("   - PROXMA_CLOUDFLARE_EMAIL not found in environment");
                     }
                 }
                 
                 if cloudflare_email.is_empty() {
-                    return Err(format!("Email required when using Global API Key for container {}, skipping processing", container_id));
+                    let error_msg = format!("❌ Email required when using Global API Key for container {}, skipping processing", container_id);
+                    println!("{}", error_msg);
+                    return Err(error_msg);
                 }
             }
         }
     
         if cloudflare_api_token.is_empty() && cloudflare_api_key.is_empty() {
-            return Err(format!("Either API Token or Global API Key must be provided for container {}, skipping processing", container_id));
+            let error_msg = format!("❌ Either API Token or Global API Key must be provided for container {}, skipping processing", container_id);
+            println!("{}", error_msg);
+            return Err(error_msg);
         }
+        
+        println!("✅ Cloudflare credentials validated successfully");
+        println!("   - Final state: email={}, api_key={}, api_token={}",
+                 !cloudflare_email.is_empty(),
+                 !cloudflare_api_key.is_empty(),
+                 !cloudflare_api_token.is_empty());
         
         Ok((cloudflare_email, cloudflare_api_key, cloudflare_api_token))
     }

@@ -63,7 +63,9 @@ impl CloudflareManager {
         let dns_record = match dns_record {
             Ok(record) => record,
             Err(e) => {
-                eprintln!("Error getting DNS record: {}", e);
+                eprintln!("❌ Error getting DNS record for '{}': {}", record_name, e);
+                eprintln!("   Zone ID: {}", zone_id);
+                eprintln!("   Record Type: {}", r#type);
                 return false;
             }
         };
