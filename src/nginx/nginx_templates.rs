@@ -107,8 +107,11 @@ pub fn generate_htpasswd_file(auth: &Auth, domain: &str) -> io::Result<()> {
     // Path to the htpasswd file
     let htpasswd_path = htpasswd_dir.join(sanitize_domain(domain));
     
+    // Trim whitespace from password to handle newline issues
+    let trimmed_password = auth.password.trim();
+    
     // Generate bcrypt hash
-    let hashed_password = match hash(&auth.password, DEFAULT_COST) {
+    let hashed_password = match hash(trimmed_password, DEFAULT_COST) {
         Ok(h) => h,
         Err(e) => return Err(io::Error::new(io::ErrorKind::Other, e.to_string())),
     };
@@ -123,7 +126,7 @@ pub fn generate_htpasswd_file(auth: &Auth, domain: &str) -> io::Result<()> {
     Ok(())
 }
 
-/// Generate Nginx basic auth configuration
+/// Generate Nginx basic auth configuration for HTTP/web services
 fn generate_auth_config(auth: &Auth, domain: &str) -> String {
     if auth.enabled {
         let htpasswd_file = format!("/var/proxma/htpasswd/{}", sanitize_domain(domain));
@@ -145,6 +148,59 @@ fn generate_auth_config(auth: &Auth, domain: &str) -> String {
         }}"#,
             auth.realm,
             htpasswd_file,
+            auth.realm
+        )
+    } else {
+        String::new()
+    }
+}
+
+/// Generate Nginx basic auth configuration specifically for gRPC services
+/// This ensures proper gRPC status codes are returned instead of HTML error pages
+fn generate_grpc_auth_config(auth: &Auth, domain: &str) -> String {
+    if auth.enabled {
+        let htpasswd_file = format!("/var/proxma/htpasswd/{}", sanitize_domain(domain));
+        
+        format!(
+            r#"
+        # Basic auth configuration for gRPC
+        auth_basic "{}";
+        auth_basic_user_file {};
+        
+        # Map HTTP auth errors to gRPC-compatible responses
+        error_page 401 = @grpc_unauthenticated;
+        error_page 403 = @grpc_permission_denied;"#,
+            auth.realm,
+            htpasswd_file
+        )
+    } else {
+        String::new()
+    }
+}
+
+/// Generate gRPC error handler locations (must be at server level)
+fn generate_grpc_error_handlers(auth: &Auth) -> String {
+    if auth.enabled {
+        format!(
+            r#"
+    # gRPC UNAUTHENTICATED error handler
+    location @grpc_unauthenticated {{
+        internal;
+        add_header content-type "application/grpc" always;
+        add_header grpc-status "16" always;  # UNAUTHENTICATED
+        add_header grpc-message "Authentication required" always;
+        add_header www-authenticate 'Basic realm="{}"' always;
+        return 200;  # gRPC requires HTTP 200 with grpc-status headers
+    }}
+    
+    # gRPC PERMISSION_DENIED error handler
+    location @grpc_permission_denied {{
+        internal;
+        add_header content-type "application/grpc" always;
+        add_header grpc-status "7" always;   # PERMISSION_DENIED
+        add_header grpc-message "Access denied" always;
+        return 200;  # gRPC requires HTTP 200 with grpc-status headers
+    }}"#,
             auth.realm
         )
     } else {
@@ -239,8 +295,8 @@ pub fn generate_grpc_server_block(
     // Generate htpasswd file if authentication is enabled
     generate_htpasswd_file(&auth, domain)?;
     
-    // Get auth configuration
-    let auth_config = generate_auth_config(&auth, domain);
+    // Get gRPC-specific auth configuration
+    let auth_config = generate_grpc_auth_config(&auth, domain);
     
     // Add auth_config to the grpc_location
     let (xfwd_port, xfwd_proto) = if ssl {
@@ -256,6 +312,12 @@ pub fn generate_grpc_server_block(
         grpc_read_timeout {};
         grpc_send_timeout {};
         grpc_connect_timeout {};
+        
+        # Additional gRPC error handling for proxy errors
+        error_page 502 = @grpc_unavailable;
+        error_page 503 = @grpc_unavailable;
+        error_page 504 = @grpc_deadline_exceeded;
+        error_page 404 = @grpc_unimplemented;
         
         # gRPC automatically forwards all headers by default
         # Standard gRPC headers
@@ -281,6 +343,39 @@ pub fn generate_grpc_server_block(
         xfwd_proto
     );
     
+    // Generate all gRPC error handlers at server level
+    let grpc_error_handlers = format!(
+        r#"{}
+    
+    # gRPC UNAVAILABLE error handler (for 502/503 errors)
+    location @grpc_unavailable {{
+        internal;
+        add_header content-type "application/grpc" always;
+        add_header grpc-status "14" always;  # UNAVAILABLE
+        add_header grpc-message "Service unavailable" always;
+        return 200;  # gRPC requires HTTP 200 with grpc-status headers
+    }}
+    
+    # gRPC DEADLINE_EXCEEDED error handler (for 504 timeout errors)
+    location @grpc_deadline_exceeded {{
+        internal;
+        add_header content-type "application/grpc" always;
+        add_header grpc-status "4" always;   # DEADLINE_EXCEEDED
+        add_header grpc-message "Request timeout" always;
+        return 200;  # gRPC requires HTTP 200 with grpc-status headers
+    }}
+    
+    # gRPC UNIMPLEMENTED error handler (for 404 errors)
+    location @grpc_unimplemented {{
+        internal;
+        add_header content-type "application/grpc" always;
+        add_header grpc-status "12" always;  # UNIMPLEMENTED
+        add_header grpc-message "Method not found" always;
+        return 200;  # gRPC requires HTTP 200 with grpc-status headers
+    }}"#,
+        generate_grpc_error_handlers(&auth)
+    );
+    
     let http_redirect = r#"    location / {
         return 301 https://$host$request_uri;
     }"#;
@@ -289,10 +384,10 @@ pub fn generate_grpc_server_block(
         format!(
             "# HTTP server for ACME challenges and redirection\n{}\n# HTTPS server for gRPC content\n{}",
             generate_server_block(false, domain, http_redirect, true, Some(webroot_path), ssl_staging, &webserver),
-            generate_server_block(true, domain, &grpc_location, true, None, ssl_staging, &webserver)
+            generate_server_block(true, domain, &format!("{}{}", grpc_location, grpc_error_handlers), true, None, ssl_staging, &webserver)
         )
     } else {
-        generate_server_block(false, domain, &grpc_location, false, Some(webroot_path), ssl_staging, &webserver)
+        generate_server_block(false, domain, &format!("{}{}", grpc_location, grpc_error_handlers), false, Some(webroot_path), ssl_staging, &webserver)
     };
     
     Ok(result)
