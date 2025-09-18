@@ -433,7 +433,7 @@ impl NginxEnqueue {
                 .collect();
 
             for entry in entries {
-                let (domain, entry_port, protocol) = if entry.contains(':') {
+                let (domain, entry_port, protocol, host_proxied) = if entry.contains(':') {
                     let parts: Vec<&str> = entry.split(':').collect();
                     
                     match parts.len() {
@@ -441,7 +441,7 @@ impl NginxEnqueue {
                             // Format: domain:port
                             let domain = parts[0].to_string();
                             match parts[1].parse::<u16>() {
-                                Ok(port_val) if port_val > 0 => (domain, port_val, "http".to_string()),
+                                Ok(port_val) if port_val > 0 => (domain, port_val, "http".to_string(), dns_proxied),
                                 _ => {
                                     println!("Invalid port '{}' in proxma.hosts entry '{}', skipping this entry", parts[1], entry);
                                     continue;
@@ -453,7 +453,20 @@ impl NginxEnqueue {
                             let domain = parts[0].to_string();
                             let protocol = parts[2].to_lowercase();
                             match parts[1].parse::<u16>() {
-                                Ok(port_val) if port_val > 0 => (domain, port_val, protocol),
+                                Ok(port_val) if port_val > 0 => (domain, port_val, protocol, dns_proxied),
+                                _ => {
+                                    println!("Invalid port '{}' in proxma.hosts entry '{}', skipping this entry", parts[1], entry);
+                                    continue;
+                                }
+                            }
+                        },
+                        4 => {
+                            // Format: domain:port:protocol:proxied
+                            let domain = parts[0].to_string();
+                            let protocol = parts[2].to_lowercase();
+                            let host_proxied = parts[3].trim().to_lowercase() == "true";
+                            match parts[1].parse::<u16>() {
+                                Ok(port_val) if port_val > 0 => (domain, port_val, protocol, host_proxied),
                                 _ => {
                                     println!("Invalid port '{}' in proxma.hosts entry '{}', skipping this entry", parts[1], entry);
                                     continue;
@@ -461,14 +474,14 @@ impl NginxEnqueue {
                             }
                         },
                         _ => {
-                            println!("Invalid format in proxma.hosts entry '{}', expected 'domain:port' or 'domain:port:protocol', skipping this entry", entry);
+                            println!("Invalid format in proxma.hosts entry '{}', expected 'domain:port', 'domain:port:protocol', or 'domain:port:protocol:proxied', skipping this entry", entry);
                             continue;
                         }
                     }
                 } else {
                     // No port specified, use global port
                     match global_port {
-                        Some(port_val) if port_val > 0 => (entry.clone(), port_val, "http".to_string()),
+                        Some(port_val) if port_val > 0 => (entry.clone(), port_val, "http".to_string(), dns_proxied),
                         _ => {
                             println!("No port specified for host '{}' and no valid global proxma.port for container {}, skipping this entry", entry, container_id);
                             continue;
@@ -484,7 +497,7 @@ impl NginxEnqueue {
                     networks: networks.clone(),
                     hosting: true,
                     ssl,
-                    host: Some(Host { domain, port: entry_port, protocol }),
+                    host: Some(Host { domain, port: entry_port, protocol, proxied: host_proxied }),
                     redirect: None,
                     created_at: Utc::now(),
                     delay_seconds: None,
@@ -499,7 +512,7 @@ impl NginxEnqueue {
                     skip_certification: false,
                     skip_dns: skip_dns,
                     dns_record_type: Some(dns_type.clone()),
-                    dns_record_proxied: Some(dns_proxied),
+                    dns_record_proxied: Some(host_proxied),
                     dns_record_target: Some(dns_target.clone()),
                     auth: auth.clone(),
                     webserver: webserver.clone(),

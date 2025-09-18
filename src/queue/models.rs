@@ -38,6 +38,7 @@ pub struct Host {
     pub domain: String,
     pub port: u16,
     pub protocol: String,
+    pub proxied: bool,
 }
 
 #[derive(Debug, Clone)]
