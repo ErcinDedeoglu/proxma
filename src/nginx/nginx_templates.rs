@@ -2,8 +2,34 @@ use crate::models::{Auth, Webserver};
 use std::fs::{self, File};
 use std::io::{self, Write};
 use std::path::Path;
+use std::net::{TcpListener, SocketAddr};
 use bcrypt::{hash, DEFAULT_COST};
 use idna::domain_to_ascii;
+
+/// Check if IPv6 is supported on this system
+fn is_ipv6_supported() -> bool {
+    // Check environment variable override
+    if std::env::var("PROXMA_FORCE_IPV6").unwrap_or_default() == "true" {
+        return true;
+    }
+    
+    // Try to bind to an IPv6 address
+    if let Ok(addr) = "[::1]:0".parse::<SocketAddr>() {
+        if TcpListener::bind(addr).is_ok() {
+            return true;
+        }
+    }
+    
+    // Check if IPv6 is available via /proc/net/if_inet6 (Linux)
+    #[cfg(target_os = "linux")]
+    {
+        if let Ok(content) = fs::read_to_string("/proc/net/if_inet6") {
+            return !content.trim().is_empty();
+        }
+    }
+    
+    false
+}
 
 /// Helper function to generate ACME challenge location block
 fn generate_acme_challenge_block(webroot_path: &str) -> String {
@@ -15,14 +41,26 @@ fn generate_acme_challenge_block(webroot_path: &str) -> String {
 
 /// Helper function to generate a server block with common parameters
 fn generate_server_block(is_https: bool, domain: &str, location_block: &str, ssl: bool, webroot_path: Option<&str>, ssl_staging: bool, webserver: &Webserver) -> String {
+    let ipv6_enabled = is_ipv6_supported();
+    
     let listen_directive = if is_https {
-        r#"listen 443 ssl;
+        if ipv6_enabled {
+            r#"listen 443 ssl;
     listen [::]:443 ssl;
     # Enable HTTP/2
     http2 on;"#
+        } else {
+            r#"listen 443 ssl;
+    # Enable HTTP/2
+    http2 on;"#
+        }
     } else {
-        r#"listen 80;
+        if ipv6_enabled {
+            r#"listen 80;
     listen [::]:80;"#
+        } else {
+            r#"listen 80;"#
+        }
     };
     let environment = if ssl_staging { "staging" } else { "production" };
     

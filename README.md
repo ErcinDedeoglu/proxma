@@ -291,6 +291,7 @@ Configure Proxma globally using environment variables:
 | Variable | Description | Default |
 |----------|-------------|---------|
 | `PROXMA_DISABLE_FAIL2BAN` | Disable fail2ban | `false` |
+| `PROXMA_FORCE_IPV6` | Force IPv6 even if not detected | `false` |
 | `PROXMA_AUTH` | Enable auth globally | `false` |
 | `PROXMA_AUTH_USERNAME` | Default username | `"root"` |
 | `PROXMA_AUTH_PASSWORD` | Default password | `"root"` |
