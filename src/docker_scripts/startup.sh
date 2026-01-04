@@ -1,5 +1,9 @@
 #!/bin/sh
 
+# Clean up old numbered logrotate files (legacy format) on startup
+# New config uses dateext format, old .1, .2.gz files won't be managed
+find /var/proxma/logs -name "*.log.[0-9]*" -type f -delete 2>/dev/null || true
+
 # Function to check if IPv6 is supported
 check_ipv6_support() {
     # Try to create an IPv6 socket

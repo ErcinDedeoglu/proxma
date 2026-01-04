@@ -39,7 +39,7 @@ FROM alpine:latest
 RUN apk add --no-cache nginx tini certbot openssl curl bind-tools certbot-dns-cloudflare dos2unix dcron logrotate fail2ban
 
 RUN mkdir -p /run/nginx /var/www/html/.well-known/acme-challenge /etc/nginx/ssl /var/proxma/ssl /var/proxma/logs /etc/nginx/cache-zones.d /var/proxma/htpasswd /var/proxma/nginx/conf.d /var/proxma/nginx/includes /var/proxma/nginx/logs && \
-    chown -R nginx:nginx /var/www/html /run/nginx /etc/nginx/cache-zones.d /var/proxma/htpasswd /var/proxma/nginx \
+    chown -R nginx:nginx /var/www/html /run/nginx /etc/nginx/cache-zones.d /var/proxma/htpasswd /var/proxma/nginx /var/proxma/logs \
     && openssl req -x509 -nodes -days 3650 -newkey rsa:2048 \
     -keyout /var/proxma/ssl/default.privkey.key.pem \
     -out /var/proxma/ssl/default.fullchain.crt.pem \
@@ -75,18 +75,21 @@ RUN chmod 644 /etc/fail2ban/jail.local \
 COPY src/docker_scripts/proxma-logrotate.conf /etc/logrotate.d/
 COPY src/docker_scripts/run_logrotate.sh /usr/local/bin/
 
-# Make the script executable and convert line endings if needed
+# Make the script executable, fix permissions, and convert line endings
 RUN dos2unix /usr/local/bin/run_logrotate.sh && \
-    chmod +x /usr/local/bin/run_logrotate.sh
+    chmod +x /usr/local/bin/run_logrotate.sh && \
+    chmod 0644 /etc/logrotate.d/proxma-logrotate.conf
 
 # Make scripts executable and convert line endings if needed
 RUN dos2unix /usr/local/bin/fetch_cloudflare_ips.sh /usr/local/bin/update_cloudflare_ips.sh /usr/local/bin/startup.sh && \
     chmod +x /usr/local/bin/fetch_cloudflare_ips.sh /usr/local/bin/update_cloudflare_ips.sh /usr/local/bin/startup.sh && \
     /usr/local/bin/fetch_cloudflare_ips.sh
 
-# Set up cron job to run every night at 2:00 AM
+# Set up cron jobs
+# - Cloudflare IPs update: daily at 2:00 AM
+# - Logrotate: every 15 minutes to catch fast-growing nginx logs (size-based rotation)
 RUN echo '0 2 * * * /usr/local/bin/update_cloudflare_ips.sh' > /etc/crontabs/root && \
-    echo '0 0 * * * /usr/local/bin/run_logrotate.sh' >> /etc/crontabs/root && \
+    echo '*/15 * * * * /usr/local/bin/run_logrotate.sh' >> /etc/crontabs/root && \
     chmod 0600 /etc/crontabs/root
 
 COPY src/webserver/nginx/nginx.conf /etc/nginx/nginx.conf
