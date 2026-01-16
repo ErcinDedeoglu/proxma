@@ -168,25 +168,14 @@ pub fn generate_htpasswd_file(auth: &Auth, domain: &str) -> io::Result<()> {
 fn generate_auth_config(auth: &Auth, domain: &str) -> String {
     if auth.enabled {
         let htpasswd_file = format!("/var/proxma/htpasswd/{}", sanitize_domain(domain));
-        
+
         format!(
             r#"
         # Basic auth configuration
         auth_basic "{}";
-        auth_basic_user_file {};
-        
-        # Ensure browsers re-prompt for credentials
-        error_page 401 403 =401 /401_error;
-        location = /401_error {{
-            internal;
-            add_header WWW-Authenticate 'Basic realm="{}";' always;
-            add_header Cache-Control "no-store, no-cache, must-revalidate" always;
-            add_header Pragma "no-cache" always;
-            return 401;
-        }}"#,
+        auth_basic_user_file {};"#,
             auth.realm,
-            htpasswd_file,
-            auth.realm
+            htpasswd_file
         )
     } else {
         String::new()
