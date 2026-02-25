@@ -2,7 +2,7 @@ use std::env;
 
 use chrono::Utc;
 
-use crate::models::{Auth, Webserver};
+use crate::models::{Auth, AuthType, Webserver};
 
 use super::models::{NginxQueueMessage, Host, Redirect};
 use super::shared::NGINX_QUEUE;
@@ -257,6 +257,21 @@ impl NginxEnqueue {
                                     .unwrap_or(false)
                             });
             if auth.enabled {
+                // AUTH TYPE (basic, bearer, or both - defaults to basic)
+                let auth_type_str = labels.get("proxma.auth.type").map(|p| p.trim().to_string()).unwrap_or_default();
+                if !auth_type_str.is_empty() {
+                    auth.auth_type = AuthType::from_str_label(&auth_type_str);
+                } else {
+                    match env::var("PROXMA_AUTH_TYPE") {
+                        Ok(env_type) => {
+                            auth.auth_type = AuthType::from_str_label(&env_type);
+                        },
+                        Err(_) => {
+                            println!("# proxma.auth.type (PROXMA_AUTH_TYPE) missing for container {}, continue with default value: {}", container_id, auth.auth_type);
+                        }
+                    }
+                }
+
                 auth.realm = labels.get("proxma.auth.realm").map(|p| p.trim().to_string()).unwrap_or_default();
                 if auth.realm.is_empty() {
                     match env::var("PROXMA_AUTH_REALM") {
@@ -269,34 +284,76 @@ impl NginxEnqueue {
                     }
                 }
                 
-                auth.username = labels.get("proxma.auth.username").map(|p| p.trim().to_string()).unwrap_or_default();
-                if auth.username.is_empty() {
-                    match env::var("PROXMA_AUTH_USERNAME") {
-                        Ok(env_username) => {
-                            auth.username = env_username.trim().to_string();
-                        },
-                        Err(_) => {
-                            println!("# proxma.auth.username (PROXMA_AUTH_USERNAME) missing for container {}, continue with default value: {}", container_id, auth.username);
+                // Parse username/password (needed for basic and both types)
+                if auth.auth_type == AuthType::Basic || auth.auth_type == AuthType::Both {
+                    auth.username = labels.get("proxma.auth.username").map(|p| p.trim().to_string()).unwrap_or_default();
+                    if auth.username.is_empty() {
+                        match env::var("PROXMA_AUTH_USERNAME") {
+                            Ok(env_username) => {
+                                auth.username = env_username.trim().to_string();
+                            },
+                            Err(_) => {
+                                println!("# proxma.auth.username (PROXMA_AUTH_USERNAME) missing for container {}, continue with default value: {}", container_id, auth.username);
+                            }
+                        }
+                    }
+                    
+                    auth.password = labels.get("proxma.auth.password").map(|p| p.trim().to_string()).unwrap_or_default();
+                    if auth.password.is_empty() {
+                        match env::var("PROXMA_AUTH_PASSWORD") {
+                            Ok(env_password) => {
+                                auth.password = env_password.trim().to_string();
+                            },
+                            Err(_) => {
+                                println!("# proxma.auth.password (PROXMA_AUTH_PASSWORD) missing for container {}, continue with default value: {}", container_id, auth.password);
+                            }
                         }
                     }
                 }
-                
-                auth.password = labels.get("proxma.auth.password").map(|p| p.trim().to_string()).unwrap_or_default();
-                if auth.password.is_empty() {
-                    match env::var("PROXMA_AUTH_PASSWORD") {
-                        Ok(env_password) => {
-                            auth.password = env_password.trim().to_string();
-                        },
-                        Err(_) => {
-                            println!("# proxma.auth.password (PROXMA_AUTH_PASSWORD) missing for container {}, continue with default value: {}", container_id, auth.password);
+
+                // Parse bearer token (needed for bearer and both types)
+                if auth.auth_type == AuthType::Bearer || auth.auth_type == AuthType::Both {
+                    auth.token = labels.get("proxma.auth.token").map(|p| p.trim().to_string()).unwrap_or_default();
+                    if auth.token.is_empty() {
+                        match env::var("PROXMA_AUTH_TOKEN") {
+                            Ok(env_token) => {
+                                auth.token = env_token.trim().to_string();
+                            },
+                            Err(_) => {
+                                println!("# proxma.auth.token (PROXMA_AUTH_TOKEN) missing for container {}", container_id);
+                            }
                         }
                     }
                 }
-                
-                // Validate that both username and password are provided if auth is enabled
-                if auth.username.is_empty() || auth.password.is_empty() {
-                    println!("# Warning: Basic authentication is enabled for container {} but username or password is missing. Authentication will be disabled.", container_id);
-                    auth.enabled = false;
+
+                // Validate credentials based on auth type
+                match auth.auth_type {
+                    AuthType::Basic => {
+                        if auth.username.is_empty() || auth.password.is_empty() {
+                            println!("# Warning: Basic authentication is enabled for container {} but username or password is missing. Authentication will be disabled.", container_id);
+                            auth.enabled = false;
+                        }
+                    },
+                    AuthType::Bearer => {
+                        if auth.token.is_empty() {
+                            println!("# Warning: Bearer authentication is enabled for container {} but token is missing. Authentication will be disabled.", container_id);
+                            auth.enabled = false;
+                        }
+                    },
+                    AuthType::Both => {
+                        if (auth.username.is_empty() || auth.password.is_empty()) && auth.token.is_empty() {
+                            println!("# Warning: Both authentication is enabled for container {} but neither basic credentials nor bearer token are provided. Authentication will be disabled.", container_id);
+                            auth.enabled = false;
+                        }
+                        if auth.username.is_empty() || auth.password.is_empty() {
+                            println!("# Warning: Both authentication is enabled for container {} but basic credentials are incomplete. Only bearer authentication will be active.", container_id);
+                            auth.auth_type = AuthType::Bearer;
+                        }
+                        if auth.token.is_empty() {
+                            println!("# Warning: Both authentication is enabled for container {} but bearer token is missing. Only basic authentication will be active.", container_id);
+                            auth.auth_type = AuthType::Basic;
+                        }
+                    },
                 }
             }
 

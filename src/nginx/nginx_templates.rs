@@ -1,4 +1,4 @@
-use crate::models::{Auth, Webserver};
+use crate::models::{Auth, AuthType, Webserver};
 use std::fs::{self, File};
 use std::io::{self, Write};
 use std::path::Path;
@@ -131,8 +131,8 @@ fn generate_server_block(is_https: bool, domain: &str, location_block: &str, ssl
 
 /// Generate an htpasswd file for basic authentication
 pub fn generate_htpasswd_file(auth: &Auth, domain: &str) -> io::Result<()> {
-    // Only generate file if authentication is enabled
-    if !auth.enabled {
+    // Only generate file if authentication is enabled and requires basic auth
+    if !auth.enabled || auth.auth_type == AuthType::Bearer {
         return Ok(());
     }
 
@@ -164,59 +164,133 @@ pub fn generate_htpasswd_file(auth: &Auth, domain: &str) -> io::Result<()> {
     Ok(())
 }
 
-/// Generate Nginx basic auth configuration for HTTP/web services
+/// Generate Nginx auth configuration for HTTP/web services
+/// Returns directives to be placed INSIDE the location / { } block
 fn generate_auth_config(auth: &Auth, domain: &str) -> String {
-    if auth.enabled {
-        let htpasswd_file = format!("/var/proxma/htpasswd/{}", sanitize_domain(domain));
+    if !auth.enabled {
+        return String::new();
+    }
 
-        format!(
-            r#"
+    match auth.auth_type {
+        AuthType::Basic => {
+            let htpasswd_file = format!("/var/proxma/htpasswd/{}", sanitize_domain(domain));
+            format!(
+                r#"
         # Basic auth configuration
         auth_basic "{}";
         auth_basic_user_file {};"#,
-            auth.realm,
-            htpasswd_file
-        )
-    } else {
-        String::new()
+                auth.realm,
+                htpasswd_file
+            )
+        },
+        AuthType::Bearer => {
+            format!(
+                r#"
+        # Bearer token authentication
+        auth_request /_proxma_auth_check;
+
+        # Return 401 with JSON body for failed bearer auth
+        error_page 401 = @bearer_unauthorized;"#
+            )
+        },
+        AuthType::Both => {
+            let htpasswd_file = format!("/var/proxma/htpasswd/{}", sanitize_domain(domain));
+            format!(
+                r#"
+        # Accept either Basic or Bearer authentication
+        satisfy any;
+        auth_basic "{}";
+        auth_basic_user_file {};
+        auth_request /_proxma_auth_check;"#,
+                auth.realm,
+                htpasswd_file
+            )
+        },
     }
 }
 
-/// Generate Nginx basic auth configuration specifically for gRPC services
+/// Generate Nginx auth configuration specifically for gRPC services
 /// This ensures proper gRPC status codes are returned instead of HTML error pages
 fn generate_grpc_auth_config(auth: &Auth, domain: &str) -> String {
-    if auth.enabled {
-        let htpasswd_file = format!("/var/proxma/htpasswd/{}", sanitize_domain(domain));
-        
-        format!(
-            r#"
+    if !auth.enabled {
+        return String::new();
+    }
+
+    // gRPC error page mappings are needed for all auth types
+    let grpc_error_pages = r#"
+        # Map HTTP auth errors to gRPC-compatible responses
+        error_page 401 = @grpc_unauthenticated;
+        error_page 403 = @grpc_permission_denied;"#;
+
+    match auth.auth_type {
+        AuthType::Basic => {
+            let htpasswd_file = format!("/var/proxma/htpasswd/{}", sanitize_domain(domain));
+            format!(
+                r#"
         # Basic auth configuration for gRPC
         auth_basic "{}";
         auth_basic_user_file {};
-        
-        # Map HTTP auth errors to gRPC-compatible responses
-        error_page 401 = @grpc_unauthenticated;
-        error_page 403 = @grpc_permission_denied;"#,
-            auth.realm,
-            htpasswd_file
-        )
-    } else {
-        String::new()
+        {}"#,
+                auth.realm,
+                htpasswd_file,
+                grpc_error_pages
+            )
+        },
+        AuthType::Bearer => {
+            format!(
+                r#"
+        # Bearer token authentication for gRPC
+        auth_request /_proxma_auth_check;
+        {}"#,
+                grpc_error_pages
+            )
+        },
+        AuthType::Both => {
+            let htpasswd_file = format!("/var/proxma/htpasswd/{}", sanitize_domain(domain));
+            format!(
+                r#"
+        # Accept either Basic or Bearer authentication for gRPC
+        satisfy any;
+        auth_basic "{}";
+        auth_basic_user_file {};
+        auth_request /_proxma_auth_check;
+        {}"#,
+                auth.realm,
+                htpasswd_file,
+                grpc_error_pages
+            )
+        },
     }
 }
 
 /// Generate gRPC error handler locations (must be at server level)
 fn generate_grpc_error_handlers(auth: &Auth) -> String {
-    if auth.enabled {
-        format!(
-            r#"
+    if !auth.enabled {
+        return String::new();
+    }
+
+    // Set www-authenticate header based on auth type
+    let www_auth_header = match auth.auth_type {
+        AuthType::Basic => format!(
+            r#"add_header www-authenticate 'Basic realm="{}"' always;"#,
+            auth.realm
+        ),
+        AuthType::Bearer => r#"add_header www-authenticate 'Bearer' always;"#.to_string(),
+        AuthType::Both => format!(
+            r#"add_header www-authenticate 'Basic realm="{}", Bearer' always;"#,
+            auth.realm
+        ),
+    };
+
+    format!(
+        r#"
     # gRPC UNAUTHENTICATED error handler
     location @grpc_unauthenticated {{
         internal;
         add_header content-type "application/grpc" always;
         add_header grpc-status "16" always;  # UNAUTHENTICATED
         add_header grpc-message "Authentication required" always;
-        add_header www-authenticate 'Basic realm="{}"' always;
+        {}
         return 200;  # gRPC requires HTTP 200 with grpc-status headers
     }}
     
@@ -228,8 +302,55 @@ fn generate_grpc_error_handlers(auth: &Auth) -> String {
         add_header grpc-message "Access denied" always;
         return 200;  # gRPC requires HTTP 200 with grpc-status headers
     }}"#,
-            auth.realm
-        )
+        www_auth_header
+    )
+}
+
+/// Generate the bearer token validation internal location block
+/// Must be placed at server level (sibling to location /)
+fn generate_bearer_validation_location(auth: &Auth) -> String {
+    if !auth.enabled {
+        return String::new();
+    }
+
+    match auth.auth_type {
+        AuthType::Bearer | AuthType::Both => {
+            format!(
+                r#"
+
+    # Internal endpoint for bearer token validation
+    location = /_proxma_auth_check {{
+        internal;
+        if ($http_authorization != "Bearer {}") {{
+            return 401;
+        }}
+        return 200;
+    }}"#,
+                auth.token
+            )
+        },
+        AuthType::Basic => String::new(),
+    }
+}
+
+/// Generate the bearer unauthorized error handler for HTTP/web services
+/// Returns a JSON 401 response for bearer-only auth failures
+fn generate_bearer_unauthorized_location(auth: &Auth) -> String {
+    if !auth.enabled {
+        return String::new();
+    }
+
+    // Only needed for bearer-only mode (both mode falls back to basic auth prompt)
+    if auth.auth_type == AuthType::Bearer {
+        r#"
+
+    # Bearer auth 401 response handler
+    location @bearer_unauthorized {
+        internal;
+        default_type application/json;
+        add_header WWW-Authenticate 'Bearer' always;
+        return 401 '{"error": "Unauthorized", "message": "Valid Bearer token required"}';
+    }"#.to_string()
     } else {
         String::new()
     }
@@ -292,6 +413,11 @@ pub fn generate_proxy_server_block(
         xfwd_proto
     );
     
+    // Generate bearer auth locations (server-level, sibling to location /)
+    let bearer_validation = generate_bearer_validation_location(&auth);
+    let bearer_unauthorized = generate_bearer_unauthorized_location(&auth);
+    let full_location_block = format!("{}{}{}", proxy_location, bearer_validation, bearer_unauthorized);
+
     let http_redirect = r#"    location / {
         return 301 https://$host$request_uri;
     }"#;
@@ -300,10 +426,10 @@ pub fn generate_proxy_server_block(
         format!(
             "# HTTP server for ACME challenges and redirection\n{}\n# HTTPS server for main content\n{}",
             generate_server_block(false, domain, http_redirect, true, Some(webroot_path), ssl_staging, &webserver),
-            generate_server_block(true, domain, &proxy_location, true, None, ssl_staging, &webserver)
+            generate_server_block(true, domain, &full_location_block, true, None, ssl_staging, &webserver)
         )
     } else {
-        generate_server_block(false, domain, &proxy_location, false, Some(webroot_path), ssl_staging, &webserver)
+        generate_server_block(false, domain, &full_location_block, false, Some(webroot_path), ssl_staging, &webserver)
     };
     
     Ok(result)
@@ -403,6 +529,10 @@ pub fn generate_grpc_server_block(
         generate_grpc_error_handlers(&auth)
     );
     
+    // Generate bearer auth validation location (server-level, sibling to other locations)
+    let bearer_validation = generate_bearer_validation_location(&auth);
+    let full_location_block = format!("{}{}{}", grpc_location, grpc_error_handlers, bearer_validation);
+
     let http_redirect = r#"    location / {
         return 301 https://$host$request_uri;
     }"#;
@@ -411,10 +541,10 @@ pub fn generate_grpc_server_block(
         format!(
             "# HTTP server for ACME challenges and redirection\n{}\n# HTTPS server for gRPC content\n{}",
             generate_server_block(false, domain, http_redirect, true, Some(webroot_path), ssl_staging, &webserver),
-            generate_server_block(true, domain, &format!("{}{}", grpc_location, grpc_error_handlers), true, None, ssl_staging, &webserver)
+            generate_server_block(true, domain, &full_location_block, true, None, ssl_staging, &webserver)
         )
     } else {
-        generate_server_block(false, domain, &format!("{}{}", grpc_location, grpc_error_handlers), false, Some(webroot_path), ssl_staging, &webserver)
+        generate_server_block(false, domain, &full_location_block, false, Some(webroot_path), ssl_staging, &webserver)
     };
     
     Ok(result)

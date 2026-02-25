@@ -49,7 +49,7 @@ Proxma is a powerful, Rust-based reverse proxy automation tool that automaticall
 - **🔄 Automatic Nginx Configuration** - Watches Docker containers and generates reverse proxy configurations
 - **🔒 SSL Certificate Management** - Automated Let's Encrypt and ZeroSSL certificate provisioning and renewal
 - **🌐 DNS Integration** - Automatic Cloudflare DNS record management
-- **🔐 Authentication Support** - Built-in HTTP Basic Authentication
+- **🔐 Authentication Support** - HTTP Basic, Bearer token, or both (ideal for API services)
 - **🛡️ Security** - Fail2ban integration for intrusion prevention
 - **📊 Protocol Support** - HTTP, HTTPS, gRPC proxying with proper status codes
 - **🌐 HTTP/2 Support** - Automatic HTTP/2 enablement for HTTPS connections
@@ -222,10 +222,12 @@ labels:
 
 | Label | Description | Default | Example |
 |-------|-------------|---------|---------|
-| `proxma.auth` | Enable HTTP Basic Auth | `false` | `true` |
-| `proxma.auth.username` | Username | `"root"` | `"admin"` |
-| `proxma.auth.password` | Password | `"root"` | `"secure123"` |
-| `proxma.auth.realm` | Auth realm | `"Restricted Area"` | `"Admin Panel"` |
+| `proxma.auth` | Enable authentication | `false` | `true` |
+| `proxma.auth.type` | Auth type: `basic`, `bearer`, or `both` | `"basic"` | `"bearer"` |
+| `proxma.auth.username` | Username (for `basic`/`both`) | `"root"` | `"admin"` |
+| `proxma.auth.password` | Password (for `basic`/`both`) | `"root"` | `"secure123"` |
+| `proxma.auth.token` | Static bearer token (for `bearer`/`both`) | - | `"my-api-key"` |
+| `proxma.auth.realm` | Auth realm (browser prompt text) | `"Restricted Area"` | `"Admin Panel"` |
 
 ### Web Server Tuning
 
@@ -293,8 +295,10 @@ Configure Proxma globally using environment variables:
 | `PROXMA_DISABLE_FAIL2BAN` | Disable fail2ban | `false` |
 | `PROXMA_FORCE_IPV6` | Force IPv6 even if not detected | `false` |
 | `PROXMA_AUTH` | Enable auth globally | `false` |
-| `PROXMA_AUTH_USERNAME` | Default username | `"root"` |
-| `PROXMA_AUTH_PASSWORD` | Default password | `"root"` |
+| `PROXMA_AUTH_TYPE` | Default auth type (`basic`, `bearer`, `both`) | `"basic"` |
+| `PROXMA_AUTH_USERNAME` | Default username (for `basic`/`both`) | `"root"` |
+| `PROXMA_AUTH_PASSWORD` | Default password (for `basic`/`both`) | `"root"` |
+| `PROXMA_AUTH_TOKEN` | Default bearer token (for `bearer`/`both`) | - |
 | `PROXMA_AUTH_REALM` | Default auth realm | `"Restricted Area"` |
 
 ### SSL DNS Provider
@@ -355,7 +359,7 @@ services:
       proxma.hosts: "api.example.com:8080:http,grpc.example.com:9000:grpc"
 ```
 
-### Secure Application with Authentication
+### Secure Application with Basic Authentication
 
 ```yaml
 services:
@@ -368,6 +372,21 @@ services:
       proxma.auth: "true"
       proxma.auth.username: "admin"
       proxma.auth.password: "secure-password"
+```
+
+### API Service with Bearer Token Authentication
+
+```yaml
+services:
+  api:
+    image: my-api:latest
+    labels:
+      proxma.hosts: "api.example.com"
+      proxma.port: "8080"
+      proxma.ssl: "true"
+      proxma.auth: "true"
+      proxma.auth.type: "bearer"
+      proxma.auth.token: "your-api-key-here"
 ```
 
 ### Multi-Environment Setup
@@ -484,7 +503,9 @@ Disable with: `PROXMA_DISABLE_FAIL2BAN=true`
 
 ### Authentication
 
-Support for HTTP Basic Authentication per container:
+Proxma supports three authentication modes per container:
+
+**Basic Auth** (default) - traditional username/password:
 
 ```yaml
 labels:
@@ -492,6 +513,28 @@ labels:
   proxma.auth.username: "secure-user"
   proxma.auth.password: "strong-password"
   proxma.auth.realm: "Protected Application"
+```
+
+**Bearer Token Auth** - static token validation, ideal for API services and MCP clients:
+
+```yaml
+labels:
+  proxma.auth: "true"
+  proxma.auth.type: "bearer"
+  proxma.auth.token: "my-secret-api-key"
+```
+
+Clients authenticate with: `Authorization: Bearer my-secret-api-key`
+
+**Both** - accepts either Basic or Bearer auth (useful for services accessed by both browsers and API clients):
+
+```yaml
+labels:
+  proxma.auth: "true"
+  proxma.auth.type: "both"
+  proxma.auth.username: "admin"
+  proxma.auth.password: "strong-password"
+  proxma.auth.token: "my-secret-api-key"
 ```
 
 ### SSL/TLS
@@ -509,7 +552,7 @@ labels:
 - **WebSocket Support** - Automatic WebSocket proxying with connection upgrades
 - **International Domains** - IDN support with automatic Punycode conversion
 - **Comprehensive Headers** - Full proxy header forwarding for upstream compatibility
-- **Password Security** - bcrypt hashing for authentication credentials
+- **Password Security** - bcrypt hashing for basic auth, static token validation for bearer auth
 
 ## 🔍 Monitoring and Troubleshooting
 
@@ -625,7 +668,10 @@ A: Verify: 1) Domain DNS points to your server, 2) `PROXMA_SSL_EMAIL` is set, 3)
 A: Set `PROXMA_DEBUG=true` in your environment variables to get detailed logging output.
 
 **Q: What are the default authentication credentials?**
-A: Default username is `root` and password is `root`. **Always change these in production!**
+A: For basic auth, the default username is `root` and password is `root`. **Always change these in production!** For bearer auth, no default token is set - you must provide one via `proxma.auth.token`.
+
+**Q: My API client only supports Bearer tokens but Proxma uses Basic auth. What do I do?**
+A: Set `proxma.auth.type: "bearer"` and `proxma.auth.token: "your-token"` on the container. The client authenticates with `Authorization: Bearer your-token`. Use `proxma.auth.type: "both"` if you need to support both methods.
 
 **Q: How do I migrate from another reverse proxy solution?**
 A: 1) Stop your existing reverse proxy, 2) Add Proxma labels to containers, 3) Start Proxma. It will automatically configure everything.
@@ -670,7 +716,7 @@ services:
 **Configuration Generation:**
 - **Domain Sanitization** - Converts domains to filesystem-safe names
 - **Template System** - Modular Nginx configuration generation
-- **Authentication** - bcrypt password hashing with htpasswd files
+- **Authentication** - Basic (bcrypt htpasswd), Bearer (nginx auth_request), or both (satisfy any)
 - **Protocol Detection** - Automatic HTTP/gRPC/WebSocket handling
 
 ## 🚦 Development
